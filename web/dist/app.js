@@ -33,18 +33,23 @@ function __makeRequire(fromId){
 __define("web/js/app.js", function(module, exports, require){
 /**
  * 竞彩助手 · Web 版入口（纯静态，无后端）。
- * 数据：开奖来自仓库内定时生成的 JSON；个人记录存本机 IndexedDB。
+ * 数据：开奖来自仓库内定时生成的 JSON；个人记录存本机；AI 用你自己填的 Key 直连 DeepSeek。
  */
 const repo = require('./repo');
 const store = require('./store');
+const { createAi } = require('./ai');
 const { GAME, GAME_META, PURCHASE_STATUS, DISCLAIMER } = require('../../shared/constants/games');
 const { validateNumbers } = require('../../shared/validators/numbers');
 const { suggestCost } = require('../../shared/rules/registry');
+
+const ai = createAi({ store });
+const { emptyBet, betLabel, randomBets } = require('./bets');
 
 const TABS = [
   { key: 'draws', label: '开奖' },
   { key: 'tickets', label: '我的号码' },
   { key: 'stats', label: '统计' },
+  { key: 'ai', label: 'AI' },
   { key: 'data', label: '数据' },
 ];
 
@@ -58,7 +63,15 @@ const PENDING_TEXT = {
   DRAW_NOT_VERIFIED: '该期开奖数据尚未核验。',
 };
 
-const SSQ_LEVEL = { 1: '一等奖', 2: '二等奖', 3: '三等奖', 4: '四等奖', 5: '五等奖', 6: '六等奖', fuyun: '福运奖' };
+const SSQ_LEVEL = {
+  1: '一等奖',
+  2: '二等奖',
+  3: '三等奖',
+  4: '四等奖',
+  5: '五等奖',
+  6: '六等奖',
+  fuyun: '福运奖',
+};
 
 const state = {
   tab: 'draws',
@@ -67,11 +80,13 @@ const state = {
   tickets: [],
   checks: new Map(),
   stats: null,
+  syncInfo: null,
   busy: false,
   message: null,
+  lastError: null,
   form: null,
   detail: null,
-  editingNote: null,
+  ai: { messages: [], busy: false, error: '', keyDraft: '', notice: '' },
 };
 
 function esc(text) {
@@ -98,12 +113,11 @@ function yuan(n) {
 function balls(numbers, game) {
   const isKl8 = game === GAME.KL8;
   const main = isKl8 ? numbers.kl8 || [] : numbers.red || [];
-  const html = main
-    .map((n) => `<span class="ball ${isKl8 ? 'kl8' : 'red'}">${pad2(n)}</span>`)
-    .join('');
-  const blue = !isKl8 && numbers.blue !== null && numbers.blue !== undefined
-    ? `<span class="ball blue">${pad2(numbers.blue)}</span>`
-    : '';
+  const html = main.map((n) => `<span class="ball ${isKl8 ? 'kl8' : 'red'}">${pad2(n)}</span>`).join('');
+  const blue =
+    !isKl8 && numbers.blue !== null && numbers.blue !== undefined
+      ? `<span class="ball blue">${pad2(numbers.blue)}</span>`
+      : '';
   return `<div class="balls">${html}${blue}</div>`;
 }
 
@@ -203,9 +217,13 @@ function drawsView() {
   return `
     ${gameSwitch()}
     <div class="toolbar">
-      <span class="muted">数据生成：${sync.generatedAt ? esc(sync.generatedAt.slice(0, 16).replace('T', ' ')) : '未知'} · 共 ${state.draws.length} 期</span>
+      <span class="muted">数据生成：${
+        sync.generatedAt ? esc(sync.generatedAt.slice(0, 16).replace('T', ' ')) : '未知'
+      } · 共 ${state.draws.length} 期</span>
       <div class="toolbar-actions">
-        <button class="btn" data-act="sync" ${state.busy ? 'disabled' : ''}>${state.busy ? '同步中…' : '重新加载开奖'}</button>
+        <button class="btn" data-act="sync" ${state.busy ? 'disabled' : ''}>${
+          state.busy ? '同步中…' : '重新加载开奖'
+        }</button>
       </div>
     </div>
     ${state.draws.length === 0 ? emptyBlock('还没有开奖数据', '点「重新加载开奖」从仓库里的 JSON 读取；若失败，可在「数据」页手动导入 CSV / JSON。') : ''}
@@ -227,19 +245,85 @@ function drawsView() {
             <span class="muted">${d.ruleVersion || '无规则版本'} · 奖池 ${d.poolAmount ? yuan(d.poolAmount) : '—'}</span>
             <span class="link">${open ? '收起' : '奖级明细'}</span>
           </div>
-          ${open ? `
+          ${
+            open
+              ? `
           <div class="detail">
             <table class="prize">
               <thead><tr><th>奖级</th><th class="num">注数</th><th class="num">单注奖金</th></tr></thead>
               <tbody>${prizeRows(d)}</tbody>
             </table>
-            <p class="muted small">来源：${d.sourceUrl ? `<a href="${esc(d.sourceUrl)}" target="_blank" rel="noreferrer">中国福彩网公告</a>` : '未知'} · 解析器 ${esc(d.parserVersion || '—')} · 核验 ${esc((d.verifiedAt || '').slice(0, 10))}</p>
+            <p class="muted small">来源：${
+              d.sourceUrl ? `<a href="${esc(d.sourceUrl)}" target="_blank" rel="noreferrer">中国福彩网公告</a>` : '未知'
+            } · 解析器 ${esc(d.parserVersion || '—')} · 核验 ${esc((d.verifiedAt || '').slice(0, 10))}</p>
             <p class="muted small">浮动奖金额取自当期公告；当期无人中或未公布时显示为待公告，不做估算。</p>
-          </div>` : ''}
+          </div>`
+              : ''
+          }
         </article>`;
         })
         .join('')}
     </div>`;
+}
+
+function renderCheck(c) {
+  if (c.checkStatus === 'pending_manual_review') {
+    return `<div><strong>待人工核验</strong><p class="small">${
+      PENDING_TEXT[c.pendingReason] || '存在需要人工确认的情况。'
+    }</p></div>`;
+  }
+  if (c.checkStatus === 'not_winner') {
+    const hit = c.hit || {};
+    const text =
+      c.game === GAME.SSQ
+        ? `命中 ${hit.red === undefined ? '-' : hit.red} 个红球${hit.blue ? ' + 蓝球' : ''}`
+        : `命中 ${hit.count === undefined ? '-' : hit.count} 个号码`;
+    return `<div><strong>未中奖</strong><p class="small">${text}</p></div>`;
+  }
+  const label = c.game === GAME.SSQ ? SSQ_LEVEL[c.prizeLevel] || `${c.prizeLevel} 等奖` : `选十中 ${c.prizeLevel}`;
+  return `<div>
+    <strong>中奖：${label}</strong>
+    <p class="amount">${
+      c.totalPrize === null || c.totalPrize === undefined
+        ? `单注${yuan(c.unitPrize)}（待公告）`
+        : yuan(c.totalPrize)
+    }${c.quantity > 1 ? ` · ${c.quantity} 注` : ''}</p>
+    <p class="small muted">命中号码：${((c.hit && c.hit.numbers) || []).map(pad2).join(' ') || '—'} · 规则 ${esc(
+      c.ruleVersion || '—'
+    )}</p>
+  </div>`;
+}
+
+function ticketDetail(t, check) {
+  if (t.purchaseStatus === PURCHASE_STATUS.DRAFT) {
+    return `<div class="detail">
+      <div class="form-inline">
+        <label>实际金额（元）<input id="cost-${t.id}" type="number" min="0" step="1" placeholder="如 ${
+          suggestCost(t.game, t.multiple || 1).value || ''
+        }" value="${t.actualCost === null ? '' : t.actualCost}" /></label>
+        <label>倍数<input id="mult-${t.id}" type="number" min="1" max="99" value="${t.multiple}" /></label>
+        <label>购买日期<input id="date-${t.id}" type="date" value="${new Date().toISOString().slice(0, 10)}" /></label>
+      </div>
+      <div class="actions">
+        <button class="btn primary" data-act="confirm" data-id="${t.id}">确认已购买（冻结号码）</button>
+        <button class="btn danger-outline" data-act="void" data-id="${t.id}">作废</button>
+        <button class="btn danger-outline" data-act="delete" data-id="${t.id}">删除</button>
+      </div>
+    </div>`;
+  }
+  if (t.purchaseStatus === PURCHASE_STATUS.CONFIRMED) {
+    return `<div class="detail">
+      <div class="check-box ${check && check.isWinner ? 'win' : check && check.checkStatus === 'pending_manual_review' ? 'warn' : ''}">
+        ${check ? renderCheck(check) : '<span class="muted">尚未核对</span>'}
+      </div>
+      <div class="actions">
+        <button class="btn" data-act="check-one" data-id="${t.id}">${check ? '重新核对' : '核对开奖结果'}</button>
+        <button class="btn danger-outline" data-act="void" data-id="${t.id}">作废</button>
+      </div>
+      <p class="muted small">已购买后号码冻结；如需改号，请作废后新建。删除需先作废。</p>
+    </div>`;
+  }
+  return `<div class="detail"><div class="actions"><button class="btn danger-outline" data-act="delete" data-id="${t.id}">永久删除</button></div></div>`;
 }
 
 function ticketCard(t) {
@@ -263,81 +347,20 @@ function ticketCard(t) {
       </div>
       ${balls(t.numbers, t.game)}
       <div class="row-foot">
-        <span class="muted">${t.multiple} 倍 · ${t.actualCost === null || t.actualCost === undefined ? '金额待补录' : `${t.actualCost} 元`}</span>
+        <span class="muted">${t.multiple} 倍 · ${
+          t.actualCost === null || t.actualCost === undefined ? '金额待补录' : `${t.actualCost} 元`
+        }</span>
         <span class="link">${open ? '收起' : '详情'}</span>
       </div>
       ${open ? ticketDetail(t, c) : ''}
     </article>`;
 }
 
-function ticketDetail(t, check) {
-  const rows = [];
-  if (t.purchaseStatus === PURCHASE_STATUS.DRAFT) {
-    rows.push(`
-      <div class="form-inline">
-        <label>实际金额（元）<input id="cost-${t.id}" type="number" min="0" step="1" placeholder="如 ${suggestCost(t.game, t.multiple || 1).value || ''}" value="${t.actualCost === null ? '' : t.actualCost}" /></label>
-        <label>倍数<input id="mult-${t.id}" type="number" min="1" max="99" value="${t.multiple}" /></label>
-        <label>购买日期<input id="date-${t.id}" type="date" value="${new Date().toISOString().slice(0, 10)}" /></label>
-      </div>
-      <div class="actions">
-        <button class="btn primary" data-act="confirm" data-id="${t.id}">确认已购买（冻结号码）</button>
-        <button class="btn danger-outline" data-act="void" data-id="${t.id}">作废</button>
-        <button class="btn danger-outline" data-act="delete" data-id="${t.id}">删除</button>
-      </div>`);
-  } else if (t.purchaseStatus === PURCHASE_STATUS.CONFIRMED) {
-    rows.push(`
-      <div class="check-box ${check && check.isWinner ? 'win' : check && check.checkStatus === 'pending_manual_review' ? 'warn' : ''}">
-        ${check ? renderCheck(check) : '<span class="muted">尚未核对</span>'}
-      </div>
-      <div class="actions">
-        <button class="btn" data-act="check-one" data-id="${t.id}">${check ? '重新核对' : '核对开奖结果'}</button>
-        <button class="btn danger-outline" data-act="void" data-id="${t.id}">作废</button>
-      </div>
-      <p class="muted small">已购买后号码冻结；如需改号，请作废后新建。删除需先作废。</p>`);
-  } else {
-    rows.push(`<div class="actions"><button class="btn danger-outline" data-act="delete" data-id="${t.id}">永久删除</button></div>`);
-  }
-  return `<div class="detail">${rows.join('')}</div>`;
-}
-
-function renderCheck(c) {
-  if (c.checkStatus === 'pending_manual_review') {
-    return `<div><strong>待人工核验</strong><p class="small">${PENDING_TEXT[c.pendingReason] || '存在需要人工确认的情况。'}</p></div>`;
-  }
-  if (c.checkStatus === 'not_winner') {
-    const hit = c.hit || {};
-    const text = c.game === GAME.SSQ
-      ? `命中 ${hit.red === undefined ? '-' : hit.red} 个红球${hit.blue ? ' + 蓝球' : ''}`
-      : `命中 ${hit.count === undefined ? '-' : hit.count} 个号码`;
-    return `<div><strong>未中奖</strong><p class="small">${text}</p></div>`;
-  }
-  const label = c.game === GAME.SSQ ? SSQ_LEVEL[c.prizeLevel] || `${c.prizeLevel} 等奖` : `选十中 ${c.prizeLevel}`;
-  return `<div>
-    <strong>中奖：${label}</strong>
-    <p class="amount">${c.totalPrize === null || c.totalPrize === undefined ? `单注${yuan(c.unitPrize)}（待公告）` : yuan(c.totalPrize)}${c.quantity > 1 ? ` · ${c.quantity} 注` : ''}</p>
-    <p class="small muted">命中号码：${((c.hit && c.hit.numbers) || []).map(pad2).join(' ') || '—'} · 规则 ${esc(c.ruleVersion || '—')}</p>
-  </div>`;
-}
-
-function ticketsView() {
-  const counts = state.stats ? state.stats.counts : { draft: 0, confirmed: 0, void: 0 };
-  return `
-    <div class="toolbar">
-      <span class="muted">草稿 ${counts.draft} · 已购买 ${counts.confirmed} · 已作废 ${counts.void}</span>
-      <div class="toolbar-actions">
-        <button class="btn" data-act="check-all" ${state.busy ? 'disabled' : ''}>一键核对</button>
-        <button class="btn primary" data-act="new-ticket">新增号码</button>
-      </div>
-    </div>
-    ${state.form ? ticketForm() : ''}
-    ${state.tickets.length === 0 && !state.form ? emptyBlock('还没有号码记录', '点「新增号码」手动录入。候选导入也只生成草稿，必须你确认购买后才计入统计与判奖。') : ''}
-    <div class="list">${state.tickets.map(ticketCard).join('')}</div>`;
-}
-
 function ticketForm() {
   const f = state.form;
-  const meta = GAME_META[f.game];
   const isSsq = f.game === GAME.SSQ;
+  const active = Math.min(f.active || 0, f.bets.length - 1);
+  const bet = f.bets[active] || emptyBet();
   const suggestion = suggestCost(f.game, Number(f.multiple) || 1);
 
   const grid = (from, to, selected, act) =>
@@ -348,6 +371,16 @@ function ticketForm() {
       )
       .join('');
 
+  const chips = f.bets
+    .map(
+      (b, i) => `
+      <button class="bet-chip ${i === active ? 'on' : ''}" data-act="bet-select" data-i="${i}">
+        <span>第 ${i + 1} 注</span>
+        <em>${esc(betLabel(b, f.game))}</em>
+      </button>`
+    )
+    .join('');
+
   return `
     <section class="card form">
       <div class="form-head">
@@ -357,33 +390,82 @@ function ticketForm() {
       <div class="segmented">
         ${[GAME.SSQ, GAME.KL8]
           .map(
-            (g) => `<button class="seg ${f.game === g ? 'on' : ''}" data-act="form-game" data-game="${g}">${GAME_META[g].shortName}</button>`
+            (g) =>
+              `<button class="seg ${f.game === g ? 'on' : ''}" data-act="form-game" data-game="${g}">${
+                GAME_META[g].shortName
+              }</button>`
           )
           .join('')}
       </div>
       <label class="field">目标期号
-        <input id="f-issue" type="text" inputmode="numeric" maxlength="7" placeholder="如 2026127" value="${esc(f.issue || '')}" />
+        <input id="f-issue" type="text" inputmode="numeric" maxlength="7" placeholder="如 2026127" value="${esc(
+          f.issue || ''
+        )}" />
       </label>
       <p class="muted small">期号请按官方销售公告填写，本工具不会用「上期 + 1」推算。</p>
 
-      ${isSsq
-        ? `<div class="pick-group"><div class="pick-title">红球 <span class="muted">${f.red.length}/6</span></div><div class="grid">${grid(1, 33, f.red, 'pick-red')}</div></div>
-           <div class="pick-group"><div class="pick-title">蓝球 <span class="muted">${f.blue ? 1 : 0}/1</span></div><div class="grid small">${grid(1, 16, f.blue ? [f.blue] : [], 'pick-blue')}</div></div>`
-        : `<div class="pick-group"><div class="pick-title">选十号码 <span class="muted">${f.kl8.length}/10</span></div><div class="grid">${grid(1, 80, f.kl8, 'pick-kl8')}</div></div>`}
+      <div class="bet-bar">
+        <label class="bet-count">注数
+          <input id="f-betcount" type="number" min="1" max="5" value="${f.bets.length}" />
+        </label>
+        <button class="btn" data-act="random">随机生成</button>
+        <button class="btn" data-act="bet-add">加一注</button>
+        ${
+          f.bets.length > 1
+            ? `<button class="btn danger-outline" data-act="bet-remove" data-i="${active}">删当前注</button>`
+            : ''
+        }
+      </div>
+      <p class="muted small">注数 = 生成几注<b>不同</b>号码（最多 5 注）；倍数 = 每注打几倍，两者分开算钱。</p>
+
+      ${f.bets.length > 1 ? `<div class="bet-chips">${chips}</div><p class="muted small">点某一注可切换编辑目标。</p>` : ''}
+
+      ${
+        isSsq
+          ? `<div class="pick-group"><div class="pick-title">红球 <span class="muted">${
+              bet.red.length
+            }/6</span></div><div class="grid">${grid(1, 33, bet.red, 'pick-red')}</div></div>
+           <div class="pick-group"><div class="pick-title">蓝球 <span class="muted">${
+             bet.blue ? 1 : 0
+           }/1</span></div><div class="grid small">${grid(1, 16, bet.blue ? [bet.blue] : [], 'pick-blue')}</div></div>`
+          : `<div class="pick-group"><div class="pick-title">选十号码 <span class="muted">${
+              bet.kl8.length
+            }/10</span></div><div class="grid">${grid(1, 80, bet.kl8, 'pick-kl8')}</div></div>`
+      }
 
       <div class="form-inline">
-        <label>倍数<input id="f-multiple" type="number" min="1" max="99" value="${f.multiple || 1}" /></label>
-        <label>实际金额（元，可留空）<input id="f-cost" type="number" min="0" placeholder="${suggestion.value ? `建议 ${suggestion.value}` : '按实际支付'}" value="${f.cost === null ? '' : f.cost}" /></label>
+        <label>每注倍数<input id="f-multiple" type="number" min="1" max="99" value="${f.multiple || 1}" /></label>
+        <label>每注金额（元，可留空）<input id="f-cost" type="number" min="0" placeholder="${
+          suggestion.value ? `建议 ${suggestion.value}` : '按实际支付'
+        }" value="${f.cost === null ? '' : f.cost}" /></label>
         <label>备注<input id="f-note" type="text" placeholder="选填" value="${esc(f.note || '')}" /></label>
       </div>
 
       <div class="actions">
-        <button class="btn" data-act="random">随机一注</button>
-        <button class="btn" data-act="clear-picks">清空</button>
-        <button class="btn primary" data-act="save-ticket">保存为草稿</button>
+        <button class="btn" data-act="clear-picks">清空当前注</button>
+        <button class="btn primary" data-act="save-ticket">保存 ${f.bets.length} 注为草稿</button>
       </div>
-      <p class="muted small">保存后是「草稿」，不计入花费与中奖。线下真的买了，再点「确认已购买」。</p>
+      <p class="muted small">保存后都是「草稿」，不计入花费与中奖。线下真的买了，再逐注确认已购买（确认后号码冻结）。</p>
     </section>`;
+}
+
+function ticketsView() {
+  const counts = state.stats ? state.stats.counts : { draft: 0, confirmed: 0, void: 0 };
+  return `
+    <div class="toolbar">
+      <span class="muted">草稿 ${counts.draft || 0} · 已购买 ${counts.confirmed || 0} · 已作废 ${counts.void || 0}</span>
+      <div class="toolbar-actions">
+        <button class="btn" data-act="check-all" ${state.busy ? 'disabled' : ''}>一键核对</button>
+        <button class="btn primary" data-act="new-ticket">新增号码</button>
+      </div>
+    </div>
+    ${state.form ? ticketForm() : ''}
+    ${
+      state.tickets.length === 0 && !state.form
+        ? emptyBlock('还没有号码记录', '点「新增号码」手动录入或随机生成。候选/随机号码也只生成草稿，必须你确认购买后才计入统计与判奖。')
+        : ''
+    }
+    <div class="list">${state.tickets.map(ticketCard).join('')}</div>`;
 }
 
 function statsView() {
@@ -402,7 +484,9 @@ function statsView() {
       <div class="stat"><span class="stat-label">投入</span><strong>${s.cost} 元</strong></div>
       <div class="stat"><span class="stat-label">中奖笔数</span><strong>${s.winners}</strong></div>
       <div class="stat"><span class="stat-label">奖金合计</span><strong>${s.prize} 元</strong></div>
-      <div class="stat"><span class="stat-label">净额</span><strong class="${s.net >= 0 ? 'up' : 'down'}">${s.net >= 0 ? '+' : ''}${s.net} 元</strong></div>
+      <div class="stat"><span class="stat-label">净额</span><strong class="${s.net >= 0 ? 'up' : 'down'}">${
+        s.net >= 0 ? '+' : ''
+      }${s.net} 元</strong></div>
       <div class="stat"><span class="stat-label">待处理</span><strong>${s.pending + s.unchecked}</strong></div>
     </div>
     <section class="card">
@@ -410,7 +494,61 @@ function statsView() {
         <thead><tr><th>彩种</th><th class="num">已购买</th><th class="num">投入</th><th class="num">中奖</th><th class="num">奖金</th></tr></thead>
         <tbody>${rows || '<tr><td colspan="5" class="muted">暂无已确认购买的记录</td></tr>'}</tbody>
       </table>
-      <p class="muted small">只统计「已购买」的记录；草稿与已作废不计入。奖金来自核对结果，待人工核验与待公告的金额未计入。${s.missingCost > 0 ? `另有 ${s.missingCost} 条未填金额，投入金额偏低。` : ''}</p>
+      <p class="muted small">只统计「已购买」的记录；草稿与已作废不计入。奖金来自核对结果，待人工核验与待公告的金额未计入。${
+        s.missingCost > 0 ? `另有 ${s.missingCost} 条未填金额，投入金额偏低。` : ''
+      }</p>
+    </section>`;
+}
+
+function aiView() {
+  const a = state.ai;
+  if (!ai.hasKey()) {
+    return `
+      <section class="card">
+        <h2>接入 AI 助手</h2>
+        <p class="muted small">AI 使用你自己提供的 DeepSeek API Key，只保存在这台浏览器里，不会上传到任何服务器。</p>
+        <label class="field">DeepSeek API Key
+          <input id="ai-key" type="password" placeholder="sk-..." value="${esc(a.keyDraft || '')}" autocomplete="off" />
+        </label>
+        <div class="actions">
+          <button class="btn primary" data-act="ai-save-key">保存并验证</button>
+          <a class="btn" href="https://platform.deepseek.com/api_keys" target="_blank" rel="noreferrer">去获取 Key</a>
+        </div>
+        <p class="muted small">Key 存在浏览器 localStorage：同一浏览器上的其他脚本或扩展理论上可读取。请用可随时吊销的 Key，不用时点「清除密钥」。费用由你的 DeepSeek 账户承担。</p>
+        ${a.notice ? `<p class="small ${a.error ? 'bad-text' : 'ok-text'}">${esc(a.notice)}</p>` : ''}
+      </section>`;
+  }
+
+  const messages = a.messages
+    .map(
+      (m) => `
+      <div class="chat-row ${m.role}">
+        <div class="bubble">${esc(m.text)}</div>
+        ${m.tools && m.tools.length ? `<div class="muted small">已查询：${esc(m.tools.join('、'))}</div>` : ''}
+      </div>`
+    )
+    .join('');
+
+  return `
+    <section class="card chat">
+      <div class="form-head">
+        <strong>AI 助手</strong>
+        <div class="inline-actions">
+          <button class="link" data-act="ai-verify">验证密钥</button>
+          <button class="link" data-act="ai-reset">新对话</button>
+          <button class="link" data-act="ai-clear-key">清除密钥</button>
+        </div>
+      </div>
+      ${a.error ? `<p class="small bad-text">${esc(a.error)}</p>` : ''}
+      <div class="chat-body">
+        ${messages || '<p class="muted small">可以问：最新一期开奖是多少、我买了哪些号码、快乐8 中 8 个多少钱、某期适用哪版规则。</p>'}
+        ${a.busy ? '<div class="chat-row assistant"><div class="bubble thinking">正在查询数据…</div></div>' : ''}
+      </div>
+      <div class="chat-input-row">
+        <input id="ai-input" type="text" maxlength="1000" placeholder="问点什么…" ${a.busy ? 'disabled' : ''} />
+        <button class="btn primary" data-act="ai-send" ${a.busy ? 'disabled' : ''}>发送</button>
+      </div>
+      <p class="muted small">回答由 DeepSeek 生成，事实来自本地已核验数据；不做号码推算，不构成购彩建议。</p>
     </section>`;
 }
 
@@ -418,7 +556,7 @@ function dataView() {
   return `
     <section class="card">
       <h2>开奖数据</h2>
-      <p class="muted small">开奖 JSON 由仓库的 GitHub Actions 每天定时抓取并提交，与本站同源，无需跨域。也可以手动导入。</p>
+      <p class="muted small">开奖 JSON 由仓库定时抓取生成，与本站同源，无需跨域。也可以手动导入。</p>
       <div class="actions">
         <button class="btn" data-act="sync" ${state.busy ? 'disabled' : ''}>从仓库数据重新加载</button>
         <label class="btn file">导入 CSV<input type="file" accept=".csv,text/csv" data-file="csv" hidden /></label>
@@ -458,6 +596,8 @@ function render() {
       ? ticketsView()
       : state.tab === 'stats'
       ? statsView()
+      : state.tab === 'ai'
+      ? aiView()
       : dataView();
 
   app.innerHTML = `${header()}${messageBar()}<main class="main">${body}</main>
@@ -493,49 +633,102 @@ async function syncDraws() {
 }
 
 function newForm() {
-  return { game: state.game, issue: '', red: [], blue: null, kl8: [], multiple: 1, cost: null, note: '' };
+  return { game: state.game, issue: '', multiple: 1, cost: null, note: '', bets: [emptyBet()], active: 0 };
 }
 
 function readFormInputs() {
   const f = state.form;
-  const issue = (document.getElementById('f-issue') || {}).value || '';
-  const multiple = Number((document.getElementById('f-multiple') || {}).value || 1);
-  const costRaw = (document.getElementById('f-cost') || {}).value;
-  const note = (document.getElementById('f-note') || {}).value || '';
+  const val = (id) => {
+    const el = document.getElementById(id);
+    return el ? el.value : undefined;
+  };
+  const costRaw = val('f-cost');
   return {
     ...f,
-    issue: issue.trim(),
-    multiple,
+    issue: (val('f-issue') || '').trim(),
+    multiple: Number(val('f-multiple') || 1),
+    betCount: Number(val('f-betcount') || f.bets.length),
     cost: costRaw === '' || costRaw === undefined ? null : Number(costRaw),
-    note,
+    note: val('f-note') || '',
   };
 }
 
 async function saveTicket() {
-  state.form = readFormInputs();
-  const f = state.form;
-  const numbers =
-    f.game === GAME.SSQ ? { red: f.red, blue: f.blue } : { kl8: f.kl8 };
-  const check = validateNumbers(f.game, numbers);
-  if (!check.ok) {
-    notify(check.message, 'bad');
-    return;
+  const f = readFormInputs();
+  state.form = f;
+
+  const inputs = [];
+  for (let i = 0; i < f.bets.length; i += 1) {
+    const bet = f.bets[i];
+    const numbers = f.game === GAME.SSQ ? { red: bet.red, blue: bet.blue } : { kl8: bet.kl8 };
+    const check = validateNumbers(f.game, numbers);
+    if (!check.ok) {
+      notify(`第 ${i + 1} 注：${check.message}`, 'bad');
+      return;
+    }
+    inputs.push({
+      game: f.game,
+      issue: f.issue,
+      numbers: check.normalized,
+      multiple: f.multiple,
+      actualCost: f.cost,
+      note: f.note,
+    });
   }
-  const res = await repo.createTicket({
-    game: f.game,
-    issue: f.issue,
-    numbers: check.normalized,
-    multiple: f.multiple,
-    actualCost: f.cost,
-    note: f.note,
-  });
+
+  const res = await repo.createTickets(inputs);
   if (!res.ok) {
     notify(res.message, 'bad');
     return;
   }
   state.form = null;
   await refreshAll();
-  notify('已存为草稿', 'ok');
+  notify(`已存为 ${res.count} 注草稿`, 'ok');
+}
+
+function activeBetIndex(f) {
+  return Math.min(Math.max(f.active || 0, 0), f.bets.length - 1);
+}
+
+function updateActiveBet(mutator) {
+  const f = readFormInputs();
+  const idx = activeBetIndex(f);
+  const bet = { ...f.bets[idx] };
+  mutator(bet);
+  const bets = f.bets.slice();
+  bets[idx] = bet;
+  state.form = { ...f, bets, active: idx };
+  render();
+}
+
+async function aiSend() {
+  const a = state.ai;
+  if (a.busy) return;
+  const input = document.getElementById('ai-input');
+  const text = (input && input.value ? input.value : '').trim();
+  if (!text) return notify('先说点什么吧', 'bad');
+
+  const history = a.messages.slice();
+  a.messages.push({ id: `u${Date.now()}`, role: 'user', text });
+  a.busy = true;
+  a.error = '';
+  render();
+
+  try {
+    const out = await ai.chat({ history, message: text });
+    a.messages.push({
+      id: `a${Date.now()}`,
+      role: 'assistant',
+      text: out.reply || '（没有内容）',
+      tools: out.toolCalls.map((t) => t.name),
+    });
+  } catch (err) {
+    a.error = err.message;
+    if (err.code === 'AI_NO_KEY') a.messages.pop();
+  } finally {
+    a.busy = false;
+    render();
+  }
 }
 
 async function onAction(act, el) {
@@ -555,17 +748,13 @@ async function onAction(act, el) {
     render();
     return;
   }
-  if (act === 'draw-toggle') {
-    state.detail = state.detail === el.dataset.id ? null : el.dataset.id;
+  if (act === 'draw-toggle' || act === 'ticket-toggle') {
+    state.detail = state.detail === id ? null : id;
     render();
     return;
   }
   if (act === 'sync') return syncDraws();
-  if (act === 'ticket-toggle') {
-    state.detail = state.detail === el.dataset.id ? null : el.dataset.id;
-    render();
-    return;
-  }
+
   if (act === 'new-ticket') {
     state.form = newForm();
     state.detail = null;
@@ -578,55 +767,70 @@ async function onAction(act, el) {
     return;
   }
   if (act === 'form-game') {
-    state.form = { ...state.form, game: el.dataset.game, red: [], blue: null, kl8: [] };
+    state.form = { ...state.form, game: el.dataset.game, bets: [emptyBet()], active: 0 };
+    render();
+    return;
+  }
+  if (act === 'bet-select') {
+    const f = readFormInputs();
+    state.form = { ...f, active: Number(el.dataset.i) };
+    render();
+    return;
+  }
+  if (act === 'bet-add') {
+    const f = readFormInputs();
+    if (f.bets.length >= 5) return notify('最多 5 注', 'bad');
+    state.form = { ...f, bets: f.bets.concat([emptyBet()]), active: f.bets.length };
+    render();
+    return;
+  }
+  if (act === 'bet-remove') {
+    const f = readFormInputs();
+    if (f.bets.length <= 1) return notify('至少保留 1 注', 'bad');
+    const i = Number(el.dataset.i);
+    const bets = f.bets.filter((_, idx) => idx !== i);
+    state.form = { ...f, bets, active: Math.max(0, i - 1) };
     render();
     return;
   }
   if (act === 'pick-red' || act === 'pick-blue' || act === 'pick-kl8') {
-    const f = readFormInputs();
     const n = Number(el.dataset.n);
-    if (act === 'pick-red') {
-      const idx = f.red.indexOf(n);
-      if (idx >= 0) f.red.splice(idx, 1);
-      else if (f.red.length >= 6) return notify('红球最多 6 个', 'bad');
-      else f.red.push(n);
-      f.red.sort((a, b) => a - b);
-    } else if (act === 'pick-blue') {
-      f.blue = f.blue === n ? null : n;
-    } else {
-      const idx = f.kl8.indexOf(n);
-      if (idx >= 0) f.kl8.splice(idx, 1);
-      else if (f.kl8.length >= 10) return notify('选十只能选 10 个', 'bad');
-      else f.kl8.push(n);
-      f.kl8.sort((a, b) => a - b);
-    }
-    state.form = f;
-    render();
+    updateActiveBet((bet) => {
+      if (act === 'pick-red') {
+        const idx = bet.red.indexOf(n);
+        if (idx >= 0) bet.red.splice(idx, 1);
+        else if (bet.red.length >= 6) {
+          notify('红球最多 6 个', 'bad');
+          return;
+        } else bet.red.push(n);
+        bet.red.sort((a, b) => a - b);
+      } else if (act === 'pick-blue') {
+        bet.blue = bet.blue === n ? null : n;
+      } else {
+        const idx = bet.kl8.indexOf(n);
+        if (idx >= 0) bet.kl8.splice(idx, 1);
+        else if (bet.kl8.length >= 10) {
+          notify('选十只能选 10 个', 'bad');
+          return;
+        } else bet.kl8.push(n);
+        bet.kl8.sort((a, b) => a - b);
+      }
+    });
     return;
   }
   if (act === 'random') {
-    const pick = (from, to, count) => {
-      const pool = Array.from({ length: to - from + 1 }, (_, i) => from + i);
-      for (let i = pool.length - 1; i > 0; i -= 1) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [pool[i], pool[j]] = [pool[j], pool[i]];
-      }
-      return pool.slice(0, count).sort((a, b) => a - b);
-    };
     const f = readFormInputs();
-    if (f.game === GAME.SSQ) {
-      f.red = pick(1, 33, 6);
-      f.blue = pick(1, 16, 1)[0];
-    } else {
-      f.kl8 = pick(1, 80, 10);
-    }
-    state.form = f;
+    const count = Math.max(1, Math.min(5, f.betCount || f.bets.length));
+    state.form = { ...f, bets: randomBets(f.game, count), active: 0 };
     render();
     return;
   }
   if (act === 'clear-picks') {
-    state.form = { ...readFormInputs(), red: [], blue: null, kl8: [] };
-    render();
+    updateActiveBet((bet) => {
+      bet.red = [];
+      bet.blue = null;
+      bet.kl8 = [];
+    });
     return;
   }
   if (act === 'save-ticket') return saveTicket();
@@ -675,6 +879,52 @@ async function onAction(act, el) {
     notify(`核对完成：新核对 ${summary.inserted} 条，中奖 ${summary.winners} 条`, 'ok');
     return;
   }
+
+  if (act === 'ai-save-key') {
+    const input = document.getElementById('ai-key');
+    try {
+      ai.setKey(input ? input.value : '');
+      state.ai.keyDraft = '';
+      state.ai.error = '';
+      const check = await ai.verifyKey();
+      state.ai.notice = check.ok ? `密钥可用（模型 ${check.model}）` : '';
+      if (!check.ok) {
+        state.ai.error = check.message;
+        state.ai.notice = `已保存，但验证失败：${check.message}`;
+      }
+      render();
+      if (check.ok) notify('密钥已保存并验证通过', 'ok');
+    } catch (err) {
+      state.ai.error = err.message;
+      render();
+    }
+    return;
+  }
+  if (act === 'ai-clear-key') {
+    if (!confirm('清除本机保存的密钥？清除后 AI 不可用，其他功能不受影响。')) return;
+    ai.clearKey();
+    state.ai = { messages: [], busy: false, error: '', keyDraft: '', notice: '' };
+    render();
+    notify('已清除密钥', 'ok');
+    return;
+  }
+  if (act === 'ai-verify') {
+    const check = await ai.verifyKey();
+    if (check.ok) notify('密钥可用', 'ok');
+    else {
+      state.ai.error = check.message;
+      render();
+    }
+    return;
+  }
+  if (act === 'ai-reset') {
+    state.ai.messages = [];
+    state.ai.error = '';
+    render();
+    return;
+  }
+  if (act === 'ai-send') return aiSend();
+
   if (act === 'export') {
     const data = await repo.exportAll();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -731,11 +981,17 @@ function bind() {
       onFile(e.target).catch((err) => notify(err.message, 'bad'));
     }
   });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target && e.target.id === 'ai-input') {
+      e.preventDefault();
+      aiSend().catch((err) => notify(err.message, 'bad'));
+    }
+  });
 }
 
 async function boot() {
   bind();
-  render(); // 先渲染骨架，别让用户对着空白等数据库
+  render();
 
   try {
     await refreshAll();
@@ -745,7 +1001,6 @@ async function boot() {
   render();
 
   if (!state.draws.length) {
-    // 首次打开自动拉一次仓库数据，失败也不阻塞
     await syncDraws();
   }
 
@@ -753,6 +1008,7 @@ async function boot() {
     document.title = JSON.stringify({
       draws: state.draws.length,
       tickets: state.tickets.length,
+      aiKey: ai.hasKey(),
       error: state.lastError || null,
       msg: state.message ? state.message.text : null,
     });
@@ -764,7 +1020,7 @@ if (typeof document !== 'undefined') {
   else boot();
 }
 
-module.exports = { boot, state, repo };
+module.exports = { boot, state, repo, ai };
 
 });
 
@@ -909,6 +1165,23 @@ async function createTicket(input) {
   return { ok: true, ticket: record };
 }
 
+/**
+ * 批量建草稿（随机多注 / 候选导入）。
+ * 任何一注不合法就整体不写，避免出现"部分成功"的糊涂账。
+ */
+async function createTickets(inputs) {
+  const records = [];
+  for (let i = 0; i < (inputs || []).length; i += 1) {
+    const built = buildTicketDraft(inputs[i], { ownerOpenId: 'local' });
+    if (!built.ok) {
+      return { ok: false, code: built.code, message: `第 ${i + 1} 注：${built.message}`, index: i };
+    }
+    records.push({ ...built.record, id: newId('t') });
+  }
+  await store.putAll('tickets', records);
+  return { ok: true, tickets: records, count: records.length };
+}
+
 async function updateTicket(id, patch) {
   const ticket = await store.get('tickets', id);
   if (!ticket) return { ok: false, code: 'NOT_FOUND', message: '记录不存在' };
@@ -989,6 +1262,7 @@ async function runChecks(game) {
 
     toSave.push({
       id: newId('c'),
+      ownerOpenId: 'local',
       ticketId: ticket.id,
       game: ticket.game,
       issue: ticket.issue,
@@ -996,6 +1270,7 @@ async function runChecks(game) {
       drawHash: draw ? draw.rawHash || null : null,
       ruleVersion: result.ruleVersion,
       hit: result.hit,
+      hitDetails: result.hit,
       prizeLevel: result.prizeLevel,
       unitPrize: result.unitPrize,
       quantity: result.quantity,
@@ -1125,6 +1400,7 @@ module.exports = {
   getDrawMap,
   listTickets,
   createTicket,
+  createTickets,
   updateTicket,
   confirmTicket,
   voidTicket,
@@ -3226,6 +3502,1265 @@ module.exports = {
   contentSignature,
   GAME_META,
 };
+
+});
+
+/* ===== web/js/ai.js ===== */
+__define("web/js/ai.js", function(module, exports, require){
+/**
+ * Web 版 AI：浏览器直连 DeepSeek，Key 由用户自己在设置里填，只存本机。
+ *
+ * 复用关系（不复制任何判定逻辑）：
+ *   - 提示词：shared/ai/prompt.js
+ *   - 工具白名单与参数校验：shared/ai/tools.js
+ *   - 工具执行器：shared/cloud/aiTools.js（通过 localdb 适配本地存储）
+ *   - 调用编排：shared/ai/orchestrator.js
+ *
+ * 安全边界：Key 存在 localStorage，同源脚本与浏览器扩展理论上可读，
+ * 因此界面必须明确告知，并提供「清除密钥」。绝不把 Key 写进任何提交里的文件。
+ */
+
+const { buildSystemPrompt, FINALIZE_INSTRUCTION, SYSTEM_PROMPT_VERSION } = require('../../shared/ai/prompt');
+const { getToolSchemas } = require('../../shared/ai/tools');
+const { runToolLoop } = require('../../shared/ai/orchestrator');
+const { createExecutors } = require('../../shared/cloud/aiTools');
+const {
+  ENDPOINT,
+  LIMITS,
+  isAcceptableModel,
+  buildRequestBody,
+  parseCompletion,
+  mapHttpError,
+  validateUserMessage,
+} = require('../../shared/ai/deepseek');
+const { createLocalDb } = require('./localdb');
+
+const KEY_STORAGE = 'jc:deepseek_key';
+const MODEL_STORAGE = 'jc:deepseek_model';
+const DEFAULT_MODEL = 'deepseek-flash';
+
+function createAi(options = {}) {
+  const {
+    store,
+    fetchImpl = typeof fetch !== 'undefined' ? fetch.bind(globalThis) : null,
+    storage = typeof localStorage !== 'undefined' ? localStorage : null,
+  } = options;
+
+  function readRaw(key) {
+    if (!storage) return '';
+    try {
+      return storage.getItem(key) || '';
+    } catch (err) {
+      return '';
+    }
+  }
+
+  function writeRaw(key, value) {
+    if (!storage) throw Object.assign(new Error('当前浏览器禁止本地存储，无法保存密钥'), { code: 'NO_STORAGE' });
+    try {
+      if (value === null) storage.removeItem(key);
+      else storage.setItem(key, value);
+    } catch (err) {
+      throw Object.assign(new Error('写入本地存储失败（可能是隐私模式）'), { code: 'NO_STORAGE' });
+    }
+  }
+
+  const getKey = () => readRaw(KEY_STORAGE).trim();
+  const hasKey = () => getKey().length > 0;
+
+  function setKey(raw) {
+    const key = String(raw || '').trim();
+    if (key.length < 20) {
+      throw Object.assign(new Error('密钥看起来太短，请检查是否复制完整'), { code: 'BAD_KEY' });
+    }
+    writeRaw(KEY_STORAGE, key);
+    return key;
+  }
+
+  const clearKey = () => writeRaw(KEY_STORAGE, null);
+
+  function getModel() {
+    const saved = readRaw(MODEL_STORAGE);
+    return isAcceptableModel(saved) ? saved : DEFAULT_MODEL;
+  }
+
+  function setModel(name) {
+    writeRaw(MODEL_STORAGE, isAcceptableModel(name) ? name : DEFAULT_MODEL);
+  }
+
+  async function callModel(messages, tools) {
+    const key = getKey();
+    if (!key) {
+      throw Object.assign(new Error('还没有填写 DeepSeek 密钥'), { code: 'AI_NO_KEY' });
+    }
+    if (!fetchImpl) {
+      throw Object.assign(new Error('当前环境不支持网络请求'), { code: 'AI_NO_FETCH' });
+    }
+
+    const body = buildRequestBody({ model: getModel(), messages, tools });
+    let res;
+    try {
+      res = await fetchImpl(ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${key}`,
+        },
+        body: JSON.stringify(body),
+      });
+    } catch (err) {
+      throw Object.assign(new Error('网络请求失败（可能是网络或跨域限制）'), { code: 'AI_NETWORK' });
+    }
+
+    if (!res.ok) {
+      let text = '';
+      try {
+        text = await res.text();
+      } catch (err) {
+        text = '';
+      }
+      const mapped = mapHttpError(res.status, text);
+      throw Object.assign(new Error(mapped.message), { code: mapped.code });
+    }
+
+    let payload;
+    try {
+      payload = await res.json();
+    } catch (err) {
+      throw Object.assign(new Error('AI 返回不是合法 JSON'), { code: 'BAD_RESPONSE' });
+    }
+
+    const parsed = parseCompletion(payload);
+    if (!parsed.ok) {
+      throw Object.assign(new Error(parsed.message), { code: parsed.code });
+    }
+    return { content: parsed.content, toolCalls: parsed.toolCalls, usage: parsed.usage };
+  }
+
+  /**
+   * @param {{history?: Array, message: string}} input
+   */
+  async function chat(input) {
+    const checked = validateUserMessage(input && input.message);
+    if (!checked.ok) {
+      throw Object.assign(new Error(checked.message), { code: 'BAD_MESSAGE' });
+    }
+    if (!hasKey()) {
+      throw Object.assign(new Error('还没有填写 DeepSeek 密钥，请先在下方粘贴并保存'), { code: 'AI_NO_KEY' });
+    }
+
+    const history = Array.isArray(input.history) ? input.history.slice(-LIMITS.historyMessages) : [];
+    const messages = [
+      { role: 'system', content: buildSystemPrompt() },
+      ...history
+        .filter((m) => (m.role === 'user' || m.role === 'assistant') && m.text)
+        .map((m) => ({ role: m.role, content: m.text })),
+      { role: 'user', content: checked.value },
+    ];
+
+    const executors = createExecutors({ db: createLocalDb(store), openid: 'local' });
+    const out = await runToolLoop({
+      messages,
+      toolSchemas: getToolSchemas(),
+      callModel,
+      executeTool: (name, args) => executors.execute(name, args),
+      finalizeInstruction: FINALIZE_INSTRUCTION,
+    });
+
+    return {
+      reply: (out.finalText || '').slice(0, 4000),
+      toolCalls: out.toolCalls.map((t) => ({ name: t.name, ok: t.ok })),
+      rounds: out.rounds,
+      stoppedReason: out.stoppedReason,
+      usage: out.usage || null,
+      promptVersion: SYSTEM_PROMPT_VERSION,
+    };
+  }
+
+  /** 用一条极短的请求验证密钥是否可用 */
+  async function verifyKey() {
+    if (!hasKey()) {
+      return { ok: false, code: 'AI_NO_KEY', message: '还没有填写密钥' };
+    }
+    try {
+      const res = await callModel(
+        [
+          { role: 'system', content: '只回复"ok"两个字符。' },
+          { role: 'user', content: 'ping' },
+        ],
+        null
+      );
+      return { ok: true, reply: (res.content || '').slice(0, 20), model: getModel() };
+    } catch (err) {
+      return { ok: false, code: err.code || 'AI_ERROR', message: err.message };
+    }
+  }
+
+  return { getKey, hasKey, setKey, clearKey, getModel, setModel, chat, verifyKey, callModel };
+}
+
+module.exports = { createAi, KEY_STORAGE, MODEL_STORAGE, DEFAULT_MODEL, ENDPOINT };
+
+});
+
+/* ===== shared/ai/prompt.js ===== */
+__define("shared/ai/prompt.js", function(module, exports, require){
+/**
+ * AI 系统提示词（版本化，服务端维护）。
+ * 改动必须升 SYSTEM_PROMPT_VERSION，并在 docs/phase-5-report.md 记录原因。
+ *
+ * 原则：模型只是"解释器"，事实一律来自工具返回；不许编数据、不许宣称能提升中奖机会。
+ */
+
+const SYSTEM_PROMPT_VERSION = 'ai_system@1.0.0';
+
+const RULES = [
+  '你是「竞彩助手」的个人数据分析助手，不是彩票发行机构，也不是选号专家。',
+  '所有事实性内容（期号、开奖号码、奖金、中奖等级、个人记录、统计口径）必须来自工具返回值；工具没给的，就说没有。',
+  '绝对不要编造期号、开奖号码、奖级、奖金金额、历史统计或个人购买记录。',
+  '历史开奖是随机事件的历史样本。不得声称历史冷热、遗漏、AI 或任何方法能提升中奖机会。',
+  '用户问最新开奖时，必须调用 get_latest_draw；若返回为空或未核验，明确说明"本地尚未同步/核验"，并给出最后一次同步时间。',
+  '中奖等级与奖金只能引用 get_ticket_check 或 get_rule_info 的结果，不得自行推断或按比例估算。',
+  '若工具返回 pending_manual_review 或 pendingReason，如实说明"待人工核验"及原因，不要给出结论金额。',
+  '当前候选号码/未来号码功能默认未开放。若未开放，明确告知不可用，不要以文本形式给出任何未来期号码组合。',
+  '所有数值分析要说明时间范围与样本数（例如"近 30 期"）。',
+  '只服务当前用户本人的记录；不要假设或询问他人的数据。',
+  '回答用简体中文，简洁、分点；不写营销话术，不做收益承诺。',
+];
+
+function buildSystemPrompt({ today } = {}) {
+  const date = today || new Date().toISOString().slice(0, 10);
+  return [`今天是 ${date}（Asia/Shanghai）。`, ...RULES.map((r, i) => `${i + 1}. ${r}`)].join('\n');
+}
+
+/** 触发"轮次超限"时给模型的收尾指令（不带工具再请求一次） */
+const FINALIZE_INSTRUCTION =
+  '已达到工具调用轮次上限。请仅基于上面已获得的数据作答；数据不足时直接说明缺少什么，不要再次请求工具，也不要编造。';
+
+/** 工具未开放时的统一说明，避免模型自由发挥 */
+const FEATURE_DISABLED_TEXT =
+  '候选号码与未来号码相关功能当前未开放（需微信平台明确许可后在服务端开启），因此我无法提供任何未来期号码组合。可以帮你查历史开奖、你自己的号码记录、规则与统计。';
+
+module.exports = {
+  SYSTEM_PROMPT_VERSION,
+  RULES,
+  FINALIZE_INSTRUCTION,
+  FEATURE_DISABLED_TEXT,
+  buildSystemPrompt,
+};
+
+});
+
+/* ===== shared/ai/tools.js ===== */
+__define("shared/ai/tools.js", function(module, exports, require){
+/**
+ * AI 工具白名单（只读）。
+ *
+ * 设计约束（对应主方案 13.3）：
+ *   - 只有查询能力：查开奖、查我的记录、查统计、查规则、查核对结果。
+ *   - 不接受模型传入用户标识：ownerOpenId 一律由服务端从运行上下文注入。
+ *   - 参数全部做白名单式校验，越界直接拒绝，不"尽量理解"。
+ *   - 不提供任何写库、删库、改奖级、改开奖数据的能力。
+ */
+
+const { GAME, PURCHASE_STATUS } = require('../constants/games');
+const { isValidIssue } = require('../rules/registry');
+
+const TOOL_NAMES = [
+  'get_latest_draw',
+  'get_draws',
+  'get_my_tickets',
+  'get_my_ticket_stats',
+  'get_number_stats',
+  'get_ticket_check',
+  'get_rule_info',
+];
+
+const CODE = {
+  OK: 'OK',
+  UNKNOWN_TOOL: 'UNKNOWN_TOOL',
+  BAD_ARGS: 'BAD_ARGS',
+};
+
+const GAMES = [GAME.SSQ, GAME.KL8];
+const WINDOWS = [30, 50, 100];
+
+function clampLimit(value, fallback = 5, max = 20) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return fallback;
+  return Math.min(Math.max(Math.trunc(num), 1), max);
+}
+
+function requireGame(raw) {
+  if (!GAMES.includes(raw.game)) {
+    return { ok: false, message: 'game 必须是 ssq 或 kl8' };
+  }
+  return { ok: true, game: raw.game };
+}
+
+const TOOLS = {
+  get_latest_draw: {
+    description: '查询指定彩种最新一期「已核验」的开奖结果，含号码、各奖级注数与单注金额、来源与核验时间。',
+    parameters: {
+      type: 'object',
+      properties: {
+        game: { type: 'string', enum: GAMES, description: 'ssq=双色球；kl8=快乐8' },
+      },
+      required: ['game'],
+      additionalProperties: false,
+    },
+    validate(raw) {
+      const g = requireGame(raw || {});
+      if (!g.ok) return { ok: false, code: CODE.BAD_ARGS, message: g.message };
+      return { ok: true, args: { game: g.game } };
+    },
+  },
+
+  get_draws: {
+    description: '按期号或最近期数查询已核验的开奖记录（最多 20 期），用于对比或复盘。',
+    parameters: {
+      type: 'object',
+      properties: {
+        game: { type: 'string', enum: GAMES },
+        issue: { type: 'string', description: '7 位期号，例如 2026126' },
+        limit: { type: 'integer', minimum: 1, maximum: 20, description: '返回期数，默认 5' },
+      },
+      required: ['game'],
+      additionalProperties: false,
+    },
+    validate(raw) {
+      const g = requireGame(raw || {});
+      if (!g.ok) return { ok: false, code: CODE.BAD_ARGS, message: g.message };
+      const args = { game: g.game, limit: clampLimit(raw.limit, 5) };
+      if (raw.issue !== undefined && raw.issue !== null && raw.issue !== '') {
+        const issue = String(raw.issue);
+        if (!isValidIssue(issue)) {
+          return { ok: false, code: CODE.BAD_ARGS, message: 'issue 必须是 7 位数字期号' };
+        }
+        args.issue = issue;
+      }
+      return { ok: true, args };
+    },
+  },
+
+  get_my_tickets: {
+    description: '查询当前用户本人的号码记录（草稿/已购买/已作废），可按彩种与状态过滤。用户身份由服务端注入，不得传入。',
+    parameters: {
+      type: 'object',
+      properties: {
+        game: { type: 'string', enum: GAMES },
+        status: { type: 'string', enum: Object.values(PURCHASE_STATUS) },
+        limit: { type: 'integer', minimum: 1, maximum: 20, description: '默认 10' },
+      },
+      required: [],
+      additionalProperties: false,
+    },
+    validate(raw) {
+      const src = raw || {};
+      const args = { limit: clampLimit(src.limit, 10) };
+      if (src.game !== undefined && src.game !== null && src.game !== '') {
+        if (!GAMES.includes(src.game)) {
+          return { ok: false, code: CODE.BAD_ARGS, message: 'game 必须是 ssq 或 kl8' };
+        }
+        args.game = src.game;
+      }
+      if (src.status !== undefined && src.status !== null && src.status !== '') {
+        if (!Object.values(PURCHASE_STATUS).includes(src.status)) {
+          return { ok: false, code: CODE.BAD_ARGS, message: 'status 必须是 draft/confirmed/void' };
+        }
+        args.status = src.status;
+      }
+      return { ok: true, args };
+    },
+  },
+
+  get_my_ticket_stats: {
+    description: '汇总当前用户本人的号码记录：各状态数量、已购买注数、录入金额合计、中奖笔数与奖金合计（奖金来自核对结果）。',
+    parameters: {
+      type: 'object',
+      properties: {
+        game: { type: 'string', enum: GAMES },
+      },
+      required: [],
+      additionalProperties: false,
+    },
+    validate(raw) {
+      const src = raw || {};
+      if (src.game !== undefined && src.game !== null && src.game !== '') {
+        if (!GAMES.includes(src.game)) {
+          return { ok: false, code: CODE.BAD_ARGS, message: 'game 必须是 ssq 或 kl8' };
+        }
+        return { ok: true, args: { game: src.game } };
+      }
+      return { ok: true, args: {} };
+    },
+  },
+
+  get_number_stats: {
+    description: '按最近 N 期已核验开奖统计号码出现频次与当前遗漏期数。这是描述性统计，不代表未来倾向。',
+    parameters: {
+      type: 'object',
+      properties: {
+        game: { type: 'string', enum: GAMES },
+        window: { type: 'integer', enum: WINDOWS, description: '统计窗口（期数），默认 30' },
+      },
+      required: ['game'],
+      additionalProperties: false,
+    },
+    validate(raw) {
+      const g = requireGame(raw || {});
+      if (!g.ok) return { ok: false, code: CODE.BAD_ARGS, message: g.message };
+      let window = 30;
+      if (raw.window !== undefined) {
+        const w = Number(raw.window);
+        if (!WINDOWS.includes(w)) {
+          return { ok: false, code: CODE.BAD_ARGS, message: 'window 只能是 30 / 50 / 100' };
+        }
+        window = w;
+      }
+      return { ok: true, args: { game: g.game, window } };
+    },
+  },
+
+  get_ticket_check: {
+    description: '查询某条个人号码记录的核对结果（命中号码、奖级、单注与总奖金、是否待人工核验）。',
+    parameters: {
+      type: 'object',
+      properties: {
+        ticketId: { type: 'string', description: '记录 ID' },
+      },
+      required: ['ticketId'],
+      additionalProperties: false,
+    },
+    validate(raw) {
+      const src = raw || {};
+      if (typeof src.ticketId !== 'string' || !src.ticketId || src.ticketId.length > 64) {
+        return { ok: false, code: CODE.BAD_ARGS, message: 'ticketId 不合法' };
+      }
+      return { ok: true, args: { ticketId: src.ticketId } };
+    },
+  },
+
+  get_rule_info: {
+    description: '查询某彩种某期适用的规则版本、奖级表与来源（用于解释规则变化，例如快乐8 新旧规则奖金差异）。',
+    parameters: {
+      type: 'object',
+      properties: {
+        game: { type: 'string', enum: GAMES },
+        issue: { type: 'string', description: '7 位期号；不传则返回当前生效版本' },
+      },
+      required: ['game'],
+      additionalProperties: false,
+    },
+    validate(raw) {
+      const g = requireGame(raw || {});
+      if (!g.ok) return { ok: false, code: CODE.BAD_ARGS, message: g.message };
+      const args = { game: g.game };
+      if (raw.issue !== undefined && raw.issue !== null && raw.issue !== '') {
+        const issue = String(raw.issue);
+        if (!isValidIssue(issue)) {
+          return { ok: false, code: CODE.BAD_ARGS, message: 'issue 必须是 7 位数字期号' };
+        }
+        args.issue = issue;
+      }
+      return { ok: true, args };
+    },
+  },
+};
+
+/** 发给模型的 function schema 列表（不含 validate） */
+function getToolSchemas() {
+  return TOOL_NAMES.map((name) => ({
+    type: 'function',
+    function: {
+      name,
+      description: TOOLS[name].description,
+      parameters: TOOLS[name].parameters,
+    },
+  }));
+}
+
+/** 校验工具名与参数；拒绝一切未列入白名单的调用 */
+function validateToolCall(name, rawArgs) {
+  if (!TOOL_NAMES.includes(name)) {
+    return { ok: false, code: CODE.UNKNOWN_TOOL, message: `工具 ${name} 不在允许列表内` };
+  }
+  let parsed = rawArgs;
+  if (typeof rawArgs === 'string') {
+    try {
+      parsed = rawArgs.trim() ? JSON.parse(rawArgs) : {};
+    } catch (err) {
+      return { ok: false, code: CODE.BAD_ARGS, message: '工具参数不是合法 JSON' };
+    }
+  }
+  return TOOLS[name].validate(parsed || {});
+}
+
+module.exports = { TOOL_NAMES, CODE, TOOLS, getToolSchemas, validateToolCall };
+
+});
+
+/* ===== shared/ai/orchestrator.js ===== */
+__define("shared/ai/orchestrator.js", function(module, exports, require){
+/**
+ * 工具调用编排（纯逻辑，不碰网络/数据库，便于用假模型测试）。
+ *
+ * 约束：
+ *   - 最多 maxRounds 轮模型调用；每轮最多执行 maxToolCallsPerRound 个工具；总量上限 maxTotalToolCalls。
+ *   - 工具名与参数由 shared/ai/tools.js 校验；执行异常不抛出，转成工具结果回给模型。
+ *   - 轮次用尽后再请求一次（不带工具）拿最终答复，避免用户收到空回复。
+ */
+
+const DEFAULT_LIMITS = { maxRounds: 3, maxToolCallsPerRound: 4, maxTotalToolCalls: 8 };
+
+/**
+ * @param {object} options
+ * @param {Array} options.messages 初始消息（含 system）
+ * @param {Array} options.toolSchemas 工具 schema 列表
+ * @param {(messages:Array, tools:Array|null) => Promise<{content?:string, toolCalls?:Array, usage?:object}>} options.callModel
+ * @param {(name:string, args:any) => Promise<object>} options.executeTool 返回可 JSON 化的对象；约定 ok:false 表示业务拒绝
+ * @param {string} [options.finalizeInstruction]
+ */
+async function runToolLoop(options) {
+  const {
+    messages,
+    toolSchemas,
+    callModel,
+    executeTool,
+    maxRounds = DEFAULT_LIMITS.maxRounds,
+    maxToolCallsPerRound = DEFAULT_LIMITS.maxToolCallsPerRound,
+    maxTotalToolCalls = DEFAULT_LIMITS.maxTotalToolCalls,
+    finalizeInstruction = '已达到工具调用上限，请仅基于已获得的数据作答。',
+  } = options;
+
+  const convo = (messages || []).slice();
+  const executed = [];
+  let rounds = 0;
+  let usage = null;
+
+  for (let round = 0; round < maxRounds; round += 1) {
+    rounds += 1;
+    const res = (await callModel(convo, toolSchemas)) || {};
+    usage = res.usage || usage;
+    const calls = Array.isArray(res.toolCalls) ? res.toolCalls : [];
+
+    if (calls.length === 0) {
+      const finalText = typeof res.content === 'string' ? res.content : '';
+      convo.push({ role: 'assistant', content: finalText });
+      return {
+        ok: true,
+        finalText,
+        messages: convo,
+        toolCalls: executed,
+        rounds,
+        stoppedReason: null,
+        usage,
+      };
+    }
+
+    convo.push({
+      role: 'assistant',
+      content: typeof res.content === 'string' ? res.content : '',
+      tool_calls: calls.map((c) => ({
+        id: c.id || `call_${executed.length}_${c.name}`,
+        type: 'function',
+        function: {
+          name: c.name,
+          arguments:
+            typeof c.arguments === 'string' ? c.arguments : JSON.stringify(c.arguments || {}),
+        },
+      })),
+    });
+
+    for (const call of calls.slice(0, maxToolCallsPerRound)) {
+      if (executed.length >= maxTotalToolCalls) {
+        convo.push({
+          role: 'tool',
+          tool_call_id: call.id || `call_${executed.length}_${call.name}`,
+          content: JSON.stringify({ ok: false, code: 'TOOL_BUDGET_EXCEEDED', message: '本次对话工具调用次数已达上限' }),
+        });
+        continue;
+      }
+
+      let payload;
+      try {
+        const out = await executeTool(call.name, call.arguments);
+        payload = out && typeof out === 'object' ? out : { ok: true, data: out };
+      } catch (err) {
+        payload = { ok: false, code: 'TOOL_ERROR', message: String((err && err.message) || err).slice(0, 200) };
+      }
+
+      executed.push({ name: call.name, args: call.arguments, ok: payload.ok !== false });
+      convo.push({
+        role: 'tool',
+        tool_call_id: call.id || `call_${executed.length}_${call.name}`,
+        content: JSON.stringify(payload),
+      });
+    }
+  }
+
+  // 轮次用尽：不带工具再要一次总结
+  convo.push({ role: 'system', content: finalizeInstruction });
+  const last = (await callModel(convo, null)) || {};
+  const finalText = typeof last.content === 'string' ? last.content : '';
+  convo.push({ role: 'assistant', content: finalText });
+
+  return {
+    ok: true,
+    finalText,
+    messages: convo,
+    toolCalls: executed,
+    rounds: rounds + 1,
+    stoppedReason: 'TOOL_ROUND_LIMIT',
+    usage: last.usage || usage,
+  };
+}
+
+module.exports = { runToolLoop, DEFAULT_LIMITS };
+
+});
+
+/* ===== shared/cloud/aiTools.js ===== */
+__define("shared/cloud/aiTools.js", function(module, exports, require){
+/**
+ * AI 工具执行器（仅云端）。
+ *
+ * 铁律：ownerOpenId 只从运行上下文来，任何工具参数都不能指定用户。
+ * 返回结构统一为 { ok, ... }，ok:false 表示业务上无法回答（找不到/未核验/未开放），
+ * 由模型向用户如实说明，而不是编造。
+ */
+
+const { GAME, GAME_META, PURCHASE_STATUS } = require('../constants/games');
+const { resolveRuleVersion } = require('../rules/registry');
+const { validateToolCall } = require('../ai/tools');
+
+const DRAWS = 'draw_records';
+const TICKETS = 'ticket_records';
+const CHECKS = 'ticket_checks';
+const LOGS = 'sync_logs';
+
+const JUDGEABLE = ['verified', 'corrected'];
+
+function stripPrivate(row) {
+  const { ownerOpenId, ...rest } = row;
+  return rest;
+}
+
+function summaryOfDraw(d) {
+  return {
+    issue: d.issue,
+    drawDate: d.drawDate,
+    numbers: d.numbers,
+    prizeInfo: d.prizeInfo,
+    specialRuleStatus: d.specialRuleStatus,
+    drawStatus: d.drawStatus,
+    sourceUrl: d.sourceUrl,
+    verifiedAt: d.verifiedAt,
+    ruleVersion: d.ruleVersion,
+  };
+}
+
+async function latestSync(db) {
+  try {
+    const res = await db.collection(LOGS).orderBy('createdAt', 'desc').limit(1).get();
+    const log = (res.data && res.data[0]) || null;
+    if (!log) return null;
+    return { finishedAt: log.finishedAt || log.createdAt, status: log.status, game: log.game };
+  } catch (err) {
+    return null;
+  }
+}
+
+function createExecutors({ db, openid, now = () => new Date() }) {
+  const draws = db.collection(DRAWS);
+  const tickets = db.collection(TICKETS);
+  const checks = db.collection(CHECKS);
+
+  async function findDraw(game, issue) {
+    const res = await draws.where({ game, issue }).limit(1).get();
+    return (res.data && res.data[0]) || null;
+  }
+
+  async function recentDraws(game, want) {
+    // 多取一些再过滤状态，避免依赖 _.in
+    const res = await draws.where({ game }).orderBy('issue', 'desc').limit(want * 3).get();
+    return (res.data || []).filter((d) => JUDGEABLE.includes(d.drawStatus)).slice(0, want);
+  }
+
+  const handlers = {
+    async get_latest_draw(args) {
+      const list = await recentDraws(args.game, 1);
+      const sync = await latestSync(db);
+      if (!list.length) {
+        return {
+          ok: false,
+          code: 'NO_VERIFIED_DRAW',
+          message: '本地暂无该彩种的已核验开奖数据',
+          lastSync: sync,
+          hint: '可让用户在「开奖」页点击「同步最新」，或使用 CSV 导入。',
+        };
+      }
+      return { ok: true, game: args.game, draw: summaryOfDraw(list[0]), lastSync: sync };
+    },
+
+    async get_draws(args) {
+      if (args.issue) {
+        const one = await findDraw(args.game, args.issue);
+        if (!one || !JUDGEABLE.includes(one.drawStatus)) {
+          return {
+            ok: false,
+            code: 'NOT_FOUND',
+            message: `本地没有 ${args.game} 第 ${args.issue} 期的已核验数据`,
+          };
+        }
+        return { ok: true, game: args.game, count: 1, draws: [summaryOfDraw(one)] };
+      }
+      const list = await recentDraws(args.game, args.limit || 5);
+      if (!list.length) {
+        return { ok: false, code: 'NO_VERIFIED_DRAW', message: '本地暂无该彩种的已核验开奖数据' };
+      }
+      return { ok: true, game: args.game, count: list.length, draws: list.map(summaryOfDraw) };
+    },
+
+    async get_my_tickets(args) {
+      const where = { ownerOpenId: openid };
+      if (args.game) where.game = args.game;
+      if (args.status) where.purchaseStatus = args.status;
+
+      const res = await tickets.where(where).orderBy('createdAt', 'desc').limit(args.limit || 10).get();
+      const rows = res.data || [];
+      const countRes = await tickets.where(where).count();
+
+      return {
+        ok: true,
+        total: countRes.total || 0,
+        returned: rows.length,
+        filter: { game: args.game || 'all', status: args.status || 'all' },
+        tickets: rows.map((t) => ({
+          id: t._id,
+          game: t.game,
+          issue: t.issue,
+          displayText: t.displayText,
+          purchaseStatus: t.purchaseStatus,
+          actualCost: t.actualCost === undefined ? null : t.actualCost,
+          multiple: t.multiple,
+          checkSummary: t.checkSummary || null,
+          createdAt: t.createdAt,
+        })),
+        note: rows.length < (countRes.total || 0) ? '仅返回最近若干条，未列出全部' : '已列出全部匹配记录',
+      };
+    },
+
+    async get_my_ticket_stats(args) {
+      const scope = { ownerOpenId: openid };
+      if (args.game) scope.game = args.game;
+
+      const counts = {};
+      for (const status of Object.values(PURCHASE_STATUS)) {
+        const res = await tickets.where({ ...scope, purchaseStatus: status }).count();
+        counts[status] = res.total || 0;
+      }
+
+      const confirmedRes = await tickets
+        .where({ ...scope, purchaseStatus: PURCHASE_STATUS.CONFIRMED })
+        .limit(500)
+        .get();
+      const confirmed = confirmedRes.data || [];
+
+      let totalCost = 0;
+      let missingCost = 0;
+      for (const t of confirmed) {
+        if (typeof t.actualCost === 'number') totalCost += t.actualCost;
+        else missingCost += 1;
+      }
+
+      // 奖金只认核对结果，不读 checkSummary 的金额做统计口径（D16）
+      const checkRes = await checks.where(scope).limit(500).get();
+      const checkRows = checkRes.data || [];
+      const latestByTicket = new Map();
+      for (const c of checkRows) {
+        const prev = latestByTicket.get(c.ticketId);
+        if (!prev || String(c.checkedAt) > String(prev.checkedAt)) latestByTicket.set(c.ticketId, c);
+      }
+
+      const confirmedIds = new Set(confirmed.map((t) => t._id));
+      let winners = 0;
+      let totalPrize = 0;
+      let pendingReview = 0;
+      let recordsWithCheck = 0;
+
+      for (const [ticketId, c] of latestByTicket) {
+        if (!confirmedIds.has(ticketId)) continue;
+        recordsWithCheck += 1;
+        if (c.checkStatus === 'pending_manual_review') pendingReview += 1;
+        if (c.isWinner) {
+          winners += 1;
+          if (typeof c.totalPrize === 'number') totalPrize += c.totalPrize;
+        }
+      }
+
+      return {
+        ok: true,
+        scope: { game: args.game || 'all' },
+        counts,
+        purchased: {
+          tickets: counts.confirmed,
+          totalCost,
+          missingCostTickets: missingCost,
+          costNote:
+            missingCost > 0
+              ? `有 ${missingCost} 张已购买记录未填写实际金额，合计金额仅统计已填写的部分`
+              : '金额为用户录入的实际支付额',
+        },
+        winnings: {
+          recordsWithCheck,
+          winners,
+          totalPrize,
+          pendingReview,
+          prizeNote: '奖金来自核对结果；待人工核验或待官方公告的金额未计入合计',
+        },
+      };
+    },
+
+    async get_number_stats(args) {
+      const window = args.window || 30;
+      const list = await recentDraws(args.game, window);
+      if (!list.length) {
+        return { ok: false, code: 'NO_VERIFIED_DRAW', message: '本地暂无已核验开奖数据，无法统计' };
+      }
+
+      const meta = GAME_META[args.game];
+      const isSsq = args.game === GAME.SSQ;
+      const pick = (d) => (isSsq ? { red: d.numbers.red || [], blue: [d.numbers.blue] } : { red: d.numbers.kl8 || [], blue: [] });
+
+      // list 已按 issue 降序
+      const appearRed = new Map();
+      const appearBlue = new Map();
+      const omissionRed = new Map();
+      const omissionBlue = new Map();
+
+      list.forEach((d, idx) => {
+        const picked = pick(d);
+        for (const n of picked.red) {
+          appearRed.set(n, (appearRed.get(n) || 0) + 1);
+          if (!omissionRed.has(n)) omissionRed.set(n, idx);
+        }
+        for (const n of picked.blue) {
+          if (!n) continue;
+          appearBlue.set(n, (appearBlue.get(n) || 0) + 1);
+          if (!omissionBlue.has(n)) omissionBlue.set(n, idx);
+        }
+      });
+
+      const maxRed = isSsq ? meta.redMax : meta.max;
+      const build = (max, appear, omission) => {
+        const out = [];
+        for (let n = 1; n <= max; n += 1) {
+          out.push({
+            number: n,
+            count: appear.get(n) || 0,
+            omission: omission.has(n) ? omission.get(n) : list.length,
+          });
+        }
+        return out;
+      };
+
+      const result = {
+        ok: true,
+        game: args.game,
+        window,
+        sampleSize: list.length,
+        issueRange: { from: list[list.length - 1].issue, to: list[0].issue },
+        red: isSsq ? build(33, appearRed, omissionRed) : undefined,
+        blue: isSsq ? build(16, appearBlue, omissionBlue) : undefined,
+        kl8: isSsq ? undefined : build(80, appearRed, omissionRed),
+        definitions: {
+          count: '在统计窗口内出现的期数',
+          omission: '自最近一次出现后连续未出现的期数；窗口内从未出现记为窗口长度',
+        },
+        note: '这是历史描述性统计，不能用于判断未来开奖倾向。',
+      };
+      return result;
+    },
+
+    async get_ticket_check(args) {
+      const res = await tickets.where({ _id: args.ticketId, ownerOpenId: openid }).limit(1).get();
+      const ticket = (res.data && res.data[0]) || null;
+      if (!ticket) {
+        return { ok: false, code: 'NOT_FOUND', message: '没有找到这条记录（或不属于当前用户）' };
+      }
+      const checkRes = await checks
+        .where({ ticketId: args.ticketId })
+        .orderBy('checkedAt', 'desc')
+        .limit(1)
+        .get();
+      const check = (checkRes.data && checkRes.data[0]) || null;
+      if (!check) {
+        return {
+          ok: false,
+          code: 'NO_CHECK',
+          message: '这条记录还没有核对结果',
+          ticket: { id: ticket._id, issue: ticket.issue, displayText: ticket.displayText },
+          hint: '需先同步该期已核验开奖，再执行"一键核对"。',
+        };
+      }
+      return {
+        ok: true,
+        ticket: {
+          id: ticket._id,
+          game: ticket.game,
+          issue: ticket.issue,
+          displayText: ticket.displayText,
+          purchaseStatus: ticket.purchaseStatus,
+        },
+        check: {
+          checkStatus: check.checkStatus,
+          prizeLevel: check.prizeLevel,
+          unitPrize: check.unitPrize,
+          quantity: check.quantity,
+          totalPrize: check.totalPrize,
+          hitDetails: check.hitDetails,
+          pendingReason: check.pendingReason,
+          ruleVersion: check.ruleVersion,
+          checkedAt: check.checkedAt,
+        },
+      };
+    },
+
+    async get_rule_info(args) {
+      const rule = resolveRuleVersion(args.game, args.issue || '');
+      if (!rule.found) {
+        const fallback = resolveRuleVersion(args.game, '9999999');
+        if (args.issue) {
+          return {
+            ok: false,
+            code: 'NO_RULE_VERSION',
+            message: `第 ${args.issue} 期没有已建档的规则版本，不支持自动判奖`,
+            current: fallback.found
+              ? {
+                  ruleVersion: fallback.rule.ruleVersion,
+                  effectiveFromIssue: fallback.rule.effectiveFromIssue,
+                }
+              : null,
+          };
+        }
+        if (!fallback.found) {
+          return { ok: false, code: 'NO_RULE_VERSION', message: '该彩种没有已建档规则' };
+        }
+        return { ok: true, game: args.game, rule: describe(fallback.rule) };
+      }
+      return { ok: true, game: args.game, rule: describe(rule.rule) };
+    },
+  };
+
+  function describe(rule) {
+    return {
+      ruleVersion: rule.ruleVersion,
+      effectiveFromIssue: rule.effectiveFromIssue,
+      effectiveToIssue: rule.effectiveToIssue,
+      prizeTable: rule.prizeTable,
+      specialRuleConditions: rule.specialRuleConditions,
+      sourceUrl: rule.sourceUrl,
+      verifiedAt: rule.verifiedAt,
+      note: '奖金以"floating"表示浮动奖，必须读取当期官方公告，不得估算。',
+    };
+  }
+
+  /** 统一入口：先校验工具名与参数，再执行 */
+  async function execute(name, rawArgs) {
+    const checked = validateToolCall(name, rawArgs);
+    if (!checked.ok) {
+      return { ok: false, code: checked.code, message: checked.message };
+    }
+    const handler = handlers[name];
+    if (!handler) {
+      return { ok: false, code: 'UNKNOWN_TOOL', message: `工具 ${name} 不在允许列表内` };
+    }
+    return handler(checked.args);
+  }
+
+  return { execute, handlers };
+}
+
+module.exports = { createExecutors, stripPrivate, summaryOfDraw };
+
+});
+
+/* ===== shared/ai/deepseek.js ===== */
+__define("shared/ai/deepseek.js", function(module, exports, require){
+/**
+ * DeepSeek Chat Completions 报文构造与解析（纯函数，可离线测试）。
+ * 接口：POST https://api.deepseek.com/chat/completions
+ * 模型名必须来自服务端配置，不在此处写死。
+ */
+
+const ENDPOINT = 'https://api.deepseek.com/chat/completions';
+
+const LIMITS = {
+  maxInputChars: 1000,
+  maxOutputTokens: 900,
+  timeoutMs: 25000,
+  historyMessages: 10,
+};
+
+/** 模型名白名单前缀：只接受 DeepSeek 官方模型，防止配置被写成奇怪的值 */
+function isAcceptableModel(name) {
+  return typeof name === 'string' && /^deepseek-[a-z0-9.-]{2,40}$/.test(name);
+}
+
+function buildRequestBody({ model, messages, tools, temperature = 0.2, maxTokens }) {
+  const body = {
+    model,
+    messages,
+    temperature,
+    max_tokens: maxTokens || LIMITS.maxOutputTokens,
+    stream: false,
+  };
+  if (Array.isArray(tools) && tools.length) {
+    body.tools = tools;
+    body.tool_choice = 'auto';
+  }
+  return body;
+}
+
+/** 把模型返回的 tool_calls 归一化成 {id, name, arguments} */
+function normalizeToolCalls(message) {
+  const raw = message && message.tool_calls;
+  if (!Array.isArray(raw)) return [];
+  return raw.map((c, i) => ({
+    id: (c && c.id) || `call_${i}`,
+    name: c && c.function ? c.function.name : '',
+    arguments: c && c.function ? c.function.arguments : '{}',
+  }));
+}
+
+/**
+ * @returns {{ok:boolean, content:string, toolCalls:Array, usage:object|null, finishReason:string|null, code?:string, message?:string}}
+ */
+function parseCompletion(payload) {
+  if (!payload || typeof payload !== 'object') {
+    return { ok: false, code: 'BAD_RESPONSE', message: '模型返回不是合法 JSON', content: '', toolCalls: [], usage: null };
+  }
+  if (payload.error) {
+    return {
+      ok: false,
+      code: 'UPSTREAM_ERROR',
+      message: String(payload.error.message || '上游返回错误').slice(0, 200),
+      content: '',
+      toolCalls: [],
+      usage: null,
+    };
+  }
+  const choices = payload.choices;
+  if (!Array.isArray(choices) || !choices.length) {
+    return { ok: false, code: 'EMPTY_CHOICES', message: '模型未返回任何内容', content: '', toolCalls: [], usage: null };
+  }
+  const choice = choices[0] || {};
+  const message = choice.message || {};
+  return {
+    ok: true,
+    content: typeof message.content === 'string' ? message.content : '',
+    toolCalls: normalizeToolCalls(message),
+    usage: payload.usage || null,
+    finishReason: choice.finish_reason || null,
+  };
+}
+
+/** HTTP 状态码 → 可读错误码（不把响应体原样回传前端） */
+function mapHttpError(status, bodyText) {
+  if (status === 401 || status === 403) {
+    return { code: 'AI_AUTH_FAILED', message: 'AI 服务鉴权失败：密钥无效或已失效，请重新填写' };
+  }
+  if (status === 402) {
+    return { code: 'AI_QUOTA', message: 'AI 账户余额不足，请到 DeepSeek 控制台充值' };
+  }
+  if (status === 429) {
+    return { code: 'AI_RATE_LIMIT', message: 'AI 请求过于频繁，请稍后再试' };
+  }
+  if (status >= 500) {
+    return { code: 'AI_UPSTREAM', message: 'AI 服务暂时不可用，请稍后再试' };
+  }
+  return {
+    code: 'AI_BAD_REQUEST',
+    message: `AI 请求被拒绝（HTTP ${status}）${bodyText ? '，请检查模型名或参数配置' : ''}`,
+  };
+}
+
+/** 输入长度控制：超长直接拒绝，不做静默截断 */
+function validateUserMessage(text) {
+  if (typeof text !== 'string') return { ok: false, message: '消息格式不正确' };
+  const trimmed = text.trim();
+  if (!trimmed) return { ok: false, message: '消息不能为空' };
+  if (trimmed.length > LIMITS.maxInputChars) {
+    return { ok: false, message: `消息过长（上限 ${LIMITS.maxInputChars} 字），请精简后重试` };
+  }
+  return { ok: true, value: trimmed };
+}
+
+module.exports = {
+  ENDPOINT,
+  LIMITS,
+  isAcceptableModel,
+  buildRequestBody,
+  parseCompletion,
+  normalizeToolCalls,
+  mapHttpError,
+  validateUserMessage,
+};
+
+});
+
+/* ===== web/js/localdb.js ===== */
+__define("web/js/localdb.js", function(module, exports, require){
+/**
+ * 把本地存储包装成"像云数据库"的最小接口，
+ * 这样 shared/cloud/aiTools.js（原本跑在云函数里）可以原样复用，不必重写一套查询。
+ *
+ * 支持：where(等值) / orderBy / skip / limit / get / count
+ */
+
+const LOCAL_NAMES = {
+  draw_records: 'draws',
+  ticket_records: 'tickets',
+  ticket_checks: 'checks',
+};
+
+function createLocalDb(store) {
+  async function run(cloudName, state) {
+    const localName = LOCAL_NAMES[cloudName];
+    if (!localName) return []; // sync_logs 等本地不存的集合：按空处理
+    let rows = await store.getAll(localName);
+
+    if (state.where && Object.keys(state.where).length) {
+      rows = rows.filter((row) =>
+        Object.keys(state.where).every((key) => {
+          const expected = state.where[key];
+          return row[key] === expected;
+        })
+      );
+    }
+
+    if (state.order) {
+      const [field, dir] = state.order;
+      rows = rows.slice().sort((a, b) => {
+        const av = a[field];
+        const bv = b[field];
+        if (av === bv) return 0;
+        return av > bv ? 1 : -1;
+      });
+      if (dir === 'desc') rows.reverse();
+    }
+
+    if (state.skip) rows = rows.slice(state.skip);
+    if (Number.isFinite(state.limit)) rows = rows.slice(0, state.limit);
+
+    // 本地记录主键叫 id，云数据库叫 _id；统一补上 _id 供复用代码读取
+    return rows.map((row) => ({ ...row, _id: row._id || row.id }));
+  }
+
+  return {
+    collection(name) {
+      const state = { where: {}, order: null, limit: Infinity, skip: 0 };
+      const api = {
+        where(condition) {
+          state.where = condition || {};
+          return api;
+        },
+        orderBy(field, dir) {
+          state.order = [field, dir || 'asc'];
+          return api;
+        },
+        skip(n) {
+          state.skip = n;
+          return api;
+        },
+        limit(n) {
+          state.limit = n;
+          return api;
+        },
+        async get() {
+          return { data: await run(name, state) };
+        },
+        async count() {
+          return { total: (await run(name, state)).length };
+        },
+      };
+      return api;
+    },
+  };
+}
+
+module.exports = { createLocalDb };
+
+});
+
+/* ===== web/js/bets.js ===== */
+__define("web/js/bets.js", function(module, exports, require){
+/**
+ * 号码组合的生成与展示（与界面无关，便于测试）。
+ * 注数 = 生成几注不同号码；倍数 = 每注打几倍，两者独立。
+ */
+
+const { GAME } = require('../../shared/constants/games');
+
+const MAX_BETS = 5;
+
+function emptyBet() {
+  return { red: [], blue: null, kl8: [] };
+}
+
+function betKey(bet, game) {
+  return game === GAME.SSQ ? `${bet.red.join(',')}|${bet.blue}` : bet.kl8.join(',');
+}
+
+function pad2(n) {
+  return String(n).padStart(2, '0');
+}
+
+function betLabel(bet, game) {
+  const parts = game === GAME.SSQ ? bet.red : bet.kl8;
+  if (!parts.length) return '未选号';
+  const main = parts.map(pad2).join(' ');
+  return game === GAME.SSQ && bet.blue ? `${main} + ${pad2(bet.blue)}` : main;
+}
+
+function pick(from, to, count) {
+  const pool = [];
+  for (let n = from; n <= to; n += 1) pool.push(n);
+  for (let i = pool.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, count).sort((a, b) => a - b);
+}
+
+function randomBet(game) {
+  return game === GAME.SSQ
+    ? { red: pick(1, 33, 6), blue: pick(1, 16, 1)[0], kl8: [] }
+    : { red: [], blue: null, kl8: pick(1, 80, 10) };
+}
+
+/**
+ * 生成 count 注互不相同的号码。
+ * 注数超过上限时截断到 5，低于 1 时按 1 处理。
+ */
+function randomBets(game, count) {
+  const total = Math.max(1, Math.min(MAX_BETS, Number(count) || 1));
+  const out = [];
+  const seen = new Set();
+  let guard = 0;
+  while (out.length < total && guard < total * 60) {
+    guard += 1;
+    const bet = randomBet(game);
+    const key = betKey(bet, game);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(bet);
+  }
+  return out;
+}
+
+module.exports = { MAX_BETS, emptyBet, betKey, betLabel, randomBet, randomBets, pad2 };
 
 });
 

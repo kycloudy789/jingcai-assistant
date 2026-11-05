@@ -137,6 +137,23 @@ async function createTicket(input) {
   return { ok: true, ticket: record };
 }
 
+/**
+ * 批量建草稿（随机多注 / 候选导入）。
+ * 任何一注不合法就整体不写，避免出现"部分成功"的糊涂账。
+ */
+async function createTickets(inputs) {
+  const records = [];
+  for (let i = 0; i < (inputs || []).length; i += 1) {
+    const built = buildTicketDraft(inputs[i], { ownerOpenId: 'local' });
+    if (!built.ok) {
+      return { ok: false, code: built.code, message: `第 ${i + 1} 注：${built.message}`, index: i };
+    }
+    records.push({ ...built.record, id: newId('t') });
+  }
+  await store.putAll('tickets', records);
+  return { ok: true, tickets: records, count: records.length };
+}
+
 async function updateTicket(id, patch) {
   const ticket = await store.get('tickets', id);
   if (!ticket) return { ok: false, code: 'NOT_FOUND', message: '记录不存在' };
@@ -217,6 +234,7 @@ async function runChecks(game) {
 
     toSave.push({
       id: newId('c'),
+      ownerOpenId: 'local',
       ticketId: ticket.id,
       game: ticket.game,
       issue: ticket.issue,
@@ -224,6 +242,7 @@ async function runChecks(game) {
       drawHash: draw ? draw.rawHash || null : null,
       ruleVersion: result.ruleVersion,
       hit: result.hit,
+      hitDetails: result.hit,
       prizeLevel: result.prizeLevel,
       unitPrize: result.unitPrize,
       quantity: result.quantity,
@@ -353,6 +372,7 @@ module.exports = {
   getDrawMap,
   listTickets,
   createTicket,
+  createTickets,
   updateTicket,
   confirmTicket,
   voidTicket,

@@ -79,7 +79,7 @@ function parseCompletion(payload) {
 /** HTTP 状态码 → 可读错误码（不把响应体原样回传前端） */
 function mapHttpError(status, bodyText) {
   if (status === 401 || status === 403) {
-    return { code: 'AI_AUTH_FAILED', message: 'AI 服务鉴权失败，请检查云端环境变量 DEEPSEEK_API_KEY' };
+    return { code: 'AI_AUTH_FAILED', message: 'AI 服务鉴权失败：密钥无效或已失效，请重新填写' };
   }
   if (status === 402) {
     return { code: 'AI_QUOTA', message: 'AI 账户余额不足，请到 DeepSeek 控制台充值' };

@@ -97,6 +97,18 @@ npm run publish:data -- --dry-run    # 只抓不推
 想全自动：Windows「任务计划程序」→ 新建任务 → 操作选「启动程序」，
 程序填 `npm`，参数填 `run publish:data`，起始位置填项目目录。电脑开机时每天跑一次即可。
 
+## 3.6 AI 助手怎么开
+
+1. 打开站点 → 顶部「AI」页
+2. 粘贴自己的 DeepSeek API Key（在 <https://platform.deepseek.com/api_keys> 申请）
+3. 点「保存并验证」→ 显示"密钥可用"即可提问
+
+说明：
+- Key 只存在**你自己的浏览器**（localStorage），不经过任何服务器，也不在仓库里。
+- 费用由你的 DeepSeek 账户承担；单次对话最多 3 轮工具调用、900 tokens。
+- 浏览器直连已验证可用（`api.deepseek.com` 会回显 CORS 允许来源）。
+- 同一浏览器上的其他脚本理论上能读到 Key：建议用可随时吊销的 Key，不用时点「清除密钥」。
+
 ## 4. 日常维护
 
 | 想做什么 | 怎么做 |
