@@ -1,0 +1,36 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/draws/index",
+    "pages/draw-detail/index",
+    "pages/tickets/index",
+    "pages/ticket-edit/index",
+    "pages/ticket-detail/index",
+    "pages/assistant/index",
+    "pages/settings/index",
+    "pages/blocked/index"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "竞彩助手",
+    "backgroundColor": "#f5f6f8",
+    "backgroundTextStyle": "dark",
+    "enablePullDownRefresh": false
+  },
+  "tabBar": {
+    "color": "#8a8f99",
+    "selectedColor": "#1f6feb",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      { "pagePath": "pages/home/index", "text": "首页" },
+      { "pagePath": "pages/draws/index", "text": "开奖" },
+      { "pagePath": "pages/tickets/index", "text": "我的号码" },
+      { "pagePath": "pages/assistant/index", "text": "AI 助手" }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

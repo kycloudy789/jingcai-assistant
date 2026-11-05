@@ -1,0 +1,10 @@
+{
+  "name": "queryDraws",
+  "version": "1.0.0",
+  "description": "查询开奖列表与详情",
+  "main": "index.js",
+  "private": true,
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

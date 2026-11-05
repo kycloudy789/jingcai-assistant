@@ -1,0 +1,562 @@
+{
+ "schema": "jingcai-draws@1",
+ "game": "ssq",
+ "generatedAt": "2026-11-05T06:25:47.656Z",
+ "source": "https://www.cwl.gov.cn",
+ "sourceApi": "https://www.cwl.gov.cn/cwl_admin/front/cwlkj/search/kjxx/findDrawNotice",
+ "parserVersion": "cwl_api@1.0.0",
+ "count": 10,
+ "latestIssue": "2026126",
+ "records": [
+  {
+   "game": "ssq",
+   "issue": "2026126",
+   "drawDate": "2026-11-03",
+   "numbers": {
+    "red": [
+     9,
+     10,
+     13,
+     22,
+     29,
+     32
+    ],
+    "blue": 12,
+    "kl8": []
+   },
+   "prizeInfo": {
+    "first": {
+     "count": 5,
+     "amount": 9014860
+    },
+    "second": {
+     "count": 159,
+     "amount": 157816
+    },
+    "third": {
+     "count": 1412,
+     "amount": 3000
+    },
+    "fourth": {
+     "count": 61720,
+     "amount": 200
+    },
+    "fifth": {
+     "count": 1272146,
+     "amount": 10
+    },
+    "sixth": {
+     "count": 7670635,
+     "amount": 5
+    },
+    "fuyun": null
+   },
+   "specialRuleStatus": "unknown",
+   "ruleVersion": "ssq_2026_02_01",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/11/03/671981.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-05T06:25:47.646Z",
+   "salesAmount": 342910496,
+   "poolAmount": 1074322050,
+   "fixedPoolAmount": null,
+   "rawHash": "75bdcc2ff07101480ced862413e1f62e2cf7453d2b8d59853c6ba5b4f520b5ba"
+  },
+  {
+   "game": "ssq",
+   "issue": "2026125",
+   "drawDate": "2026-11-01",
+   "numbers": {
+    "red": [
+     4,
+     6,
+     10,
+     15,
+     26,
+     27
+    ],
+    "blue": 11,
+    "kl8": []
+   },
+   "prizeInfo": {
+    "first": {
+     "count": 16,
+     "amount": 6100438
+    },
+    "second": {
+     "count": 187,
+     "amount": 117693
+    },
+    "third": {
+     "count": 1837,
+     "amount": 3000
+    },
+    "fourth": {
+     "count": 88040,
+     "amount": 200
+    },
+    "fifth": {
+     "count": 1579781,
+     "amount": 10
+    },
+    "sixth": {
+     "count": 11265828,
+     "amount": 5
+    },
+    "fuyun": null
+   },
+   "specialRuleStatus": "unknown",
+   "ruleVersion": "ssq_2026_02_01",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/11/01/671667.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-05T06:25:47.647Z",
+   "salesAmount": 374042920,
+   "poolAmount": 1044117721,
+   "fixedPoolAmount": null,
+   "rawHash": "1021ed4701c3fe754dd75f92249059f7708ba9cf3816fe076e0cf9a27ee2725f"
+  },
+  {
+   "game": "ssq",
+   "issue": "2026124",
+   "drawDate": "2026-10-29",
+   "numbers": {
+    "red": [
+     3,
+     11,
+     17,
+     22,
+     23,
+     29
+    ],
+    "blue": 9,
+    "kl8": []
+   },
+   "prizeInfo": {
+    "first": {
+     "count": 8,
+     "amount": 6656899
+    },
+    "second": {
+     "count": 220,
+     "amount": 75313
+    },
+    "third": {
+     "count": 2510,
+     "amount": 3000
+    },
+    "fourth": {
+     "count": 117401,
+     "amount": 200
+    },
+    "fifth": {
+     "count": 1632235,
+     "amount": 10
+    },
+    "sixth": {
+     "count": 11241969,
+     "amount": 5
+    },
+    "fuyun": null
+   },
+   "specialRuleStatus": "unknown",
+   "ruleVersion": "ssq_2026_02_01",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/29/671548.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-05T06:25:47.647Z",
+   "salesAmount": 346568144,
+   "poolAmount": 1075698427,
+   "fixedPoolAmount": null,
+   "rawHash": "38a2e43db88fceea7dd1a0af53c1ec20e9f08a5955f8921b29269c0726e548ff"
+  },
+  {
+   "game": "ssq",
+   "issue": "2026123",
+   "drawDate": "2026-10-27",
+   "numbers": {
+    "red": [
+     4,
+     5,
+     20,
+     21,
+     26,
+     30
+    ],
+    "blue": 12,
+    "kl8": []
+   },
+   "prizeInfo": {
+    "first": {
+     "count": 5,
+     "amount": 8447916
+    },
+    "second": {
+     "count": 96,
+     "amount": 224473
+    },
+    "third": {
+     "count": 1199,
+     "amount": 3000
+    },
+    "fourth": {
+     "count": 64996,
+     "amount": 200
+    },
+    "fifth": {
+     "count": 1189606,
+     "amount": 10
+    },
+    "sixth": {
+     "count": 9805566,
+     "amount": 5
+    },
+    "fuyun": null
+   },
+   "specialRuleStatus": "unknown",
+   "ruleVersion": "ssq_2026_02_01",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/27/671234.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-05T06:25:47.647Z",
+   "salesAmount": 334118378,
+   "poolAmount": 1079246630,
+   "fixedPoolAmount": null,
+   "rawHash": "4d736d750c907f58f54cdb137262b0c6ec6b5cd7c43229f3589446081c8bd305"
+  },
+  {
+   "game": "ssq",
+   "issue": "2026122",
+   "drawDate": "2026-10-25",
+   "numbers": {
+    "red": [
+     1,
+     2,
+     4,
+     17,
+     19,
+     30
+    ],
+    "blue": 9,
+    "kl8": []
+   },
+   "prizeInfo": {
+    "first": {
+     "count": 7,
+     "amount": 6823202
+    },
+    "second": {
+     "count": 115,
+     "amount": 138721
+    },
+    "third": {
+     "count": 1671,
+     "amount": 3000
+    },
+    "fourth": {
+     "count": 79457,
+     "amount": 200
+    },
+    "fifth": {
+     "count": 1435299,
+     "amount": 10
+    },
+    "sixth": {
+     "count": 15888308,
+     "amount": 5
+    },
+    "fuyun": null
+   },
+   "specialRuleStatus": "unknown",
+   "ruleVersion": "ssq_2026_02_01",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/25/670920.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-05T06:25:47.647Z",
+   "salesAmount": 364308228,
+   "poolAmount": 1056837777,
+   "fixedPoolAmount": null,
+   "rawHash": "43234aae48bef98b3c97badf56371b0e96b4af6a1f839f6d79cf275c9cd55921"
+  },
+  {
+   "game": "ssq",
+   "issue": "2026121",
+   "drawDate": "2026-10-22",
+   "numbers": {
+    "red": [
+     2,
+     7,
+     20,
+     24,
+     26,
+     30
+    ],
+    "blue": 2,
+    "kl8": []
+   },
+   "prizeInfo": {
+    "first": {
+     "count": 6,
+     "amount": 8113808
+    },
+    "second": {
+     "count": 72,
+     "amount": 324355
+    },
+    "third": {
+     "count": 988,
+     "amount": 3000
+    },
+    "fourth": {
+     "count": 59814,
+     "amount": 200
+    },
+    "fifth": {
+     "count": 1181812,
+     "amount": 10
+    },
+    "sixth": {
+     "count": 8952469,
+     "amount": 5
+    },
+    "fuyun": null
+   },
+   "specialRuleStatus": "unknown",
+   "ruleVersion": "ssq_2026_02_01",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/22/670801.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-05T06:25:47.648Z",
+   "salesAmount": 336574558,
+   "poolAmount": 1056741122,
+   "fixedPoolAmount": null,
+   "rawHash": "76ddc4697f3bf2dbe7522a838b5db6b7eb69375babc25c94520174ad17f738c5"
+  },
+  {
+   "game": "ssq",
+   "issue": "2026120",
+   "drawDate": "2026-10-20",
+   "numbers": {
+    "red": [
+     13,
+     14,
+     16,
+     18,
+     20,
+     31
+    ],
+    "blue": 3,
+    "kl8": []
+   },
+   "prizeInfo": {
+    "first": {
+     "count": 9,
+     "amount": 7232345
+    },
+    "second": {
+     "count": 73,
+     "amount": 344025
+    },
+    "third": {
+     "count": 854,
+     "amount": 3000
+    },
+    "fourth": {
+     "count": 46863,
+     "amount": 200
+    },
+    "fifth": {
+     "count": 941133,
+     "amount": 10
+    },
+    "sixth": {
+     "count": 8247425,
+     "amount": 5
+    },
+    "fuyun": null
+   },
+   "specialRuleStatus": "unknown",
+   "ruleVersion": "ssq_2026_02_01",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/20/670487.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-05T06:25:47.648Z",
+   "salesAmount": 332731798,
+   "poolAmount": 1035363275,
+   "fixedPoolAmount": null,
+   "rawHash": "18b667120fc633c29cf347c41bd127c712c16155e524dbefa53daa4223d58bfd"
+  },
+  {
+   "game": "ssq",
+   "issue": "2026119",
+   "drawDate": "2026-10-18",
+   "numbers": {
+    "red": [
+     12,
+     22,
+     23,
+     25,
+     27,
+     30
+    ],
+    "blue": 4,
+    "kl8": []
+   },
+   "prizeInfo": {
+    "first": {
+     "count": 2,
+     "amount": 10000000
+    },
+    "second": {
+     "count": 61,
+     "amount": 472442
+    },
+    "third": {
+     "count": 861,
+     "amount": 3000
+    },
+    "fourth": {
+     "count": 49227,
+     "amount": 200
+    },
+    "fifth": {
+     "count": 1079493,
+     "amount": 10
+    },
+    "sixth": {
+     "count": 8009222,
+     "amount": 5
+    },
+    "fuyun": null
+   },
+   "specialRuleStatus": "unknown",
+   "ruleVersion": "ssq_2026_02_01",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/18/670173.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-05T06:25:47.648Z",
+   "salesAmount": 364378528,
+   "poolAmount": 1025112736,
+   "fixedPoolAmount": null,
+   "rawHash": "d64648148029ba6228093702f8e9d7ef30fc7781d128e250260ad91619fac055"
+  },
+  {
+   "game": "ssq",
+   "issue": "2026118",
+   "drawDate": "2026-10-15",
+   "numbers": {
+    "red": [
+     5,
+     21,
+     22,
+     23,
+     28,
+     31
+    ],
+    "blue": 14,
+    "kl8": []
+   },
+   "prizeInfo": {
+    "first": {
+     "count": 5,
+     "amount": 8783740
+    },
+    "second": {
+     "count": 80,
+     "amount": 295604
+    },
+    "third": {
+     "count": 1093,
+     "amount": 3000
+    },
+    "fourth": {
+     "count": 55355,
+     "amount": 200
+    },
+    "fifth": {
+     "count": 1114188,
+     "amount": 10
+    },
+    "sixth": {
+     "count": 9390219,
+     "amount": 5
+    },
+    "fuyun": null
+   },
+   "specialRuleStatus": "unknown",
+   "ruleVersion": "ssq_2026_02_01",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/15/670054.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-05T06:25:47.648Z",
+   "salesAmount": 340890776,
+   "poolAmount": 958655708,
+   "fixedPoolAmount": null,
+   "rawHash": "5aebfcf1548ae1c182a23bbbdb359f4503b2749f1cd0e4e68328497a0c01cd67"
+  },
+  {
+   "game": "ssq",
+   "issue": "2026117",
+   "drawDate": "2026-10-13",
+   "numbers": {
+    "red": [
+     4,
+     11,
+     14,
+     22,
+     26,
+     27
+    ],
+    "blue": 4,
+    "kl8": []
+   },
+   "prizeInfo": {
+    "first": {
+     "count": 9,
+     "amount": 6640325
+    },
+    "second": {
+     "count": 151,
+     "amount": 122209
+    },
+    "third": {
+     "count": 2116,
+     "amount": 3000
+    },
+    "fourth": {
+     "count": 87197,
+     "amount": 200
+    },
+    "fifth": {
+     "count": 1385873,
+     "amount": 10
+    },
+    "sixth": {
+     "count": 10267093,
+     "amount": 5
+    },
+    "fuyun": null
+   },
+   "specialRuleStatus": "unknown",
+   "ruleVersion": "ssq_2026_02_01",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/13/669640.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-05T06:25:47.649Z",
+   "salesAmount": 332237260,
+   "poolAmount": 931629281,
+   "fixedPoolAmount": null,
+   "rawHash": "3b518c48654a31b26e8007ba7d5c33ec3cc6dd50154ea2df778bd46a9f0c7a8b"
+  }
+ ]
+}

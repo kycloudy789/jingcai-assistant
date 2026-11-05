@@ -1,0 +1,113 @@
+<view class="page" wx:if="{{!loading}}">
+  <view class="card">
+    <view class="section-title">彩种</view>
+    <view class="games">
+      <view
+        class="game-tab {{game === 'ssq' ? 'active' : ''}} {{mode === 'edit' ? 'locked' : ''}}"
+        data-game="ssq"
+        bindtap="switchGame"
+      >双色球</view>
+      <view
+        class="game-tab {{game === 'kl8' ? 'active' : ''}} {{mode === 'edit' ? 'locked' : ''}}"
+        data-game="kl8"
+        bindtap="switchGame"
+      >快乐8（选十）</view>
+    </view>
+
+    <view class="field">
+      <text class="label">目标期号</text>
+      <input
+        class="input"
+        type="number"
+        maxlength="7"
+        value="{{issue}}"
+        placeholder="如 2026127"
+        bindinput="onIssueInput"
+      />
+    </view>
+    <view class="tip">目标期号请按官方销售公告填写。系统不会用"上期 + 1"推算期号。</view>
+  </view>
+
+  <view class="card" wx:if="{{game === 'ssq'}}">
+    <view class="section-title">
+      红球 <text class="counter">{{redCount}}/6</text>
+    </view>
+    <view class="grid">
+      <view
+        wx:for="{{redCells}}"
+        wx:for-item="c"
+        wx:key="n"
+        class="cell red {{c.selected ? 'on' : ''}}"
+        data-n="{{c.n}}"
+        bindtap="tapRed"
+      >{{c.label}}</view>
+    </view>
+
+    <view class="section-title" style="margin-top:20rpx">
+      蓝球 <text class="counter">{{blue === null ? 0 : 1}}/1</text>
+    </view>
+    <view class="grid grid-blue">
+      <view
+        wx:for="{{blueCells}}"
+        wx:for-item="c"
+        wx:key="n"
+        class="cell blue {{c.selected ? 'on' : ''}}"
+        data-n="{{c.n}}"
+        bindtap="tapBlue"
+      >{{c.label}}</view>
+    </view>
+  </view>
+
+  <view class="card" wx:else>
+    <view class="section-title">
+      选十号码 <text class="counter">{{kl8Count}}/10</text>
+    </view>
+    <view class="grid">
+      <view
+        wx:for="{{kl8Cells}}"
+        wx:for-item="c"
+        wx:key="n"
+        class="cell kl8 {{c.selected ? 'on' : ''}}"
+        data-n="{{c.n}}"
+        bindtap="tapKl8"
+      >{{c.label}}</view>
+    </view>
+  </view>
+
+  <view class="actions">
+    <view class="action" bindtap="onRandom">随机一注</view>
+    <view class="action" bindtap="onClear">清空</view>
+    <text class="muted preview">{{displayText}}</text>
+  </view>
+
+  <view class="card">
+    <view class="section-title">购买信息</view>
+    <view class="field">
+      <text class="label">倍数</text>
+      <input class="input" type="number" value="{{multiple}}" bindinput="onMultipleChange" />
+    </view>
+    <view class="field">
+      <text class="label">实际金额（元）</text>
+      <input class="input" type="digit" value="{{cost}}" placeholder="{{costPlaceholder}}" bindinput="onCostInput" />
+    </view>
+    <view class="tip">{{costHint}}。保存草稿时可以不填金额；真正购买后再确认并填写实际支付。</view>
+    <view class="field">
+      <text class="label">备注</text>
+      <input class="input" value="{{note}}" placeholder="选填，如站点/机选" bindinput="onNoteInput" />
+    </view>
+  </view>
+
+  <view class="tip" style="margin-bottom:120rpx">
+    保存后状态为「草稿」，不会计入花费与中奖。只有你在线下实际购买后点「确认已购买」，才会进入统计与开奖核对。
+  </view>
+
+  <view class="footer">
+    <view class="save-btn {{saving ? 'disabled' : ''}}" bindtap="onSave">
+      {{saving ? '保存中…' : (mode === 'edit' ? '保存修改' : '保存为草稿')}}
+    </view>
+  </view>
+</view>
+
+<view class="page" wx:else>
+  <view class="muted center">加载中…</view>
+</view>

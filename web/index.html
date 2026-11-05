@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light" />
+    <title>竞彩助手 · 双色球 / 快乐8 选十 本地档案</title>
+    <meta
+      name="description"
+      content="个人专用的双色球与快乐8选十号码档案、开奖查询与规则判奖。数据存本机，不做购彩、代购或兑奖代办。"
+    />
+    <link rel="stylesheet" href="./style.css" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%231f6feb'/><text x='32' y='43' font-size='32' text-anchor='middle' fill='white' font-family='sans-serif'>竞</text></svg>" />
+  </head>
+  <body>
+    <div id="app" class="app">
+      <noscript>需要开启 JavaScript 才能使用。</noscript>
+    </div>
+    <script>
+      window.addEventListener('error', function (e) {
+        var el = document.getElementById('app');
+        if (el && !el.dataset.ready) {
+          el.innerHTML =
+            '<div class="card"><strong>页面初始化失败</strong><p class="muted small">' +
+            String((e && (e.message || e.error)) || '未知错误') +
+            '</p><p class="muted small">若是首次打开，请确认浏览器允许本地存储（无痕模式可能禁用 IndexedDB）。</p></div>';
+        }
+      });
+    </script>
+    <script src="./dist/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,157 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="muted center">加载中…</view>
+
+  <view wx:elif="{{error}}" class="card">
+    <view class="section-title">无法显示</view>
+    <view class="muted">{{error}}</view>
+  </view>
+
+  <block wx:else>
+    <view class="card">
+      <view class="head">
+        <view>
+          <text class="game">{{gameName}}</text>
+          <text class="issue">{{ticket.issue}} 期</text>
+        </view>
+        <text class="status {{ticket.purchaseStatus}}">{{statusText}}</text>
+      </view>
+
+      <view class="balls">
+        <text
+          wx:for="{{redBalls}}"
+          wx:for-item="ball"
+          wx:key="*this"
+          class="ball {{isKl8 ? 'ball-kl8' : 'ball-red'}}"
+        >{{ball < 10 ? '0' + ball : ball}}</text>
+        <text wx:if="{{blueBall !== null}}" class="ball ball-blue">{{blueBall < 10 ? '0' + blueBall : blueBall}}</text>
+      </view>
+
+      <view class="row">
+        <text>倍数</text>
+        <text>{{ticket.multiple}}</text>
+      </view>
+      <view class="row">
+        <text>实际金额</text>
+        <text class="{{ticket.actualCost === null ? 'muted' : ''}}">
+          {{ticket.actualCost === null ? '未填写' : '¥' + ticket.actualCost}}
+        </text>
+      </view>
+      <view class="row">
+        <text>录入来源</text>
+        <text class="muted">{{ticket.recordSource === 'candidate_import' ? '候选导入' : '手动录入'}}</text>
+      </view>
+      <view class="row">
+        <text>备注</text>
+        <text class="muted">{{ticket.note || '—'}}</text>
+      </view>
+      <view class="row">
+        <text>创建时间</text>
+        <text class="muted">{{ticket.createdAt}}</text>
+      </view>
+      <view class="row" wx:if="{{ticket.purchaseAt}}">
+        <text>购买时间</text>
+        <text class="muted">{{ticket.purchaseAt}}</text>
+      </view>
+      <view class="row" wx:if="{{ticket.voidedAt}}">
+        <text>作废时间</text>
+        <text class="muted">{{ticket.voidedAt}}</text>
+      </view>
+    </view>
+
+    <!-- 开奖核对结果 -->
+    <view class="card" wx:if="{{isConfirmed || check.hasCheck}}">
+      <view class="section-title">开奖核对</view>
+
+      <view class="check-box {{check.tone}}">
+        <view class="check-title">{{check.title}}</view>
+        <view class="check-detail" wx:if="{{check.detail}}">{{check.detail}}</view>
+        <view class="check-amount" wx:if="{{check.amountText}}">{{check.amountText}}</view>
+
+        <view class="check-hit" wx:if="{{check.hitNumbers.length}}">
+          <text>命中：</text>
+          <text wx:for="{{check.hitNumbers}}" wx:for-item="n" wx:key="*this" class="hit-num">{{n < 10 ? '0' + n : n}}</text>
+        </view>
+
+        <view class="muted" wx:if="{{check.checkedAt}}">核对时间：{{check.checkedAt}}</view>
+        <view class="muted" wx:if="{{check.ruleVersion}}">规则版本：{{check.ruleVersion}}</view>
+      </view>
+
+      <view class="btn ghost" wx:if="{{isConfirmed}}" bindtap="onCheck">
+        {{checking ? '核对中…' : (check.hasCheck ? '重新核对' : '核对开奖结果')}}
+      </view>
+
+      <view class="tip">
+        核对仅依据本地已核验的官方开奖数据计算，不等同于官方兑奖验证；兑奖以官方销售终端打印的彩票及法定兑奖机构认定为准。
+      </view>
+    </view>
+
+    <!-- 确认已购买：只有草稿显示 -->
+    <view class="card" wx:if="{{isDraft}}">
+      <view class="section-title">实际购买了吗？</view>
+      <view class="tip" style="margin-bottom:16rpx">
+        只有你在线下真的买了，才点确认。确认后号码将被冻结，不能改号（如需更正请作废后新建）。
+      </view>
+
+      <block wx:if="{{confirmOpen}}">
+        <view class="field">
+          <text class="label">实际支付（元）</text>
+          <input class="input" type="digit" value="{{costInput}}" placeholder="{{costPlaceholder}}" bindinput="onCostInput" />
+        </view>
+        <view class="field">
+          <text class="label">倍数</text>
+          <input class="input" type="number" value="{{multipleInput}}" bindinput="onMultipleInput" />
+        </view>
+        <view class="field">
+          <text class="label">购买日期</text>
+          <picker mode="date" value="{{purchaseDate}}" bindchange="onDateChange">
+            <view class="picker-value">{{purchaseDate}} ▾</view>
+          </picker>
+        </view>
+        <view class="btn-row">
+          <view class="btn ghost" bindtap="closeConfirm">取消</view>
+          <view class="btn primary {{busy ? 'disabled' : ''}}" bindtap="doConfirm">确认已购买</view>
+        </view>
+      </block>
+
+      <block wx:else>
+        <view class="btn primary" bindtap="openConfirm">确认已购买</view>
+      </block>
+    </view>
+
+    <!-- 已购买：只允许改非号码字段 -->
+    <view class="card" wx:if="{{isConfirmed}}">
+      <view class="section-title">修正备注与金额</view>
+      <view class="tip" style="margin-bottom:16rpx">
+        已购买记录的号码与期号已冻结。这里只能修改备注和实际金额，改动会反映到统计口径。
+      </view>
+
+      <block wx:if="{{editNoteOpen}}">
+        <view class="field">
+          <text class="label">实际金额</text>
+          <input class="input" type="digit" value="{{costEditInput}}" bindinput="onCostEditInput" />
+        </view>
+        <view class="field">
+          <text class="label">备注</text>
+          <input class="input" value="{{noteInput}}" bindinput="onNoteInput" />
+        </view>
+        <view class="btn-row">
+          <view class="btn ghost" bindtap="toggleNoteEdit">取消</view>
+          <view class="btn primary {{busy ? 'disabled' : ''}}" bindtap="doSaveNote">保存</view>
+        </view>
+      </block>
+      <block wx:else>
+        <view class="btn ghost" bindtap="toggleNoteEdit">修改备注 / 金额</view>
+      </block>
+    </view>
+
+    <view class="card">
+      <view class="section-title">操作</view>
+      <view class="btn ghost" wx:if="{{isDraft}}" bindtap="goEdit">编辑号码</view>
+      <view class="btn danger" wx:if="{{!isVoid}}" bindtap="doVoid">作废记录</view>
+      <view class="btn danger-outline" wx:if="{{!isConfirmed}}" bindtap="doDelete">永久删除</view>
+      <view class="tip" wx:if="{{isConfirmed}}">
+        已确认购买的记录需先「作废」才能删除，避免历史统计在没有痕迹的情况下变化。
+      </view>
+    </view>
+  </block>
+</view>

@@ -1,0 +1,133 @@
+.games {
+  display: flex;
+  margin-bottom: 12rpx;
+}
+.game-tab {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  font-size: 26rpx;
+  color: #5f6672;
+  border: 1rpx solid #e3e6ea;
+  border-radius: 12rpx;
+  margin-right: 16rpx;
+}
+.game-tab:last-child {
+  margin-right: 0;
+}
+.game-tab.active {
+  border-color: #1f6feb;
+  color: #1f6feb;
+  background: #f2f7ff;
+  font-weight: 600;
+}
+.game-tab.locked {
+  opacity: 0.6;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  border-top: 1rpx solid #eef0f3;
+}
+.field:first-of-type {
+  border-top: none;
+}
+.label {
+  width: 200rpx;
+  font-size: 26rpx;
+  color: #5f6672;
+}
+.input {
+  flex: 1;
+  font-size: 28rpx;
+  text-align: right;
+}
+
+.counter {
+  font-size: 24rpx;
+  color: #8a8f99;
+  font-weight: 400;
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+.cell {
+  width: 72rpx;
+  height: 72rpx;
+  line-height: 72rpx;
+  text-align: center;
+  border-radius: 50%;
+  font-size: 24rpx;
+  margin: 0 10rpx 12rpx 0;
+  background: #f4f5f7;
+  color: #3f4652;
+}
+.cell.red.on {
+  background: #fdecec;
+  color: #c62828;
+  font-weight: 600;
+}
+.cell.blue.on {
+  background: #e8f0fe;
+  color: #1f6feb;
+  font-weight: 600;
+}
+.cell.kl8.on {
+  background: #eef7ee;
+  color: #2e7d32;
+  font-weight: 600;
+}
+.grid-blue .cell {
+  width: 80rpx;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  padding: 0 8rpx 20rpx;
+}
+.action {
+  font-size: 25rpx;
+  color: #1f6feb;
+  border: 1rpx solid #cfe0ff;
+  background: #f7faff;
+  border-radius: 999rpx;
+  padding: 8rpx 24rpx;
+  margin-right: 16rpx;
+}
+.preview {
+  flex: 1;
+  text-align: right;
+  word-break: break-all;
+}
+
+.footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 20rpx 24rpx calc(20rpx + env(safe-area-inset-bottom));
+  background: #ffffff;
+  box-shadow: 0 -2rpx 12rpx rgba(16, 24, 40, 0.06);
+}
+.save-btn {
+  text-align: center;
+  background: #1f6feb;
+  color: #ffffff;
+  border-radius: 14rpx;
+  padding: 22rpx 0;
+  font-size: 29rpx;
+  font-weight: 600;
+}
+.save-btn.disabled {
+  background: #b6bcc6;
+}
+
+.center {
+  text-align: center;
+  padding: 80rpx 0;
+}

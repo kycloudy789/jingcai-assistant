@@ -1,0 +1,20 @@
+/* 设计变量：统一色彩与间距，页面不写死色值 */
+page {
+  --c-bg: #f5f6f8;
+  --c-surface: #ffffff;
+  --c-text: #1f2329;
+  --c-text-sub: #5f6672;
+  --c-text-weak: #8a8f99;
+  --c-border: #eef0f3;
+  --c-primary: #1f6feb;
+  --c-primary-weak: #e8f0fe;
+  --c-red: #c62828;
+  --c-red-weak: #fdecec;
+  --c-green: #2e7d32;
+  --c-green-weak: #eef7ee;
+  --c-warn: #b26a00;
+  --c-warn-weak: #fff6e5;
+  --c-danger: #c62828;
+  --radius: 16rpx;
+  --gap: 24rpx;
+}

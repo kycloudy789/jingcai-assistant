@@ -1,0 +1,62 @@
+<view class="page chat-page">
+  <view class="topbar">
+    <text class="muted">只依据本地已核验数据作答</text>
+    <view class="new-btn" wx:if="{{messages.length}}" bindtap="newSession">新对话</view>
+  </view>
+
+  <view wx:if="{{!authorized}}" class="card">
+    <view class="section-title">未通过身份校验</view>
+    <view class="muted">请到设置页配置服务端白名单后再使用。</view>
+  </view>
+
+  <block wx:else>
+    <view wx:if="{{!messages.length}}" class="card intro">
+      <view class="section-title">可以问我这些</view>
+      <view class="muted" style="margin-bottom:16rpx">
+        我会调用后端查询你本地的已核验开奖数据和你自己的号码记录，再据此回答；查不到就说没有。
+      </view>
+      <view
+        wx:for="{{suggestions}}"
+        wx:for-item="s"
+        wx:key="*this"
+        class="chip"
+        data-text="{{s}}"
+        bindtap="useSuggestion"
+      >{{s}}</view>
+    </view>
+
+    <view wx:for="{{messages}}" wx:for-item="m" wx:key="id" class="msg {{m.role}}">
+      <view class="bubble">
+        <text>{{m.content}}</text>
+      </view>
+      <view wx:if="{{m.tools.length}}" class="tools">已查询：{{m.tools}}</view>
+    </view>
+
+    <view wx:if="{{sending}}" class="msg assistant">
+      <view class="bubble thinking">正在查询数据…</view>
+    </view>
+
+    <view wx:if="{{error}}" class="card error">
+      <view class="error-title">这次没答上来</view>
+      <view class="muted">{{error}}</view>
+    </view>
+
+    <view class="tip" style="margin-bottom:160rpx">
+      对话内容及必要的号码/统计摘要会发送至 DeepSeek API 处理，不发送你的身份标识。可在设置中关闭 AI 功能。
+      {{disclaimer}}
+    </view>
+  </block>
+
+  <view class="input-bar" wx:if="{{authorized}}">
+    <input
+      class="chat-input"
+      value="{{input}}"
+      placeholder="问点什么，例如：最新一期开奖号码"
+      confirm-type="send"
+      bindinput="onInput"
+      bindconfirm="send"
+      disabled="{{sending}}"
+    />
+    <view class="send {{sending ? 'disabled' : ''}}" bindtap="send">{{sending ? '…' : '发送'}}</view>
+  </view>
+</view>

@@ -1,0 +1,59 @@
+.banner {
+  border-left: 6rpx solid #1f6feb;
+}
+.banner-warn {
+  background: #fff6e5;
+  border-left-color: #b26a00;
+}
+.banner-danger {
+  background: #fdecec;
+  border-left-color: #c62828;
+}
+.banner-title {
+  font-weight: 600;
+  margin-bottom: 8rpx;
+}
+.banner-desc {
+  font-size: 24rpx;
+  color: #5f6672;
+  line-height: 1.65;
+}
+
+.game-block {
+  padding: 16rpx 0;
+}
+.game-block + .game-block {
+  border-top: 1rpx solid #eef0f3;
+}
+.game-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6rpx;
+}
+.game-name {
+  font-weight: 600;
+}
+
+.badge {
+  font-size: 22rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+}
+.badge-off {
+  background: #f1f2f5;
+  color: #8a8f99;
+}
+.badge-on {
+  background: #e8f0fe;
+  color: #1f6feb;
+}
+
+.balls {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 8rpx 0 6rpx;
+}
+.balls .ball {
+  margin-bottom: 8rpx;
+}

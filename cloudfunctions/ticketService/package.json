@@ -1,0 +1,10 @@
+{
+  "name": "ticketService",
+  "version": "1.0.0",
+  "description": "个人号码写操作（创建/编辑/确认购买/作废/删除）",
+  "main": "index.js",
+  "private": true,
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

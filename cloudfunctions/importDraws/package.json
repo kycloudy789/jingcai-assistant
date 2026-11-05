@@ -1,0 +1,10 @@
+{
+  "name": "importDraws",
+  "version": "1.0.0",
+  "description": "CSV 开奖数据导入（兜底通道）",
+  "main": "index.js",
+  "private": true,
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

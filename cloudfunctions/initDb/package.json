@@ -1,0 +1,10 @@
+{
+  "name": "initDb",
+  "version": "1.0.0",
+  "description": "一次性初始化集合、配置与规则种子",
+  "main": "index.js",
+  "private": true,
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

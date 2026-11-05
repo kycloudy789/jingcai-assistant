@@ -1,0 +1,10 @@
+{
+  "name": "syncDraws",
+  "version": "1.0.0",
+  "description": "同步中国福彩网官方开奖数据",
+  "main": "index.js",
+  "private": true,
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

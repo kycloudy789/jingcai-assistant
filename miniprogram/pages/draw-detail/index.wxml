@@ -1,0 +1,80 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="muted center">加载中…</view>
+
+  <view wx:elif="{{error}}" class="card">
+    <view class="section-title">无法显示</view>
+    <view class="muted">{{error}}</view>
+  </view>
+
+  <block wx:else>
+    <view class="card">
+      <view class="head">
+        <view>
+          <text class="issue">{{item.issue}}</text>
+          <text class="game">{{gameName}}</text>
+        </view>
+        <text class="date">{{item.drawDate}}</text>
+      </view>
+
+      <view class="balls">
+        <text
+          wx:for="{{balls}}"
+          wx:for-item="ball"
+          wx:key="*this"
+          class="ball {{isKl8 ? 'ball-kl8' : 'ball-red'}}"
+        >{{ball < 10 ? '0' + ball : ball}}</text>
+        <text wx:if="{{blue !== null}}" class="ball ball-blue">{{blue < 10 ? '0' + blue : blue}}</text>
+      </view>
+
+      <view class="tip" wx:if="{{specialWarn}}">{{specialWarn}}</view>
+    </view>
+
+    <view class="card">
+      <view class="section-title">奖级与奖金（当期公告）</view>
+      <view class="prize-row prize-header">
+        <text class="col-label">奖级</text>
+        <text class="col-count">注数</text>
+        <text class="col-amount">单注奖金</text>
+      </view>
+      <view wx:for="{{prizeRows}}" wx:for-item="row" wx:key="label" class="prize-row">
+        <view class="col-label">
+          <text class="prize-label">{{row.label}}</text>
+          <text class="prize-cond">{{row.cond}}</text>
+        </view>
+        <text class="col-count">{{row.count === null ? '—' : row.count}}</text>
+        <text class="col-amount">{{row.amountText}}</text>
+      </view>
+      <view class="tip">奖金与注数取自当期官方公告；浮动奖若当期无人中或尚未公告，显示为待公告，不做估算。</view>
+    </view>
+
+    <view class="card">
+      <view class="section-title">数据来源与核验</view>
+      <view class="row">
+        <text>核验状态</text>
+        <text>{{item.drawStatus}}</text>
+      </view>
+      <view class="row">
+        <text>判奖规则版本</text>
+        <text>{{ruleText}}</text>
+      </view>
+      <view class="row">
+        <text>采集时间</text>
+        <text class="muted">{{item.fetchedAt || '—'}}</text>
+      </view>
+      <view class="row">
+        <text>核验时间</text>
+        <text class="muted">{{item.verifiedAt || '—'}}</text>
+      </view>
+      <view class="row">
+        <text>解析器版本</text>
+        <text class="muted">{{item.parserVersion}}</text>
+      </view>
+      <view class="row" bindtap="copySource">
+        <text>官方公告链接</text>
+        <text class="link">{{item.sourceUrl ? '复制链接' : '无'}}</text>
+      </view>
+    </view>
+
+    <view class="tip">{{disclaimer}}</view>
+  </block>
+</view>

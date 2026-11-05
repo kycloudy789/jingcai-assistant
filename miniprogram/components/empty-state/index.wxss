@@ -1,0 +1,24 @@
+.empty {
+  padding: 80rpx 32rpx;
+  text-align: center;
+}
+.empty-title {
+  font-size: 30rpx;
+  color: #5f6672;
+  font-weight: 600;
+  margin-bottom: 12rpx;
+}
+.empty-desc {
+  font-size: 24rpx;
+  color: #8a8f99;
+  line-height: 1.7;
+}
+.empty-action {
+  display: inline-block;
+  margin-top: 28rpx;
+  padding: 14rpx 32rpx;
+  border: 1rpx solid #1f6feb;
+  color: #1f6feb;
+  border-radius: 999rpx;
+  font-size: 26rpx;
+}

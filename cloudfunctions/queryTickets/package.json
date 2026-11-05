@@ -1,0 +1,10 @@
+{
+  "name": "queryTickets",
+  "version": "1.0.0",
+  "description": "个人号码查询（列表/详情/计数）",
+  "main": "index.js",
+  "private": true,
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

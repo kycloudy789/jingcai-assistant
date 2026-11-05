@@ -1,0 +1,10 @@
+{
+  "name": "aiChat",
+  "version": "1.0.0",
+  "description": "DeepSeek 对话与只读工具编排",
+  "main": "index.js",
+  "private": true,
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

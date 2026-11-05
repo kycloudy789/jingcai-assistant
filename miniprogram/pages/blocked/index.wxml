@@ -1,0 +1,18 @@
+<view class="page">
+  <view class="card">
+    <view class="title">访问未授权</view>
+    <view class="desc">本小程序仅供所有者本人使用，不对外开放。当前身份未通过服务端校验，因此不会加载任何数据。</view>
+    <view class="desc muted">原因代码：{{reason || 'UNKNOWN'}}</view>
+
+    <view class="openid-box" bindtap="copyOpenid">
+      <text class="label">我的 OpenID（点击复制）</text>
+      <text class="value">{{openid || '（未获取）'}}</text>
+    </view>
+
+    <view class="tip" style="margin-top:24rpx">
+      请把该 OpenID 配置到云函数环境变量 OWNER_OPENID，或在 app_config 集合的 ownerWhitelist 中加入白名单，然后点下方按钮重试。
+    </view>
+
+    <view class="btn" bindtap="retry">重新校验</view>
+  </view>
+</view>

@@ -1,0 +1,83 @@
+/* 全局样式：浅色、克制、信息密度适中 */
+
+@import './styles/theme.wxss';
+
+page {
+  background: #f5f6f8;
+  color: #1f2329;
+  font-size: 28rpx;
+  line-height: 1.55;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.page {
+  padding: 24rpx 24rpx 48rpx;
+  box-sizing: border-box;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 28rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(16, 24, 40, 0.04);
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+  color: #1f2329;
+}
+
+.muted {
+  color: #8a8f99;
+  font-size: 24rpx;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18rpx 0;
+}
+
+.row + .row {
+  border-top: 1rpx solid #eef0f3;
+}
+
+.ball {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  font-size: 26rpx;
+  font-weight: 600;
+  margin-right: 10rpx;
+}
+
+.ball-red {
+  background: #fdecec;
+  color: #c62828;
+}
+
+.ball-blue {
+  background: #e8f0fe;
+  color: #1f6feb;
+}
+
+.ball-kl8 {
+  background: #eef7ee;
+  color: #2e7d32;
+}
+
+.tip {
+  font-size: 22rpx;
+  color: #8a8f99;
+  line-height: 1.6;
+  padding: 16rpx 20rpx;
+  background: #f7f8fa;
+  border-radius: 12rpx;
+}

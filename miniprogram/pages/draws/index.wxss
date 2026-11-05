@@ -1,0 +1,90 @@
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+.picker {
+  font-size: 25rpx;
+  color: #5f6672;
+  padding: 10rpx 20rpx;
+  background: #ffffff;
+  border-radius: 10rpx;
+}
+.toolbar-right {
+  display: flex;
+  align-items: center;
+}
+.sync-btn {
+  margin-left: 16rpx;
+  font-size: 25rpx;
+  color: #1f6feb;
+  border: 1rpx solid #1f6feb;
+  border-radius: 999rpx;
+  padding: 8rpx 24rpx;
+}
+.sync-btn.disabled {
+  color: #b6bcc6;
+  border-color: #d9dde3;
+}
+
+.draw-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14rpx;
+}
+.issue {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-right: 14rpx;
+}
+.date {
+  font-size: 24rpx;
+  color: #8a8f99;
+}
+.status {
+  font-size: 22rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+  background: #f1f2f5;
+}
+.status.ok {
+  background: #e7f6ec;
+  color: #2e7d32;
+}
+.status.warn {
+  background: #fff6e5;
+  color: #b26a00;
+}
+.status.bad {
+  background: #fdecec;
+  color: #c62828;
+}
+
+.balls {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 6rpx 0 14rpx;
+}
+.balls .ball {
+  margin-bottom: 8rpx;
+}
+
+.draw-foot {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1rpx solid #eef0f3;
+  padding-top: 14rpx;
+}
+
+.center {
+  text-align: center;
+  padding: 24rpx 0;
+}
+.retry {
+  display: inline-block;
+  margin-top: 16rpx;
+  color: #1f6feb;
+  font-size: 26rpx;
+}

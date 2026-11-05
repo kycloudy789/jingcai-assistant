@@ -1,0 +1,10 @@
+{
+  "name": "checkTickets",
+  "version": "1.0.0",
+  "description": "对已确认购买的号码执行判奖并留痕",
+  "main": "index.js",
+  "private": true,
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

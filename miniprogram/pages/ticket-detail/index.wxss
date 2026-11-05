@@ -1,0 +1,162 @@
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+.game {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-right: 12rpx;
+}
+.issue {
+  font-size: 25rpx;
+  color: #8a8f99;
+}
+.status {
+  font-size: 22rpx;
+  padding: 6rpx 18rpx;
+  border-radius: 999rpx;
+}
+.status.draft {
+  background: #fff6e5;
+  color: #b26a00;
+}
+.status.confirmed {
+  background: #e7f6ec;
+  color: #2e7d32;
+}
+.status.void {
+  background: #f1f2f5;
+  color: #8a8f99;
+}
+
+.balls {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 12rpx 0 16rpx;
+}
+.balls .ball {
+  width: 60rpx;
+  height: 60rpx;
+  font-size: 26rpx;
+  margin-bottom: 10rpx;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  border-top: 1rpx solid #eef0f3;
+}
+.label {
+  width: 200rpx;
+  font-size: 26rpx;
+  color: #5f6672;
+}
+.input {
+  flex: 1;
+  font-size: 28rpx;
+  text-align: right;
+}
+.picker-value {
+  font-size: 27rpx;
+  color: #1f6feb;
+}
+
+.btn {
+  text-align: center;
+  border-radius: 14rpx;
+  padding: 20rpx 0;
+  font-size: 28rpx;
+  margin-top: 16rpx;
+}
+.btn.primary {
+  background: #1f6feb;
+  color: #ffffff;
+  font-weight: 600;
+}
+.btn.primary.disabled {
+  background: #b6bcc6;
+}
+.btn.ghost {
+  border: 1rpx solid #d5dae1;
+  color: #3f4652;
+}
+.btn.danger {
+  border: 1rpx solid #f3c9c9;
+  color: #c62828;
+  background: #fdf7f7;
+}
+.btn.danger-outline {
+  border: 1rpx solid #e3e6ea;
+  color: #8a8f99;
+}
+.btn-row {
+  display: flex;
+  margin-top: 8rpx;
+}
+.btn-row .btn {
+  flex: 1;
+  margin-right: 16rpx;
+}
+.btn-row .btn:last-child {
+  margin-right: 0;
+}
+
+.center {
+  text-align: center;
+  padding: 80rpx 0;
+}
+
+.check-box {
+  border-radius: 14rpx;
+  padding: 20rpx;
+  background: #f7f8fa;
+  margin-bottom: 8rpx;
+}
+.check-box.win {
+  background: #f0f9f2;
+  border: 1rpx solid #cfe9d6;
+}
+.check-box.warn {
+  background: #fff8ec;
+  border: 1rpx solid #f2e0bd;
+}
+.check-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 6rpx;
+}
+.check-box.win .check-title {
+  color: #1b7a3d;
+}
+.check-box.warn .check-title {
+  color: #9a6100;
+}
+.check-detail {
+  font-size: 25rpx;
+  color: #5f6672;
+  margin-bottom: 6rpx;
+}
+.check-amount {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #c62828;
+  margin: 8rpx 0;
+}
+.check-hit {
+  font-size: 24rpx;
+  color: #5f6672;
+  margin: 6rpx 0;
+}
+.hit-num {
+  display: inline-block;
+  min-width: 40rpx;
+  text-align: center;
+  background: #ffffff;
+  border-radius: 8rpx;
+  padding: 2rpx 6rpx;
+  margin-right: 6rpx;
+  font-weight: 600;
+}

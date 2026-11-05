@@ -1,0 +1,75 @@
+<view class="page">
+  <view class="tabs">
+    <view
+      wx:for="{{games}}"
+      wx:key="game"
+      class="tab {{game === item.game ? 'tab-active' : ''}}"
+      data-game="{{item.game}}"
+      bindtap="switchGame"
+    >{{item.name}}</view>
+  </view>
+
+  <view class="toolbar">
+    <picker mode="selector" range="{{yearOptions}}" range-key="label" bindchange="onYearChange">
+      <view class="picker">{{year ? year + ' 年' : '全部年份'}} ▾</view>
+    </picker>
+    <view class="toolbar-right">
+      <text class="muted" wx:if="{{total}}">共 {{total}} 期</text>
+      <view class="sync-btn {{syncing ? 'disabled' : ''}}" bindtap="onSync">{{syncing ? '同步中…' : '同步最新'}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{!authorized}}" class="card">
+    <view class="section-title">未通过身份校验</view>
+    <view class="muted">请到设置页查看 OpenID 并配置服务端白名单后再查看开奖数据。</view>
+  </view>
+
+  <view wx:elif="{{error}}" class="card">
+    <view class="section-title">加载失败</view>
+    <view class="muted">{{error}}</view>
+    <view class="retry" bindtap="onRetry">重试</view>
+  </view>
+
+  <block wx:else>
+    <view
+      wx:for="{{items}}"
+      wx:key="issue"
+      class="card draw-item"
+      data-game="{{item.game}}"
+      data-issue="{{item.issue}}"
+      bindtap="goDetail"
+    >
+      <view class="draw-head">
+        <view>
+          <text class="issue">{{item.issue}}</text>
+          <text class="date">{{item.drawDate}}</text>
+        </view>
+        <text class="status {{item.statusClass}}">{{item.statusText}}</text>
+      </view>
+
+      <view class="balls">
+        <text
+          wx:for="{{item.redBalls}}"
+          wx:for-item="ball"
+          wx:key="*this"
+          class="ball {{item.isKl8 ? 'ball-kl8' : 'ball-red'}}"
+        >{{ball < 10 ? '0' + ball : ball}}</text>
+        <text wx:if="{{item.blueBall !== null}}" class="ball ball-blue">{{item.blueBall < 10 ? '0' + item.blueBall : item.blueBall}}</text>
+      </view>
+
+      <view class="draw-foot">
+        <text class="muted">{{item.firstPrizeText}}</text>
+        <text class="muted">详情 ›</text>
+      </view>
+    </view>
+
+    <empty-state
+      wx:if="{{!items.length && !loading}}"
+      title="本地暂无该彩种数据"
+      desc="点击右上角「同步最新」从中国福彩网获取，或在设置中导入 CSV。本页不展示任何未经核验的数据。"
+    ></empty-state>
+
+    <view wx:if="{{loading}}" class="muted center">加载中…</view>
+    <view wx:if="{{!hasMore && items.length}}" class="muted center">没有更多了</view>
+  </block>
+</view>

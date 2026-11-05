@@ -1,0 +1,36 @@
+.title {
+  font-size: 34rpx;
+  font-weight: 600;
+  margin-bottom: 12rpx;
+}
+.desc {
+  font-size: 26rpx;
+  color: #5f6672;
+  line-height: 1.7;
+  margin-bottom: 8rpx;
+}
+.openid-box {
+  margin-top: 24rpx;
+  background: #f7f8fa;
+  border-radius: 12rpx;
+  padding: 20rpx;
+}
+.label {
+  display: block;
+  font-size: 22rpx;
+  color: #8a8f99;
+  margin-bottom: 8rpx;
+}
+.value {
+  font-size: 24rpx;
+  word-break: break-all;
+  font-family: 'SF Mono', Menlo, Consolas, monospace;
+}
+.btn {
+  margin-top: 24rpx;
+  text-align: center;
+  background: #1f6feb;
+  color: #fff;
+  border-radius: 12rpx;
+  padding: 20rpx 0;
+}

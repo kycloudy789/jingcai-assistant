@@ -1,0 +1,153 @@
+.tabs {
+  display: flex;
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 8rpx;
+  margin-bottom: 20rpx;
+}
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  font-size: 26rpx;
+  color: #5f6672;
+  border-radius: 12rpx;
+}
+.tab-active {
+  background: #e8f0fe;
+  color: #1f6feb;
+  font-weight: 600;
+}
+.count {
+  font-size: 20rpx;
+  margin-left: 6rpx;
+  color: #8a8f99;
+}
+
+.ticket-item {
+  padding-bottom: 20rpx;
+}
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+.head-left {
+  display: flex;
+  align-items: baseline;
+}
+.game {
+  font-size: 29rpx;
+  font-weight: 600;
+  margin-right: 12rpx;
+}
+.issue {
+  font-size: 24rpx;
+  color: #8a8f99;
+}
+.status {
+  font-size: 22rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+}
+.status.draft {
+  background: #fff6e5;
+  color: #b26a00;
+}
+.status.confirmed {
+  background: #e7f6ec;
+  color: #2e7d32;
+}
+.status.void {
+  background: #f1f2f5;
+  color: #8a8f99;
+}
+
+.balls {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 10rpx;
+}
+.balls .ball {
+  width: 52rpx;
+  height: 52rpx;
+  font-size: 24rpx;
+  margin-bottom: 8rpx;
+}
+
+.foot {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1rpx solid #eef0f3;
+  padding-top: 12rpx;
+}
+.cost {
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.fab {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 40rpx;
+  background: #1f6feb;
+  color: #ffffff;
+  font-size: 27rpx;
+  padding: 20rpx 48rpx;
+  border-radius: 999rpx;
+  box-shadow: 0 6rpx 20rpx rgba(31, 111, 235, 0.3);
+}
+
+.center {
+  text-align: center;
+  padding: 24rpx 0;
+}
+.retry {
+  display: inline-block;
+  margin-top: 16rpx;
+  color: #1f6feb;
+  font-size: 26rpx;
+}
+
+.check-badge {
+  font-size: 20rpx;
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
+  margin-left: 10rpx;
+}
+.check-badge.win {
+  background: #e7f6ec;
+  color: #1b7a3d;
+  font-weight: 600;
+}
+.check-badge.plain {
+  background: #f1f2f5;
+  color: #8a8f99;
+}
+.check-badge.warn {
+  background: #fff6e5;
+  color: #b26a00;
+}
+
+.check-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border-radius: 14rpx;
+  padding: 16rpx 22rpx;
+  margin-bottom: 20rpx;
+}
+.check-all {
+  font-size: 25rpx;
+  color: #1f6feb;
+  border: 1rpx solid #1f6feb;
+  border-radius: 999rpx;
+  padding: 8rpx 26rpx;
+}
+.check-all.disabled {
+  color: #b6bcc6;
+  border-color: #d9dde3;
+}

@@ -1,0 +1,81 @@
+<view class="page">
+  <view wx:if="{{authDegraded}}" class="card banner banner-warn">
+    <view class="banner-title">云端未连接</view>
+    <view class="banner-desc">未取得服务端鉴权结果。请部署云函数并确认云开发环境；当前不展示任何开奖数据。</view>
+  </view>
+
+  <view wx:if="{{!authDegraded && !authAllowed}}" class="card banner banner-danger">
+    <view class="banner-title">身份校验未通过</view>
+    <view class="banner-desc">本应用仅限本人使用。请到「设置」查看当前 OpenID 并加入白名单。</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">最新开奖</view>
+
+    <view
+      wx:for="{{games}}"
+      wx:for-item="g"
+      wx:key="game"
+      class="game-block"
+      data-game="{{g.game}}"
+      bindtap="goDraws"
+    >
+      <view class="game-head">
+        <text class="game-name">{{g.meta.shortName}}</text>
+        <text class="muted" wx:if="{{latest[g.game]}}">{{latest[g.game].issue}} 期</text>
+        <text class="muted" wx:else>未同步</text>
+      </view>
+
+      <block wx:if="{{latest[g.game]}}">
+        <view class="balls">
+          <text
+            wx:for="{{latest[g.game].redBalls}}"
+            wx:for-item="ball"
+            wx:key="*this"
+            class="ball {{latest[g.game].isKl8 ? 'ball-kl8' : 'ball-red'}}"
+          >{{ball < 10 ? '0' + ball : ball}}</text>
+          <text wx:if="{{latest[g.game].blueBall !== null}}" class="ball ball-blue">{{latest[g.game].blueBall < 10 ? '0' + latest[g.game].blueBall : latest[g.game].blueBall}}</text>
+        </view>
+        <view class="muted">{{latest[g.game].drawDate}} · {{latest[g.game].statusText}}</view>
+      </block>
+
+      <view wx:elif="{{loading}}" class="muted">加载中…</view>
+      <view wx:else class="tip">本地尚无已核验数据。到「开奖」页点「同步最新」从中国福彩网获取；不展示未经核验的号码。</view>
+    </view>
+
+    <view class="muted" style="margin-top:12rpx">上次同步：{{lastSyncText}}</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">快捷入口</view>
+    <view class="row" bindtap="goTickets">
+      <text>我的号码</text>
+      <text class="muted">草稿 / 已购买 / 已核对 ›</text>
+    </view>
+    <view class="row" bindtap="goAssistant">
+      <text>AI 助手</text>
+      <text class="muted">基于已核验数据问答 ›</text>
+    </view>
+    <view class="row" bindtap="goSettings">
+      <text>设置与数据</text>
+      <text class="muted">备份 / 导出 / 关于 ›</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">功能状态</view>
+    <view class="row">
+      <text>候选号码生成</text>
+      <text class="badge {{candidateOpen ? 'badge-on' : 'badge-off'}}">{{candidateOpen ? '已开放' : '未开放'}}</text>
+    </view>
+    <view class="row">
+      <text>合规状态</text>
+      <text class="muted">{{flags.wxComplianceStatus || 'not_checked'}}</text>
+    </view>
+    <view class="tip" style="margin-top:16rpx">
+      候选号码与未来号码相关功能需经微信平台明确许可后在服务端开启，当前保持关闭。
+    </view>
+  </view>
+
+  <view class="tip">{{disclaimer}}</view>
+</view>

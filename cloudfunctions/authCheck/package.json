@@ -1,0 +1,10 @@
+{
+  "name": "authCheck",
+  "version": "1.0.0",
+  "description": "单用户身份校验",
+  "main": "index.js",
+  "private": true,
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

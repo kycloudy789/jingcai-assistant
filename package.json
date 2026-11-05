@@ -1,0 +1,24 @@
+{
+  "name": "jingcai-assistant",
+  "version": "0.6.0",
+  "private": true,
+  "description": "竞彩助手 — 双色球/快乐8选十 本地号码档案（静态站版 + 小程序历史版）",
+  "scripts": {
+    "sync:shared": "node scripts/sync-shared.js",
+    "verify:shared": "node scripts/sync-shared.js --verify",
+    "test": "node scripts/sync-shared.js && node --test \"tests/*.test.js\"",
+    "test:only": "node --test \"tests/*.test.js\"",
+    "seed:rules": "node scripts/seed-rules.js",
+    "import:draws": "node scripts/import-draws.js",
+    "verify:pipeline": "node scripts/verify-pipeline.js",
+    "set:appid": "node scripts/set-appid.js",
+    "compliance:grep": "node scripts/check-copy.js",
+    "verify:judge": "node scripts/verify-judge.js",
+    "build:web": "node scripts/build-web.js",
+    "sync:json": "node scripts/sync-to-json.js",
+    "serve:web": "node scripts/serve-web.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

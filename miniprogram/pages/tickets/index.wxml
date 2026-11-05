@@ -1,0 +1,83 @@
+<view class="page">
+  <view class="tabs">
+    <view
+      wx:for="{{tabs}}"
+      wx:for-item="tab"
+      wx:key="key"
+      class="tab {{status === tab.key ? 'tab-active' : ''}}"
+      data-status="{{tab.key}}"
+      bindtap="switchTab"
+    >
+      {{tab.label}}
+      <text wx:if="{{tab.key === 'draft' && counts.draft}}" class="count">{{counts.draft}}</text>
+      <text wx:if="{{tab.key === 'confirmed' && counts.confirmed}}" class="count">{{counts.confirmed}}</text>
+      <text wx:if="{{tab.key === 'void' && counts.void}}" class="count">{{counts.void}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{!authorized}}" class="card">
+    <view class="section-title">未通过身份校验</view>
+    <view class="muted">请到设置页配置服务端白名单。</view>
+  </view>
+
+  <view wx:elif="{{error}}" class="card">
+    <view class="section-title">加载失败</view>
+    <view class="muted">{{error}}</view>
+    <view class="retry" bindtap="onRetry">重试</view>
+  </view>
+
+  <block wx:else>
+    <view class="tip" wx:if="{{status === '' || status === 'draft'}}" style="margin-bottom:16rpx">
+      草稿是"准备买"的号码，不计入花费与中奖；线下实际购买后，请打开记录点「确认已购买」。
+    </view>
+
+    <view class="check-bar" wx:if="{{status === '' || status === 'confirmed'}}">
+      <text class="muted">开奖后可用已核验数据核对已购买的号码</text>
+      <view class="check-all {{checking ? 'disabled' : ''}}" bindtap="onCheckAll">{{checking ? '核对中…' : '一键核对'}}</view>
+    </view>
+
+    <view
+      wx:for="{{items}}"
+      wx:for-item="t"
+      wx:key="id"
+      class="card ticket-item"
+      data-id="{{t.id}}"
+      bindtap="goDetail"
+    >
+      <view class="head">
+        <view class="head-left">
+          <text class="game">{{t.gameName}}</text>
+          <text class="issue">{{t.issue}} 期</text>
+          <text wx:if="{{t.checkText}}" class="check-badge {{t.checkClass}}">{{t.checkText}}</text>
+        </view>
+        <text class="status {{t.statusClass}}">{{t.statusText}}</text>
+      </view>
+
+      <view class="balls">
+        <text
+          wx:for="{{t.redBalls}}"
+          wx:for-item="ball"
+          wx:key="*this"
+          class="ball {{t.isKl8 ? 'ball-kl8' : 'ball-red'}}"
+        >{{ball < 10 ? '0' + ball : ball}}</text>
+        <text wx:if="{{t.blueBall !== null}}" class="ball ball-blue">{{t.blueBall < 10 ? '0' + t.blueBall : t.blueBall}}</text>
+      </view>
+
+      <view class="foot">
+        <text class="muted">{{t.sourceText}} · {{t.multiple}} 倍</text>
+        <text class="{{t.actualCost === null ? 'muted' : 'cost'}}">{{t.costText}}</text>
+      </view>
+    </view>
+
+    <empty-state
+      wx:if="{{!items.length && !loading}}"
+      title="还没有号码记录"
+      desc="点击右下角「新增号码」手动录入。候选导入也会先落成草稿，不会自动算作已购买。"
+    ></empty-state>
+
+    <view wx:if="{{loading}}" class="muted center">加载中…</view>
+    <view wx:if="{{!hasMore && items.length}}" class="muted center">共 {{total}} 条</view>
+  </block>
+
+  <view class="fab" bindtap="goCreate">＋ 新增号码</view>
+</view>

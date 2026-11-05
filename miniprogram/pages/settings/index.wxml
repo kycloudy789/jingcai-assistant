@@ -1,0 +1,61 @@
+<view class="page">
+  <view class="card">
+    <view class="section-title">身份</view>
+    <view class="row">
+      <text>校验结果</text>
+      <text class="{{auth.allowed ? 'ok' : 'warn'}}">{{authText}}</text>
+    </view>
+    <view class="row" bindtap="copyOpenid">
+      <text>当前 OpenID</text>
+      <text class="muted mono">{{auth.openid || '（未获取）'}}</text>
+    </view>
+    <view class="row">
+      <text>授权来源</text>
+      <text class="muted">{{auth.authSource || '—'}}</text>
+    </view>
+    <view class="btn" bindtap="recheck">{{checking ? '校验中…' : '重新校验身份'}}</view>
+    <view class="tip">把上面的 OpenID 填入 app_config.ownerWhitelist（或环境变量 OWNER_OPENID），其他人即使打开小程序也无法读取任何数据。</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">数据库初始化</view>
+    <view class="tip" style="margin-bottom:16rpx">
+      首次部署后点一次：自动创建 8 个集合、写入 app_config（把你的 OpenID 加白名单）、灌入规则版本。重复点击不会重复创建，也不会覆盖已有白名单。
+    </view>
+    <view class="btn" bindtap="runInit">{{initializing ? '初始化中…' : '一键初始化数据库'}}</view>
+
+    <block wx:if="{{initResult}}">
+      <view class="row"><text>新建集合</text><text>{{initResult.created.length}} 个</text></view>
+      <view class="row"><text>已存在</text><text>{{initResult.existed.length}} 个</text></view>
+      <view class="row"><text>规则种子</text><text>{{initResult.rules.seeded}} 条</text></view>
+
+      <view class="section-title" style="margin-top:20rpx">还需在控制台手动建的索引</view>
+      <view wx:for="{{initResult.indexGuide}}" wx:for-item="g" wx:key="collection" class="index-group">
+        <view class="index-coll">{{g.collection}}</view>
+        <view wx:for="{{g.indexes}}" wx:for-item="idx" wx:key="*this" class="muted index-item">· {{idx}}</view>
+      </view>
+    </block>
+  </view>
+
+  <view class="card">
+    <view class="section-title">功能开关（只读）</view>
+    <view class="row"><text>合规状态</text><text class="muted">{{flags.wxComplianceStatus}}</text></view>
+    <view class="row"><text>候选号码生成</text><text class="muted">{{flags.candidateGenerationEnabled ? '开' : '关'}}</text></view>
+    <view class="row"><text>AI 未来号码</text><text class="muted">{{flags.aiFutureNumberFeatureEnabled ? '开' : '关'}}</text></view>
+    <view class="tip">开关只能由服务端配置变更，前端不可修改。未取得微信平台明确许可前，相关功能保持关闭。</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">数据</view>
+    <view class="row" bindtap="showTodo"><text>备份 / 导出 / 恢复</text><text class="muted">阶段 7 ›</text></view>
+    <view class="row" bindtap="showTodo"><text>清空个人数据</text><text class="muted">阶段 7 ›</text></view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">关于</view>
+    <view class="row"><text>版本</text><text class="muted">{{version}}</text></view>
+    <view class="row"><text>彩种范围</text><text class="muted">双色球 / 快乐8 选十</text></view>
+  </view>
+
+  <view class="tip">{{disclaimer}}</view>
+</view>
