@@ -16,7 +16,8 @@
     "verify:judge": "node scripts/verify-judge.js",
     "build:web": "node scripts/build-web.js",
     "sync:json": "node scripts/sync-to-json.js",
-    "serve:web": "node scripts/serve-web.js"
+    "serve:web": "node scripts/serve-web.js",
+    "publish:data": "node scripts/publish-data.js"
   },
   "engines": {
     "node": ">=18"

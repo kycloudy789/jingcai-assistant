@@ -69,15 +69,44 @@ https://<你的用户名>.github.io/jingcai-assistant/
 
 然后就能：录号码 → 确认已购买 → 一键核对 → 看统计。
 
+## 3.5 重要：定时抓取在 GitHub 机器上会被拦（已实测）
+
+GitHub 托管的 Runner 访问中国福彩网，会被**网宿云安全平台按 IP 拦截**：
+
+```
+! ssq 同步失败: HTTP 403 网宿云安全平台检测到您当前的访问行为存在异常，请稍后重试
+```
+
+加强 UA / Referer / Accept 等请求头**无效**，这是机房 IP 层面的限制，不是请求头问题。
+因此：
+
+- `sync-draws` 工作流保留，但标记为「尽力而为」：失败不会让站点变红，也不会清空已有数据。
+- **推荐做法：本机一条命令发布**（本机能正常访问福彩网）：
+
+```bash
+npm run publish:data                 # 抓 60 期 + 通过 GitHub API 推送到仓库
+npm run publish:data -- --count 20   # 只抓 20 期
+npm run publish:data -- --dry-run    # 只抓不推
+```
+
+它会：本地抓取 → 校验 → 写入 `web/data/draws/*.json` → 用 `gh` 凭据通过 **GitHub API** 提交 → Pages 1–2 分钟内自动重建。
+
+> 为什么走 API 而不是 `git push`：本机实测 `github.com:443` 连接被重置，
+> 但 `api.github.com` 正常。脚本因此绕开 git 通道。
+
+想全自动：Windows「任务计划程序」→ 新建任务 → 操作选「启动程序」，
+程序填 `npm`，参数填 `run publish:data`，起始位置填项目目录。电脑开机时每天跑一次即可。
+
 ## 4. 日常维护
 
 | 想做什么 | 怎么做 |
 |---|---|
-| 立刻刷新开奖数据 | 仓库 Actions → `sync-draws` → **Run workflow** |
+| 立刻刷新开奖数据 | 本机执行 `npm run publish:data`（推荐）；或 Actions 手动跑 `sync-draws`（可能被 403） |
 | 改代码后发布 | 本地改完 `git push`，Pages 自动重新部署（会自动跑测试，测试挂了不会发布） |
 | 换设备 | 旧设备「数据」页导出 JSON → 新设备「恢复备份」 |
 | 本地预览 | `npm run build:web && npm run serve:web`，打开 <http://127.0.0.1:5173> |
-| 手动更新一次数据 | `npm run sync:json` 然后 `git add web/data && git commit && git push` |
+| 只更新本地数据不推仓库 | `npm run sync:json` |
+| 定时全自动更新 | Windows 任务计划每天跑 `npm run publish:data` |
 
 ## 5. 常见问题
 
@@ -100,7 +129,8 @@ https://<你的用户名>.github.io/jingcai-assistant/
 → 免费账号的 Pages 不支持私有仓库。若必须私有，两个选择：升级 GitHub Pro，或改用 Cloudflare Pages（免费支持私有仓库，构建命令同样是 `node scripts/build-web.js`，输出目录 `web`）。
 
 **数据更新频率**
-→ 当前每天 2 次（UTC 01:00 / 14:00）。想更勤改 `.github/workflows/sync-draws.yml` 的 cron——但请克制，官方站点不需要高频访问。
+→ 仓库里的 `sync-draws` 每天跑 2 次，但受上面 403 限制，实际主要靠 `npm run publish:data`。
+建议每天手动或定时跑一次即可，官方站点不需要高频访问。
 
 ## 6. 上线前自检（可选但建议）
 

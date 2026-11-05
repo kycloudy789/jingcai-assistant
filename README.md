@@ -37,6 +37,8 @@ npm run serve:web      # http://127.0.0.1:5173
 
 一句话版本：建 Public 仓库 → push → Settings → Pages → Source 选 **GitHub Actions** → 等 `deploy-pages` 变绿。
 
+更新开奖数据（本机执行）：`npm run publish:data` → 抓取 + 通过 GitHub API 提交 → Pages 自动重建。
+
 ## 架构
 
 ```
@@ -92,7 +94,7 @@ miniprogram/ cloudfunctions/   早期小程序版（保留备查）
 | 限制 | 说明 |
 |---|---|
 | 数据在单机 | 换设备/清缓存会丢，用「数据」页导出备份 |
-| 开奖滞后 | 每天 2 次定时；可手动 Run workflow |
+| 开奖滞后 | GitHub 机器抓福彩网被 WAF 拦（403，实测），自动更新改由本机 `npm run publish:data` 完成 |
 | 浮动奖 | 双色球一/二等、快乐8 中 10 只读当期公告，缺失显示待公告 |
 | 旧期不判奖 | 双色球 < 2026014、快乐8 < 2025350 无规则版本 |
 | 福运奖 | 官方未明确是否执行时转人工（配置项可改，见 `docs/data-source-plan.md`） |

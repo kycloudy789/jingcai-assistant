@@ -26,7 +26,14 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Explain known limitation
+        run: |
+          echo "说明：本工作流在 GitHub 托管机器上抓取中国福彩网时，实测会被 WAF 按 IP 拦截"
+          echo "（HTTP 403 网宿云安全平台）。因此这里作为「尽力而为」的尝试：失败不阻塞站点。"
+          echo "推荐改用本机：npm run publish:data（本机抓取 + GitHub API 推送）。"
+
       - name: Fetch official draws into web/data
+        continue-on-error: true
         run: node scripts/sync-to-json.js --count 60 --keep 300
 
       - name: Commit if changed
