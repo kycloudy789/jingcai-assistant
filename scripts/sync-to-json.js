@@ -49,11 +49,27 @@ function fetchJson(url) {
   return new Promise((resolve, reject) => {
     const req = https.get(
       url,
-      { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; jingcai-static-sync/1.0)' } },
+      {
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+          Accept: 'application/json, text/javascript, */*; q=0.01',
+          'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+          Referer: 'https://www.cwl.gov.cn/ygkj/wqkjgg/ssq/',
+          'X-Requested-With': 'XMLHttpRequest',
+          Connection: 'close',
+        },
+      },
       (res) => {
         if (res.statusCode !== 200) {
-          res.resume();
-          reject(new Error(`HTTP ${res.statusCode}`));
+          let snippet = '';
+          res.setEncoding('utf8');
+          res.on('data', (c) => {
+            if (snippet.length < 160) snippet += c;
+          });
+          res.on('end', () => {
+            reject(new Error(`HTTP ${res.statusCode}${snippet ? ` ${snippet.replace(/\s+/g, ' ').slice(0, 120)}` : ''}`));
+          });
           return;
         }
         let data = '';
