@@ -8,12 +8,18 @@ const { createAi } = require('./ai');
 const { GAME, GAME_META, PURCHASE_STATUS, DISCLAIMER } = require('../../shared/constants/games');
 const { validateNumbers } = require('../../shared/validators/numbers');
 const { suggestCost } = require('../../shared/rules/registry');
+const { STRATEGY_META } = require('../../shared/domain/candidates');
 
-const ai = createAi({ store });
+const ai = createAi({
+  store,
+  getGate: () => repo.gateState(),
+  saveBatch: (batch) => repo.saveCandidateBatch(batch),
+});
 const { emptyBet, betLabel, randomBets } = require('./bets');
 
 const TABS = [
   { key: 'draws', label: '开奖' },
+  { key: 'candidates', label: '选号' },
   { key: 'tickets', label: '我的号码' },
   { key: 'stats', label: '统计' },
   { key: 'ai', label: 'AI' },
@@ -54,6 +60,15 @@ const state = {
   form: null,
   detail: null,
   ai: { messages: [], busy: false, error: '', keyDraft: '', notice: '' },
+  candidates: {
+    gate: null,
+    batches: [],
+    last: null,
+    detail: null,
+    busy: false,
+    error: '',
+    form: { strategy: 'random', count: 3, targetIssue: '', include: '', exclude: '', seed: '' },
+  },
 };
 
 function esc(text) {
@@ -435,6 +450,187 @@ function ticketsView() {
     <div class="list">${state.tickets.map(ticketCard).join('')}</div>`;
 }
 
+/* ---------------- 选号：候选组合（阶段 6） ---------------- */
+
+const STRATEGY_ORDER = ['random', 'balanced', 'preference'];
+
+function candForm() {
+  return { strategy: 'random', count: 3, targetIssue: '', include: '', exclude: '', seed: '' };
+}
+
+function readCandForm() {
+  const val = (id) => {
+    const el = document.getElementById(id);
+    return el ? String(el.value || '') : '';
+  };
+  const f = state.candidates.form;
+  return {
+    strategy: f.strategy,
+    count: Number(val('cand-count') || f.count || 3),
+    targetIssue: val('cand-issue').trim(),
+    include: val('cand-include').trim(),
+    exclude: val('cand-exclude').trim(),
+    seed: val('cand-seed').trim(),
+  };
+}
+
+function splitNumbers(text) {
+  return String(text || '')
+    .split(/[\s,，、]+/)
+    .map((x) => x.trim())
+    .filter(Boolean)
+    .map(Number);
+}
+
+function batchGroupsHtml(batch) {
+  return `<div class="batch-groups">${batch.groups
+    .map(
+      (g) => `<div class="batch-group">
+        <span class="bet-idx">第 ${g.index + 1} 注</span>
+        ${balls(g.numbers, batch.game)}
+      </div>`
+    )
+    .join('')}</div>`;
+}
+
+function batchMetaLine(b) {
+  const meta = STRATEGY_META[b.strategy] || { label: b.strategy };
+  const when = String(b.createdAt || '').replace('T', ' ').slice(0, 16);
+  return `${meta.label} · ${b.count} 注 · 种子 ${b.randomSeed}${b.seedGenerated ? '（自动）' : ''} · ${when}`;
+}
+
+function candidatesView() {
+  const c = state.candidates;
+  const gate = c.gate;
+
+  if (!gate || !gate.candidateGeneration) {
+    return `
+      <section class="card gate">
+        <div class="form-head"><strong>候选组合</strong><span class="gate-tag off">已关闭</span></div>
+        <p class="muted small">这个功能默认关闭。开启后可以按策略生成 1–5 注号码组合；导入「我的号码」后一律是<b>草稿</b>，不计入花费与中奖。</p>
+        <p class="muted small">开启前请确认你理解：组合由随机算法产生，历史开奖号码不会改变任何概率，本工具不做预测、也不能提高中奖机会。</p>
+        <label class="check-row"><input id="cand-ai" type="checkbox" /> 同时允许 AI 助手调用候选生成（可随时关闭）</label>
+        <div class="actions">
+          <button class="btn primary" data-act="cand-enable">我已了解，开启</button>
+        </div>
+        <p class="muted small">这是自托管静态站，没有平台可审批；开启代表你本人的知情确认，不是任何机构批准。</p>
+      </section>`;
+  }
+
+  const f = c.form;
+  const last = c.last;
+  const history = c.batches;
+
+  return `
+    <section class="card">
+      <div class="form-head">
+        <strong>候选组合</strong>
+        <span class="gate-tag on">已开启</span>
+      </div>
+      <p class="muted small">生成的是号码组合，不是购买记录。同一「随机种子 + 参数」永远得到同一批号码，便于复盘。</p>
+
+      <div class="segmented">
+        ${[GAME.SSQ, GAME.KL8]
+          .map(
+            (g) => `<button class="seg ${state.game === g ? 'on' : ''}" data-act="game" data-game="${g}">${GAME_META[g].shortName}</button>`
+          )
+          .join('')}
+      </div>
+
+      <div class="pick-title" style="margin-top:12px">策略</div>
+      <div class="segmented">
+        ${STRATEGY_ORDER.map(
+          (s) =>
+            `<button class="seg ${f.strategy === s ? 'on' : ''}" data-act="cand-strategy" data-strategy="${s}">${STRATEGY_META[s].label}</button>`
+        ).join('')}
+      </div>
+      <p class="muted small">${esc((STRATEGY_META[f.strategy] || {}).desc || '')}</p>
+
+      <div class="form-inline">
+        <label>注数（1–5）<input id="cand-count" type="number" min="1" max="5" value="${f.count}" /></label>
+        <label>目标期号<input id="cand-issue" type="text" inputmode="numeric" maxlength="7" placeholder="如 2026127" value="${esc(f.targetIssue)}" /></label>
+        <label>随机种子（可留空）<input id="cand-seed" type="text" maxlength="64" placeholder="留空=自动生成" value="${esc(f.seed)}" /></label>
+      </div>
+
+      ${f.strategy === 'preference'
+        ? `<div class="form-inline">
+            <label>必含号码<input id="cand-include" type="text" placeholder="如 3 9，最多 ${state.game === GAME.SSQ ? 6 : 10} 个" value="${esc(f.include)}" /></label>
+            <label>排除号码<input id="cand-exclude" type="text" placeholder="如 1 2，最多 30 个" value="${esc(f.exclude)}" /></label>
+          </div>`
+        : ''}
+
+      <div class="actions">
+        <button class="btn primary" data-act="cand-generate" ${c.busy ? 'disabled' : ''}>${c.busy ? '生成中…' : '生成'}</button>
+        <button class="link" data-act="cand-disable">关闭候选功能</button>
+      </div>
+      ${c.error ? `<p class="small bad-text">${esc(c.error)}</p>` : ''}
+    </section>
+
+    ${last
+      ? `<section class="card">
+          <div class="form-head">
+            <strong>本次结果</strong>
+            <button class="link" data-act="cand-import" data-id="${last.id}">导入为草稿</button>
+          </div>
+          <div class="muted small">${esc(batchMetaLine(last))} · 算法 ${esc(last.algorithmVersion)}</div>
+          ${
+            last.targetIssue
+              ? `<div class="muted small">目标期 ${esc(last.targetIssue)}</div>`
+              : `<label class="field">目标期号（导入前必填）
+                   <input id="cand-import-issue" type="text" inputmode="numeric" maxlength="7" placeholder="如 2026127" />
+                 </label>`
+          }
+          ${batchGroupsHtml(last)}
+          <p class="muted small">导入后是草稿：需要在「我的号码」里逐注确认已购买，才会进入花费与中奖统计。</p>
+        </section>`
+      : ''}
+
+    <section class="card">
+      <div class="form-head"><strong>历史批次</strong><span class="muted small">共 ${history.length} 批</span></div>
+      ${
+        history.length
+          ? history
+              .map(
+                (b) => `
+        <div class="batch">
+          <div class="batch-head">
+            <div>
+              <div class="batch-title">${esc((STRATEGY_META[b.strategy] || {}).label || b.strategy)} · ${b.count} 注</div>
+              <div class="muted small">${esc(batchMetaLine(b))}${b.targetIssue ? ` · 期号 ${esc(b.targetIssue)}` : ''}</div>
+              <div class="muted small">${
+                b.importedAt ? `已导入 ${b.importedTicketIds ? b.importedTicketIds.length : b.count} 注草稿` : '尚未导入'
+              }${b.review ? ` · 该期最高命中 ${b.review.best ? b.review.best.totalHits : 0} 个` : ''}</div>
+            </div>
+            <div class="batch-ops">
+              <button class="link" data-act="cand-toggle" data-id="${b.id}">${c.detail === b.id ? '收起' : '展开'}</button>
+              <button class="link danger" data-act="cand-delete" data-id="${b.id}">删除</button>
+            </div>
+          </div>
+          ${c.detail === b.id ? `${batchGroupsHtml(b)}${b.review ? batchReviewHtml(b.review) : ''}` : ''}
+        </div>`
+              )
+              .join('')
+          : '<p class="muted small">还没有生成过批次。生成后会留在这里，包含策略、种子与参数快照。</p>'
+      }
+    </section>`;
+}
+
+function batchReviewHtml(review) {
+  return `
+    <div class="review">
+      <div class="muted small">与 ${esc(review.issue)} 期开奖号码的重合数（仅描述，不判奖）</div>
+      ${review.groups
+        .map(
+          (g) =>
+            `<div class="muted small">第 ${g.index + 1} 注：中 ${g.mainHits} 个${
+              g.blueHit === null ? '' : g.blueHit ? ' + 蓝球' : ''
+            }${g.matched.length ? `（${g.matched.map(pad2).join(' ')}）` : ''}</div>`
+        )
+        .join('')}
+      <div class="muted small">${esc(review.note)}</div>
+    </div>`;
+}
+
 function statsView() {
   const s = state.stats;
   if (!s) return emptyBlock('还没有统计数据', '先录入并确认购买号码。');
@@ -515,7 +711,12 @@ function aiView() {
         <input id="ai-input" type="text" maxlength="1000" placeholder="问点什么…" ${a.busy ? 'disabled' : ''} />
         <button class="btn primary" data-act="ai-send" ${a.busy ? 'disabled' : ''}>发送</button>
       </div>
-      <p class="muted small">回答由 DeepSeek 生成，事实来自本地已核验数据；不做号码推算，不构成购彩建议。</p>
+      <p class="muted small">回答由 DeepSeek 生成，事实来自本地已核验数据；不给预测，不构成购彩建议。</p>
+      ${
+        state.candidates.gate && !state.candidates.gate.aiFutureNumber
+          ? '<p class="muted small">候选号码生成未开启：需要时到「选号」页开启，AI 才能调用生成工具。</p>'
+          : ''
+      }
     </section>`;
 }
 
@@ -561,6 +762,8 @@ function render() {
       ? drawsView()
       : state.tab === 'tickets'
       ? ticketsView()
+      : state.tab === 'candidates'
+      ? candidatesView()
       : state.tab === 'stats'
       ? statsView()
       : state.tab === 'ai'
@@ -577,6 +780,8 @@ async function refreshAll() {
   state.checks = await repo.latestChecks();
   state.stats = await repo.stats();
   state.syncInfo = await store.getMeta(`sync:${state.game}`);
+  state.candidates.gate = await repo.gateState();
+  state.candidates.batches = await repo.listCandidateReviews(state.game);
 }
 
 async function syncDraws() {
@@ -844,6 +1049,82 @@ async function onAction(act, el) {
       return notify('这些期号的已核验开奖还没同步，先加载开奖数据', 'bad');
     }
     notify(`核对完成：新核对 ${summary.inserted} 条，中奖 ${summary.winners} 条`, 'ok');
+    return;
+  }
+
+  if (act === 'cand-enable') {
+    const aiBox = document.getElementById('cand-ai');
+    const allowAi = !!(aiBox && aiBox.checked);
+    await repo.setCandidateGate(true, { allowAi });
+    await refreshAll();
+    notify(allowAi ? '候选生成已开启（AI 也可调用）' : '候选生成已开启', 'ok');
+    render();
+    return;
+  }
+  if (act === 'cand-disable') {
+    if (!confirm('关闭后选号页只显示开关，已生成的批次与草稿都保留。确定关闭？')) return;
+    await repo.setCandidateGate(false);
+    state.candidates.last = null;
+    state.candidates.detail = null;
+    await refreshAll();
+    notify('已关闭候选功能', 'ok');
+    render();
+    return;
+  }
+  if (act === 'cand-strategy') {
+    const f = readCandForm();
+    state.candidates.form = { ...f, strategy: el.dataset.strategy };
+    render();
+    return;
+  }
+  if (act === 'cand-generate') {
+    const f = readCandForm();
+    state.candidates.form = f;
+    state.candidates.busy = true;
+    state.candidates.error = '';
+    render();
+    const res = await repo.generateCandidateBatch({
+      game: state.game,
+      strategy: f.strategy,
+      count: f.count,
+      targetIssue: f.targetIssue || undefined,
+      seed: f.seed || undefined,
+      params: { include: splitNumbers(f.include), exclude: splitNumbers(f.exclude) },
+    });
+    state.candidates.busy = false;
+    if (!res.ok) {
+      state.candidates.error = res.message;
+      render();
+      return;
+    }
+    state.candidates.last = res.batch;
+    // 把实际用到的种子回填，下次能复现同一批
+    state.candidates.form = { ...f, seed: String(res.batch.randomSeed) };
+    await refreshAll();
+    notify(`已生成 ${res.batch.count} 注（种子 ${res.batch.randomSeed}）`, 'ok');
+    return;
+  }
+  if (act === 'cand-import') {
+    const issueEl = document.getElementById('cand-import-issue');
+    const issue = issueEl ? issueEl.value.trim() : '';
+    const res = await repo.importCandidateBatch(id, issue || undefined);
+    if (!res.ok) return notify(res.message, 'bad');
+    await refreshAll();
+    notify(`已导入 ${res.count} 注草稿，到「我的号码」逐注确认购买`, 'ok');
+    return;
+  }
+  if (act === 'cand-delete') {
+    if (!confirm('删除这条批次记录？已导入的草稿不受影响。')) return;
+    await repo.deleteCandidateBatch(id);
+    if (state.candidates.last && state.candidates.last.id === id) state.candidates.last = null;
+    if (state.candidates.detail === id) state.candidates.detail = null;
+    await refreshAll();
+    notify('已删除批次', 'ok');
+    return;
+  }
+  if (act === 'cand-toggle') {
+    state.candidates.detail = state.candidates.detail === id ? null : id;
+    render();
     return;
   }
 

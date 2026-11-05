@@ -231,6 +231,42 @@
 
 **索引**：`ownerOpenId + updatedAt(DESC)`；`sessionId + createdAt(ASC)`。
 
+## 4.9 `candidate_batches`（阶段 6；Web 版为浏览器本地库）
+
+> 小程序版未创建此集合（主线已迁到静态站，见 decisions.md D20）。
+> 静态站里它存在 IndexedDB 的 `candidates` 对象仓库，**不在云端**。
+
+```jsonc
+{
+  "_id": "b_xxx",
+  "ownerOpenId": "local",
+  "game": "ssq",                    // ssq | kl8
+  "strategy": "random",             // random | balanced | preference
+  "count": 3,
+  "targetIssue": "2026127",         // 可为 null，导入时必填
+  "algorithmVersion": "candidate@1.0.0",
+  "randomSeed": 3472741477,         // uint32；用于复现
+  "seedGenerated": false,           // true = 种子由系统生成
+  "parameterSnapshot": { "include": [], "exclude": [], "blueFixed": null },
+  "complianceState": "self_attested_personal_use",
+  "createdAt": "…",
+  "groups": [
+    { "index": 0, "numbers": { "red": [4,6,13,15,26,33], "blue": 12, "kl8": [] },
+      "key": "4,6,13,15,26,33|12", "displayText": "04 06 13 15 26 33 + 12" }
+  ],
+  "importedAt": null,
+  "importedTicketIds": []
+}
+```
+
+**不变量**
+1. `groups` 组间必须互不相同（`verifyBatch` 会校验，重复即拒）。
+2. 导入只生成 `purchaseStatus: 'draft'` 的 `ticket_records`，`actualCost`/`purchaseAt` 为 `null`。
+3. `algorithmVersion` 不匹配的批次拒绝导入（避免用旧算法结果冒充当前规则）。
+4. `complianceState` 记录生成当时的闸门状态，便于回溯"这批是在什么授权下生成的"。
+
+**索引**：无需额外索引（按 `createdAt` 内存排序即可；本地数据量级为几十到几百条）。
+
 ## 5. `app_config`
 
 固定文档 `_id = "global"`（单文档配置）：

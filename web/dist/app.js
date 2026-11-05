@@ -41,12 +41,18 @@ const { createAi } = require('./ai');
 const { GAME, GAME_META, PURCHASE_STATUS, DISCLAIMER } = require('../../shared/constants/games');
 const { validateNumbers } = require('../../shared/validators/numbers');
 const { suggestCost } = require('../../shared/rules/registry');
+const { STRATEGY_META } = require('../../shared/domain/candidates');
 
-const ai = createAi({ store });
+const ai = createAi({
+  store,
+  getGate: () => repo.gateState(),
+  saveBatch: (batch) => repo.saveCandidateBatch(batch),
+});
 const { emptyBet, betLabel, randomBets } = require('./bets');
 
 const TABS = [
   { key: 'draws', label: '开奖' },
+  { key: 'candidates', label: '选号' },
   { key: 'tickets', label: '我的号码' },
   { key: 'stats', label: '统计' },
   { key: 'ai', label: 'AI' },
@@ -87,6 +93,15 @@ const state = {
   form: null,
   detail: null,
   ai: { messages: [], busy: false, error: '', keyDraft: '', notice: '' },
+  candidates: {
+    gate: null,
+    batches: [],
+    last: null,
+    detail: null,
+    busy: false,
+    error: '',
+    form: { strategy: 'random', count: 3, targetIssue: '', include: '', exclude: '', seed: '' },
+  },
 };
 
 function esc(text) {
@@ -468,6 +483,187 @@ function ticketsView() {
     <div class="list">${state.tickets.map(ticketCard).join('')}</div>`;
 }
 
+/* ---------------- 选号：候选组合（阶段 6） ---------------- */
+
+const STRATEGY_ORDER = ['random', 'balanced', 'preference'];
+
+function candForm() {
+  return { strategy: 'random', count: 3, targetIssue: '', include: '', exclude: '', seed: '' };
+}
+
+function readCandForm() {
+  const val = (id) => {
+    const el = document.getElementById(id);
+    return el ? String(el.value || '') : '';
+  };
+  const f = state.candidates.form;
+  return {
+    strategy: f.strategy,
+    count: Number(val('cand-count') || f.count || 3),
+    targetIssue: val('cand-issue').trim(),
+    include: val('cand-include').trim(),
+    exclude: val('cand-exclude').trim(),
+    seed: val('cand-seed').trim(),
+  };
+}
+
+function splitNumbers(text) {
+  return String(text || '')
+    .split(/[\s,，、]+/)
+    .map((x) => x.trim())
+    .filter(Boolean)
+    .map(Number);
+}
+
+function batchGroupsHtml(batch) {
+  return `<div class="batch-groups">${batch.groups
+    .map(
+      (g) => `<div class="batch-group">
+        <span class="bet-idx">第 ${g.index + 1} 注</span>
+        ${balls(g.numbers, batch.game)}
+      </div>`
+    )
+    .join('')}</div>`;
+}
+
+function batchMetaLine(b) {
+  const meta = STRATEGY_META[b.strategy] || { label: b.strategy };
+  const when = String(b.createdAt || '').replace('T', ' ').slice(0, 16);
+  return `${meta.label} · ${b.count} 注 · 种子 ${b.randomSeed}${b.seedGenerated ? '（自动）' : ''} · ${when}`;
+}
+
+function candidatesView() {
+  const c = state.candidates;
+  const gate = c.gate;
+
+  if (!gate || !gate.candidateGeneration) {
+    return `
+      <section class="card gate">
+        <div class="form-head"><strong>候选组合</strong><span class="gate-tag off">已关闭</span></div>
+        <p class="muted small">这个功能默认关闭。开启后可以按策略生成 1–5 注号码组合；导入「我的号码」后一律是<b>草稿</b>，不计入花费与中奖。</p>
+        <p class="muted small">开启前请确认你理解：组合由随机算法产生，历史开奖号码不会改变任何概率，本工具不做预测、也不能提高中奖机会。</p>
+        <label class="check-row"><input id="cand-ai" type="checkbox" /> 同时允许 AI 助手调用候选生成（可随时关闭）</label>
+        <div class="actions">
+          <button class="btn primary" data-act="cand-enable">我已了解，开启</button>
+        </div>
+        <p class="muted small">这是自托管静态站，没有平台可审批；开启代表你本人的知情确认，不是任何机构批准。</p>
+      </section>`;
+  }
+
+  const f = c.form;
+  const last = c.last;
+  const history = c.batches;
+
+  return `
+    <section class="card">
+      <div class="form-head">
+        <strong>候选组合</strong>
+        <span class="gate-tag on">已开启</span>
+      </div>
+      <p class="muted small">生成的是号码组合，不是购买记录。同一「随机种子 + 参数」永远得到同一批号码，便于复盘。</p>
+
+      <div class="segmented">
+        ${[GAME.SSQ, GAME.KL8]
+          .map(
+            (g) => `<button class="seg ${state.game === g ? 'on' : ''}" data-act="game" data-game="${g}">${GAME_META[g].shortName}</button>`
+          )
+          .join('')}
+      </div>
+
+      <div class="pick-title" style="margin-top:12px">策略</div>
+      <div class="segmented">
+        ${STRATEGY_ORDER.map(
+          (s) =>
+            `<button class="seg ${f.strategy === s ? 'on' : ''}" data-act="cand-strategy" data-strategy="${s}">${STRATEGY_META[s].label}</button>`
+        ).join('')}
+      </div>
+      <p class="muted small">${esc((STRATEGY_META[f.strategy] || {}).desc || '')}</p>
+
+      <div class="form-inline">
+        <label>注数（1–5）<input id="cand-count" type="number" min="1" max="5" value="${f.count}" /></label>
+        <label>目标期号<input id="cand-issue" type="text" inputmode="numeric" maxlength="7" placeholder="如 2026127" value="${esc(f.targetIssue)}" /></label>
+        <label>随机种子（可留空）<input id="cand-seed" type="text" maxlength="64" placeholder="留空=自动生成" value="${esc(f.seed)}" /></label>
+      </div>
+
+      ${f.strategy === 'preference'
+        ? `<div class="form-inline">
+            <label>必含号码<input id="cand-include" type="text" placeholder="如 3 9，最多 ${state.game === GAME.SSQ ? 6 : 10} 个" value="${esc(f.include)}" /></label>
+            <label>排除号码<input id="cand-exclude" type="text" placeholder="如 1 2，最多 30 个" value="${esc(f.exclude)}" /></label>
+          </div>`
+        : ''}
+
+      <div class="actions">
+        <button class="btn primary" data-act="cand-generate" ${c.busy ? 'disabled' : ''}>${c.busy ? '生成中…' : '生成'}</button>
+        <button class="link" data-act="cand-disable">关闭候选功能</button>
+      </div>
+      ${c.error ? `<p class="small bad-text">${esc(c.error)}</p>` : ''}
+    </section>
+
+    ${last
+      ? `<section class="card">
+          <div class="form-head">
+            <strong>本次结果</strong>
+            <button class="link" data-act="cand-import" data-id="${last.id}">导入为草稿</button>
+          </div>
+          <div class="muted small">${esc(batchMetaLine(last))} · 算法 ${esc(last.algorithmVersion)}</div>
+          ${
+            last.targetIssue
+              ? `<div class="muted small">目标期 ${esc(last.targetIssue)}</div>`
+              : `<label class="field">目标期号（导入前必填）
+                   <input id="cand-import-issue" type="text" inputmode="numeric" maxlength="7" placeholder="如 2026127" />
+                 </label>`
+          }
+          ${batchGroupsHtml(last)}
+          <p class="muted small">导入后是草稿：需要在「我的号码」里逐注确认已购买，才会进入花费与中奖统计。</p>
+        </section>`
+      : ''}
+
+    <section class="card">
+      <div class="form-head"><strong>历史批次</strong><span class="muted small">共 ${history.length} 批</span></div>
+      ${
+        history.length
+          ? history
+              .map(
+                (b) => `
+        <div class="batch">
+          <div class="batch-head">
+            <div>
+              <div class="batch-title">${esc((STRATEGY_META[b.strategy] || {}).label || b.strategy)} · ${b.count} 注</div>
+              <div class="muted small">${esc(batchMetaLine(b))}${b.targetIssue ? ` · 期号 ${esc(b.targetIssue)}` : ''}</div>
+              <div class="muted small">${
+                b.importedAt ? `已导入 ${b.importedTicketIds ? b.importedTicketIds.length : b.count} 注草稿` : '尚未导入'
+              }${b.review ? ` · 该期最高命中 ${b.review.best ? b.review.best.totalHits : 0} 个` : ''}</div>
+            </div>
+            <div class="batch-ops">
+              <button class="link" data-act="cand-toggle" data-id="${b.id}">${c.detail === b.id ? '收起' : '展开'}</button>
+              <button class="link danger" data-act="cand-delete" data-id="${b.id}">删除</button>
+            </div>
+          </div>
+          ${c.detail === b.id ? `${batchGroupsHtml(b)}${b.review ? batchReviewHtml(b.review) : ''}` : ''}
+        </div>`
+              )
+              .join('')
+          : '<p class="muted small">还没有生成过批次。生成后会留在这里，包含策略、种子与参数快照。</p>'
+      }
+    </section>`;
+}
+
+function batchReviewHtml(review) {
+  return `
+    <div class="review">
+      <div class="muted small">与 ${esc(review.issue)} 期开奖号码的重合数（仅描述，不判奖）</div>
+      ${review.groups
+        .map(
+          (g) =>
+            `<div class="muted small">第 ${g.index + 1} 注：中 ${g.mainHits} 个${
+              g.blueHit === null ? '' : g.blueHit ? ' + 蓝球' : ''
+            }${g.matched.length ? `（${g.matched.map(pad2).join(' ')}）` : ''}</div>`
+        )
+        .join('')}
+      <div class="muted small">${esc(review.note)}</div>
+    </div>`;
+}
+
 function statsView() {
   const s = state.stats;
   if (!s) return emptyBlock('还没有统计数据', '先录入并确认购买号码。');
@@ -548,7 +744,12 @@ function aiView() {
         <input id="ai-input" type="text" maxlength="1000" placeholder="问点什么…" ${a.busy ? 'disabled' : ''} />
         <button class="btn primary" data-act="ai-send" ${a.busy ? 'disabled' : ''}>发送</button>
       </div>
-      <p class="muted small">回答由 DeepSeek 生成，事实来自本地已核验数据；不做号码推算，不构成购彩建议。</p>
+      <p class="muted small">回答由 DeepSeek 生成，事实来自本地已核验数据；不给预测，不构成购彩建议。</p>
+      ${
+        state.candidates.gate && !state.candidates.gate.aiFutureNumber
+          ? '<p class="muted small">候选号码生成未开启：需要时到「选号」页开启，AI 才能调用生成工具。</p>'
+          : ''
+      }
     </section>`;
 }
 
@@ -594,6 +795,8 @@ function render() {
       ? drawsView()
       : state.tab === 'tickets'
       ? ticketsView()
+      : state.tab === 'candidates'
+      ? candidatesView()
       : state.tab === 'stats'
       ? statsView()
       : state.tab === 'ai'
@@ -610,6 +813,8 @@ async function refreshAll() {
   state.checks = await repo.latestChecks();
   state.stats = await repo.stats();
   state.syncInfo = await store.getMeta(`sync:${state.game}`);
+  state.candidates.gate = await repo.gateState();
+  state.candidates.batches = await repo.listCandidateReviews(state.game);
 }
 
 async function syncDraws() {
@@ -880,6 +1085,82 @@ async function onAction(act, el) {
     return;
   }
 
+  if (act === 'cand-enable') {
+    const aiBox = document.getElementById('cand-ai');
+    const allowAi = !!(aiBox && aiBox.checked);
+    await repo.setCandidateGate(true, { allowAi });
+    await refreshAll();
+    notify(allowAi ? '候选生成已开启（AI 也可调用）' : '候选生成已开启', 'ok');
+    render();
+    return;
+  }
+  if (act === 'cand-disable') {
+    if (!confirm('关闭后选号页只显示开关，已生成的批次与草稿都保留。确定关闭？')) return;
+    await repo.setCandidateGate(false);
+    state.candidates.last = null;
+    state.candidates.detail = null;
+    await refreshAll();
+    notify('已关闭候选功能', 'ok');
+    render();
+    return;
+  }
+  if (act === 'cand-strategy') {
+    const f = readCandForm();
+    state.candidates.form = { ...f, strategy: el.dataset.strategy };
+    render();
+    return;
+  }
+  if (act === 'cand-generate') {
+    const f = readCandForm();
+    state.candidates.form = f;
+    state.candidates.busy = true;
+    state.candidates.error = '';
+    render();
+    const res = await repo.generateCandidateBatch({
+      game: state.game,
+      strategy: f.strategy,
+      count: f.count,
+      targetIssue: f.targetIssue || undefined,
+      seed: f.seed || undefined,
+      params: { include: splitNumbers(f.include), exclude: splitNumbers(f.exclude) },
+    });
+    state.candidates.busy = false;
+    if (!res.ok) {
+      state.candidates.error = res.message;
+      render();
+      return;
+    }
+    state.candidates.last = res.batch;
+    // 把实际用到的种子回填，下次能复现同一批
+    state.candidates.form = { ...f, seed: String(res.batch.randomSeed) };
+    await refreshAll();
+    notify(`已生成 ${res.batch.count} 注（种子 ${res.batch.randomSeed}）`, 'ok');
+    return;
+  }
+  if (act === 'cand-import') {
+    const issueEl = document.getElementById('cand-import-issue');
+    const issue = issueEl ? issueEl.value.trim() : '';
+    const res = await repo.importCandidateBatch(id, issue || undefined);
+    if (!res.ok) return notify(res.message, 'bad');
+    await refreshAll();
+    notify(`已导入 ${res.count} 注草稿，到「我的号码」逐注确认购买`, 'ok');
+    return;
+  }
+  if (act === 'cand-delete') {
+    if (!confirm('删除这条批次记录？已导入的草稿不受影响。')) return;
+    await repo.deleteCandidateBatch(id);
+    if (state.candidates.last && state.candidates.last.id === id) state.candidates.last = null;
+    if (state.candidates.detail === id) state.candidates.detail = null;
+    await refreshAll();
+    notify('已删除批次', 'ok');
+    return;
+  }
+  if (act === 'cand-toggle') {
+    state.candidates.detail = state.candidates.detail === id ? null : id;
+    render();
+    return;
+  }
+
   if (act === 'ai-save-key') {
     const input = document.getElementById('ai-key');
     try {
@@ -1032,10 +1313,12 @@ __define("web/js/repo.js", function(module, exports, require){
  */
 
 const store = require('./store');
-const { GAME, PURCHASE_STATUS } = require('../../shared/constants/games');
+const { GAME, PURCHASE_STATUS, DEFAULT_FEATURE_FLAGS } = require('../../shared/constants/games');
 const { validateDrawRecord } = require('../../shared/validators/draws');
 const { resolveRuleVersion } = require('../../shared/rules/registry');
 const { judgeTicket } = require('../../shared/rules/judge');
+const { resolveCandidateGate, COMPLIANCE_STATUS } = require('../../shared/security/access');
+const candidatesDomain = require('../../shared/domain/candidates');
 const {
   buildTicketDraft,
   applyPatch,
@@ -1223,8 +1506,7 @@ async function deleteTicket(id) {
 /**
  * 核对：与云端 checkTickets 同语义——只判已确认购买的票，只用于已核验开奖，
  * 幂等（同票+同期+同规则版本+同数据不重复写入）。
- */
-async function runChecks(game) {
+ */async function runChecks(game) {
   const [tickets, draws] = await Promise.all([store.getAll('tickets'), store.getAll('draws')]);
   const drawMap = new Map(draws.map((d) => [drawKey(d.game, d.issue), d]));
   const checks = await store.getAll('checks');
@@ -1298,6 +1580,145 @@ async function latestChecks() {
   return map;
 }
 
+/* ---------------- 候选组合（阶段 6） ---------------- */
+
+const GATE_KEY = 'gate';
+
+async function getGateFlags() {
+  const saved = await store.getMeta(GATE_KEY);
+  return { ...DEFAULT_FEATURE_FLAGS, ...(saved || {}) };
+}
+
+async function setGateFlags(patch) {
+  const next = { ...(await getGateFlags()), ...(patch || {}) };
+  await store.setMeta(GATE_KEY, next);
+  return next;
+}
+
+/**
+ * 闸门状态。静态站没有平台可审批，因此这里允许"本人显式确认"这一种状态
+ * （见 decisions.md D23）。默认仍是关闭：用户不点开关就用不了。
+ */
+async function gateState() {
+  const flags = await getGateFlags();
+  return { flags, ...resolveCandidateGate(flags, { acceptSelfAttested: true }) };
+}
+
+async function setCandidateGate(enabled, options = {}) {
+  const patch = enabled
+    ? {
+        wxComplianceStatus: COMPLIANCE_STATUS.SELF_ATTESTED,
+        candidateGenerationEnabled: true,
+        aiFutureNumberFeatureEnabled: options.allowAi !== false,
+        acknowledgedAt: new Date().toISOString(),
+      }
+    : {
+        wxComplianceStatus: DEFAULT_FEATURE_FLAGS.wxComplianceStatus,
+        candidateGenerationEnabled: false,
+        aiFutureNumberFeatureEnabled: false,
+      };
+  const flags = await setGateFlags(patch);
+  return { flags, ...resolveCandidateGate(flags, { acceptSelfAttested: true }) };
+}
+
+/** 生成并落库一个批次；未开启闸门时直接拒绝（不靠前端隐藏按钮） */
+async function generateCandidateBatch(input) {
+  const gate = await gateState();
+  if (!gate.candidateGeneration) {
+    return {
+      ok: false,
+      code: 'FEATURE_DISABLED',
+      message: '候选生成未开启，请先在上方确认开启',
+      gate,
+    };
+  }
+  const res = candidatesDomain.generateCandidates({
+    ...(input || {}),
+    complianceState: gate.complianceState,
+  });
+  if (!res.ok) return res;
+
+  const batch = await saveCandidateBatch(res.batch);
+  return { ok: true, batch };
+}
+
+/** 批次落库（AI 生成与手动生成共用同一条路径，避免两套写入逻辑） */
+async function saveCandidateBatch(batch) {
+  const record = {
+    ...batch,
+    id: newId('b'),
+    ownerOpenId: 'local',
+    importedAt: null,
+    importedTicketIds: [],
+  };
+  await store.put('candidates', record);
+  return record;
+}
+
+async function listCandidates(game) {
+  const all = await store.getAll('candidates');
+  return all
+    .filter((b) => !game || b.game === game)
+    .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+}
+
+async function deleteCandidateBatch(id) {
+  await store.remove('candidates', id);
+  return { ok: true };
+}
+
+/**
+ * 把批次导入为号码记录：**只生成 draft**，不改变"是否买了"。
+ * 一注一条记录，便于逐注确认购买、逐注作废（与线下小票一致）。
+ */
+async function importCandidateBatch(id, issue) {
+  const gate = await gateState();
+  if (!gate.candidateGeneration) {
+    return { ok: false, code: 'FEATURE_DISABLED', message: '候选功能未开启', gate };
+  }
+  const batch = await store.get('candidates', id);
+  if (!batch) return { ok: false, code: 'NOT_FOUND', message: '批次不存在' };
+
+  const targetIssue = String(issue || batch.targetIssue || '').trim();
+  if (!targetIssue) {
+    return { ok: false, code: 'ISSUE_REQUIRED', message: '请填写目标期号后再导入' };
+  }
+
+  const verify = candidatesDomain.verifyBatch(batch);
+  if (!verify.ok) return verify;
+
+  const inputs = batch.groups.map((g) => ({
+    game: batch.game,
+    issue: targetIssue,
+    numbers: g.numbers,
+    multiple: 1,
+    recordSource: 'candidate_import',
+    candidateId: `${batch.id}#${g.index}`,
+  }));
+
+  const res = await createTickets(inputs);
+  if (!res.ok) return res;
+
+  await store.put('candidates', {
+    ...batch,
+    targetIssue,
+    importedAt: new Date().toISOString(),
+    importedTicketIds: res.tickets.map((t) => t.id),
+  });
+  return { ok: true, count: res.count, ids: res.tickets.map((t) => t.id) };
+}
+
+/** 批次回看：目标期已开奖时，算每注与开奖号码的重合数（描述性，不判奖） */
+async function listCandidateReviews(game) {
+  const [batches, draws] = await Promise.all([listCandidates(game), store.getAll('draws')]);
+  const map = new Map(draws.map((d) => [drawKey(d.game, d.issue), d]));
+  return batches.map((b) => {
+    const draw = b.targetIssue ? map.get(drawKey(b.game, b.targetIssue)) : null;
+    const usable = draw && draw.drawStatus === 'verified' ? draw : null;
+    return { ...b, review: usable ? candidatesDomain.reviewBatch(b, usable) : null };
+  });
+}
+
 /** 统计：只统计已确认购买的票；奖金只来自核对结果 */
 async function stats() {
   const [tickets, checks] = await Promise.all([store.getAll('tickets'), store.getAll('checks')]);
@@ -1359,29 +1780,31 @@ function decorateNumbers(draw) {
 
 /** 全量导出（备份用） */
 async function exportAll() {
-  const [tickets, checks, draws, meta] = await Promise.all([
+  const [tickets, checks, draws, candidates, meta] = await Promise.all([
     store.getAll('tickets'),
     store.getAll('checks'),
     store.getAll('draws'),
+    store.getAll('candidates'),
     store.getAll('meta'),
   ]);
   return {
     exportedAt: new Date().toISOString(),
-    schema: 'jingcai-web@1',
+    schema: 'jingcai-web@2',
     tickets,
     checks,
     draws,
+    candidates,
     meta,
   };
 }
 
 /** 导入备份：按 id 覆盖，不删除现有数据 */
 async function importAll(payload) {
-  if (!payload || payload.schema !== 'jingcai-web@1') {
-    throw new Error('备份文件格式不匹配（需要 jingcai-web@1）');
+  if (!payload || (payload.schema !== 'jingcai-web@2' && payload.schema !== 'jingcai-web@1')) {
+    throw new Error('备份文件格式不匹配（需要 jingcai-web@1 或 @2）');
   }
   const counts = {};
-  for (const name of ['tickets', 'checks', 'draws', 'meta']) {
+  for (const name of ['tickets', 'checks', 'draws', 'candidates', 'meta']) {
     const rows = Array.isArray(payload[name]) ? payload[name] : [];
     await store.putAll(name, rows);
     counts[name] = rows.length;
@@ -1407,6 +1830,15 @@ module.exports = {
   deleteTicket,
   runChecks,
   latestChecks,
+  getGateFlags,
+  gateState,
+  setCandidateGate,
+  generateCandidateBatch,
+  saveCandidateBatch,
+  listCandidates,
+  deleteCandidateBatch,
+  importCandidateBatch,
+  listCandidateReviews,
   stats,
   decorateNumbers,
   exportAll,
@@ -1427,8 +1859,8 @@ __define("web/js/store.js", function(module, exports, require){
  */
 
 const DB_NAME = 'jingcai_assistant';
-const DB_VERSION = 1;
-const STORES = ['draws', 'tickets', 'checks', 'meta'];
+const DB_VERSION = 2;
+const STORES = ['draws', 'tickets', 'checks', 'candidates', 'meta'];
 const LS_PREFIX = 'jc:';
 
 let backendPromise = null;
@@ -2593,6 +3025,658 @@ module.exports = {
 
 });
 
+/* ===== shared/security/access.js ===== */
+__define("shared/security/access.js", function(module, exports, require){
+/**
+ * 单用户访问控制（纯函数，便于单测与云函数复用）。
+ * 规则（fail-closed）：
+ *  1. openid 为空 → 拒绝；
+ *  2. 白名单非空 → 只认白名单；
+ *  3. 白名单为空但有 envOwner → 认 envOwner（阶段 1 过渡措施，见 decisions.md D6）；
+ *  4. 两者皆空 → 拒绝。
+ * 前端任何判断都不具备授权效力，只有服务端调用本函数得出的结果有效。
+ */
+
+const REASON = {
+  ALLOWED: 'ALLOWED',
+  NO_OPENID: 'NO_OPENID',
+  NOT_IN_WHITELIST: 'NOT_IN_WHITELIST',
+  NO_OWNER_CONFIGURED: 'NO_OWNER_CONFIGURED',
+};
+
+const AUTH_SOURCE = {
+  WHITELIST: 'app_config.ownerWhitelist',
+  ENV: 'env.OWNER_OPENID',
+  NONE: 'none',
+};
+
+function normalizeWhitelist(list) {
+  if (!list) return [];
+  const arr = Array.isArray(list) ? list : String(list).split(/[\s,;]+/);
+  return arr.map((x) => String(x || '').trim()).filter(Boolean);
+}
+
+/**
+ * @param {string} openid 来自 wxContext.OPENID，不可由前端传入
+ * @param {{whitelist?: string[]|string, envOwner?: string}} config
+ * @returns {{allowed: boolean, reason: string, authSource: string}}
+ */
+function resolveOwner(openid, config = {}) {
+  const id = String(openid || '').trim();
+  if (!id) {
+    return { allowed: false, reason: REASON.NO_OPENID, authSource: AUTH_SOURCE.NONE };
+  }
+
+  const whitelist = normalizeWhitelist(config.whitelist);
+  if (whitelist.length > 0) {
+    return whitelist.includes(id)
+      ? { allowed: true, reason: REASON.ALLOWED, authSource: AUTH_SOURCE.WHITELIST }
+      : { allowed: false, reason: REASON.NOT_IN_WHITELIST, authSource: AUTH_SOURCE.WHITELIST };
+  }
+
+  const envOwner = String(config.envOwner || '').trim();
+  if (envOwner) {
+    return envOwner === id
+      ? { allowed: true, reason: REASON.ALLOWED, authSource: AUTH_SOURCE.ENV }
+      : { allowed: false, reason: REASON.NOT_IN_WHITELIST, authSource: AUTH_SOURCE.ENV };
+  }
+
+  return { allowed: false, reason: REASON.NO_OWNER_CONFIGURED, authSource: AUTH_SOURCE.NONE };
+}
+
+/**
+ * 合规状态取值。
+ * 前四个用于微信小程序（需平台结论）；最后一个用于自托管静态站：
+ * 没有平台可审批，只能由使用者本人显式确认"我知道这是随机组合、不代表更容易中"。
+ * 两种状态不可混用——调用方必须显式传 acceptSelfAttested 才认最后一种。
+ */
+const COMPLIANCE_STATUS = {
+  NOT_CHECKED: 'not_checked',
+  PENDING: 'pending',
+  APPROVED: 'approved',
+  REJECTED: 'rejected',
+  SELF_ATTESTED: 'self_attested_personal_use',
+};
+
+const GATE_REASON = {
+  OK: 'GATE_OK',
+  COMPLIANCE_NOT_APPROVED: 'COMPLIANCE_NOT_APPROVED',
+  CANDIDATE_DISABLED: 'CANDIDATE_DISABLED',
+  AI_FUTURE_DISABLED: 'AI_FUTURE_DISABLED',
+};
+
+/**
+ * 合规闸门：候选号码生成 / AI 未来号码推荐是否可用。
+ * 两个条件必须同时满足，缺一即关闭（fail-closed）。
+ *
+ * @param {{wxComplianceStatus?: string, complianceState?: string, candidateGenerationEnabled?: boolean, aiFutureNumberFeatureEnabled?: boolean}} flags
+ * @param {{acceptSelfAttested?: boolean}} [options] 仅自托管场景传 true；云函数不得传
+ */
+function resolveCandidateGate(flags = {}, options = {}) {
+  const status = flags.wxComplianceStatus || flags.complianceState || COMPLIANCE_STATUS.NOT_CHECKED;
+  const approvedByPlatform = status === COMPLIANCE_STATUS.APPROVED;
+  const selfAttested =
+    status === COMPLIANCE_STATUS.SELF_ATTESTED && options.acceptSelfAttested === true;
+  const complianceOk = approvedByPlatform || selfAttested;
+
+  const candidateGeneration = complianceOk && flags.candidateGenerationEnabled === true;
+  const aiFutureNumber = complianceOk && flags.aiFutureNumberFeatureEnabled === true;
+
+  let reason = GATE_REASON.OK;
+  if (!complianceOk) reason = GATE_REASON.COMPLIANCE_NOT_APPROVED;
+  else if (!candidateGeneration) reason = GATE_REASON.CANDIDATE_DISABLED;
+
+  return {
+    candidateGeneration,
+    aiFutureNumber,
+    complianceState: status,
+    reason,
+    selfAttested,
+  };
+}
+
+module.exports = {
+  REASON,
+  AUTH_SOURCE,
+  COMPLIANCE_STATUS,
+  GATE_REASON,
+  normalizeWhitelist,
+  resolveOwner,
+  resolveCandidateGate,
+};
+
+});
+
+/* ===== shared/domain/candidates.js ===== */
+__define("shared/domain/candidates.js", function(module, exports, require){
+/**
+ * 候选号码组合生成（阶段 6）。
+ *
+ * 三条硬约束：
+ *   1. 纯函数 + 确定性：同一个 (game, strategy, count, seed, params) 永远得到同一批号码。
+ *      这样"这批号码哪来的"可以复现，开奖后能复盘，而不是每次点都不一样。
+ *   2. 只产出候选，不产出"买了"。落到号码表里一律是 draft（见 shared/domain/tickets.js）。
+ *   3. 不做任何"提升中奖机会"的暗示：策略只是结构约束（分区/奇偶/偏好），
+ *      不读历史频次做加权——把冷热包装成算法能力属于伪预测，这里明确不做。
+ *
+ * 术语：一"注"（group）在双色球是 6 红 + 1 蓝，在快乐8选十是 10 个号码。
+ */
+
+const { GAME, GAME_META, isGame } = require('../constants/games');
+const { isValidIssue } = require('../rules/registry');
+
+const ALGORITHM_VERSION = 'candidate@1.0.0';
+
+const STRATEGY = {
+  RANDOM: 'random',
+  BALANCED: 'balanced',
+  PREFERENCE: 'preference',
+};
+
+const STRATEGY_META = {
+  [STRATEGY.RANDOM]: {
+    label: '随机',
+    desc: '从号码池等概率抽取，每注互不相同。',
+  },
+  [STRATEGY.BALANCED]: {
+    label: '分区均衡',
+    desc: '按号码区间与奇偶做结构均衡，避免出现全小或全奇这类结构。',
+  },
+  [STRATEGY.PREFERENCE]: {
+    label: '偏好约束',
+    desc: '先满足你指定的必含/排除号码，余下随机补足。',
+  },
+};
+
+const CODE = {
+  OK: 'OK',
+  BAD_GAME: 'BAD_GAME',
+  BAD_STRATEGY: 'BAD_STRATEGY',
+  BAD_COUNT: 'BAD_COUNT',
+  BAD_ISSUE: 'BAD_ISSUE',
+  BAD_SEED: 'BAD_SEED',
+  BAD_INCLUDE: 'BAD_INCLUDE',
+  BAD_EXCLUDE: 'BAD_EXCLUDE',
+  NO_ROOM: 'NO_ROOM',
+  DUPLICATE_EXHAUSTED: 'DUPLICATE_EXHAUSTED',
+};
+
+const MIN_COUNT = 1;
+const MAX_COUNT = 5;
+const DEFAULT_COUNT = 3;
+const MAX_EXCLUDE_NUMBERS = 30;
+const MAX_ATTEMPTS_PER_GROUP = 80;
+
+/* ---------------- 确定性随机源 ---------------- */
+
+/** FNV-1a 32 位哈希：把任意种子文本折成 uint32 */
+function hashSeed(input) {
+  const text = String(input);
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i += 1) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
+}
+
+/**
+ * mulberry32：小、快、可复现。
+ * 不是密码学随机，这里也不需要——目的是"同种子同结果"，不是防预测。
+ */
+function createRng(seed) {
+  let a = seed >>> 0;
+  return function next() {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/**
+ * 规范化种子。
+ * - 整数 / 数字字符串 → 折成 uint32
+ * - 其他字符串（如 "batch-2026-11-05"）→ 哈希
+ * - 缺省 → 随机生成，并把实际用到的种子回传，保证"用户能复现这一次"
+ */
+function normalizeSeed(raw) {
+  if (raw === undefined || raw === null || raw === '') {
+    return { ok: true, seed: Math.floor(Math.random() * 4294967296) >>> 0, generated: true };
+  }
+  if (typeof raw === 'number') {
+    if (!Number.isFinite(raw)) return { ok: false, message: '随机种子必须是有限数字或字符串' };
+    return { ok: true, seed: Math.abs(Math.trunc(raw)) >>> 0, generated: false };
+  }
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (!trimmed) return { ok: true, seed: Math.floor(Math.random() * 4294967296) >>> 0, generated: true };
+    if (/^\d+$/.test(trimmed)) return { ok: true, seed: Number(trimmed) >>> 0, generated: false };
+    if (trimmed.length > 64) return { ok: false, message: '随机种子最长 64 字符' };
+    return { ok: true, seed: hashSeed(trimmed), generated: false };
+  }
+  return { ok: false, message: '随机种子只支持数字或字符串' };
+}
+
+/* ---------------- 号码池与抽取 ---------------- */
+
+function range(from, to) {
+  const out = [];
+  for (let n = from; n <= to; n += 1) out.push(n);
+  return out;
+}
+
+function shuffle(list, rng) {
+  const arr = list.slice();
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(rng() * (i + 1));
+    const tmp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = tmp;
+  }
+  return arr;
+}
+
+function pick(pool, k, rng) {
+  return shuffle(pool, rng).slice(0, k);
+}
+
+function oddCount(list) {
+  return list.filter((n) => n % 2 === 1).length;
+}
+
+function zoneSpread(list, zones) {
+  const counts = zones.map(() => 0);
+  for (const n of list) {
+    for (let i = 0; i < zones.length; i += 1) {
+      if (n >= zones[i][0] && n <= zones[i][1]) {
+        counts[i] += 1;
+        break;
+      }
+    }
+  }
+  return counts;
+}
+
+/**
+ * 结构均衡评分：分区间越均匀、奇偶越接近目标，分越高。
+ * 用"采样多个候选取最优"而不是构造式算法——构造式在奇偶与分区冲突时会失败，
+ * 采样法永远不会产生非法组合，且仍然完全确定性（同 rng 同结果）。
+ */
+function bestBalanced(sampleFn, scoreFn, samples, rng) {
+  let best = null;
+  let bestScore = -Infinity;
+  for (let i = 0; i < samples; i += 1) {
+    const candidate = sampleFn(rng);
+    const s = scoreFn(candidate);
+    if (s > bestScore) {
+      bestScore = s;
+      best = candidate;
+    }
+  }
+  return best;
+}
+
+function ssqZones() {
+  return [
+    [1, 11],
+    [12, 22],
+    [23, 33],
+  ];
+}
+
+function kl8Zones() {
+  return [
+    [1, 20],
+    [21, 40],
+    [41, 60],
+    [61, 80],
+  ];
+}
+
+/* ---------------- 参数规范化 ---------------- */
+
+function normalizeList(raw, { min, max, label, maxLen }) {
+  if (raw === undefined || raw === null) return { ok: true, list: [] };
+  const arr = Array.isArray(raw) ? raw : String(raw).split(/[\s,，、]+/);
+  const list = [];
+  for (const item of arr) {
+    if (item === '' || item === null || item === undefined) continue;
+    const n = Number(item);
+    if (!Number.isInteger(n) || n < min || n > max) {
+      return { ok: false, code: label === 'include' ? CODE.BAD_INCLUDE : CODE.BAD_EXCLUDE, message: `${label === 'include' ? '必含' : '排除'}号码必须是 ${min}–${max} 的整数` };
+    }
+    if (!list.includes(n)) list.push(n);
+  }
+  if (list.length > maxLen) {
+    return { ok: false, code: label === 'include' ? CODE.BAD_INCLUDE : CODE.BAD_EXCLUDE, message: `${label === 'include' ? '必含' : '排除'}号码最多 ${maxLen} 个` };
+  }
+  return { ok: true, list: list.sort((a, b) => a - b) };
+}
+
+/**
+ * 参数快照：随批次一起存，保证"参数→结果"可复现。
+ * 所有字段都是可 JSON 化的标量或数组，禁止函数/引用。
+ */
+function snapshotParams(game, params) {
+  const p = params || {};
+  const base = {
+    include: Array.isArray(p.include) ? p.include.slice() : [],
+    exclude: Array.isArray(p.exclude) ? p.exclude.slice() : [],
+  };
+  if (game === GAME.SSQ) base.blueFixed = Number.isInteger(p.blueFixed) ? p.blueFixed : null;
+  return base;
+}
+
+/* ---------------- 单注生成 ---------------- */
+
+function buildSsqGroup({ strategy, include, exclude, blueFixed, rng }) {
+  const zones = ssqZones();
+  const all = range(1, 33).filter((n) => !exclude.includes(n));
+  const forced = include.filter((n) => !exclude.includes(n));
+  const free = all.filter((n) => !forced.includes(n));
+  const need = 6 - forced.length;
+  if (need < 0) return null;
+  if (free.length < need) return null;
+
+  let red;
+  if (strategy === STRATEGY.BALANCED) {
+    red = bestBalanced(
+      (r) => forced.concat(pick(free, need, r)).sort((a, b) => a - b),
+      (candidate) => {
+        const spread = zoneSpread(candidate, zones);
+        const zoneCost = spread.reduce((acc, c) => acc + Math.abs(c - 2), 0);
+        const oddCost = Math.abs(oddCount(candidate) - 3);
+        return -(zoneCost * 2 + oddCost);
+      },
+      48,
+      rng
+    );
+  } else {
+    red = forced.concat(pick(free, need, rng)).sort((a, b) => a - b);
+  }
+  if (!red || red.length !== 6) return null;
+
+  const bluePool = range(1, 16);
+  const blue = Number.isInteger(blueFixed) && bluePool.includes(blueFixed) ? blueFixed : pick(bluePool, 1, rng)[0];
+  return { numbers: { red, blue, kl8: [] } };
+}
+
+function buildKl8Group({ strategy, include, exclude, rng }) {
+  const zones = kl8Zones();
+  const all = range(1, 80).filter((n) => !exclude.includes(n));
+  const forced = include.filter((n) => !exclude.includes(n));
+  const free = all.filter((n) => !forced.includes(n));
+  const need = 10 - forced.length;
+  if (need < 0) return null;
+  if (free.length < need) return null;
+
+  let kl8;
+  if (strategy === STRATEGY.BALANCED) {
+    kl8 = bestBalanced(
+      (r) => forced.concat(pick(free, need, r)).sort((a, b) => a - b),
+      (candidate) => {
+        const spread = zoneSpread(candidate, zones);
+        const zoneCost = spread.reduce((acc, c, i) => acc + Math.abs(c - [3, 3, 2, 2][i]), 0);
+        const oddCost = Math.abs(oddCount(candidate) - 5);
+        return -(zoneCost * 2 + oddCost);
+      },
+      64,
+      rng
+    );
+  } else {
+    kl8 = forced.concat(pick(free, need, rng)).sort((a, b) => a - b);
+  }
+  if (!kl8 || kl8.length !== 10) return null;
+  return { numbers: { red: [], blue: null, kl8 } };
+}
+
+/** 一组号码的规范化键，用于组间去重 */
+function groupKey(game, numbers) {
+  const list = game === GAME.SSQ ? numbers.red : numbers.kl8;
+  const tail = game === GAME.SSQ ? `|${numbers.blue}` : '';
+  return `${list.join(',')}${tail}`;
+}
+
+/* ---------------- 对外主函数 ---------------- */
+
+/**
+ * 生成候选组合。
+ * @param {object} input
+ * @param {'ssq'|'kl8'} input.game
+ * @param {'random'|'balanced'|'preference'} [input.strategy]
+ * @param {number} [input.count] 1–5，默认 3
+ * @param {string} [input.targetIssue] 目标期号（可选，仅记录）
+ * @param {number|string} [input.seed] 随机种子；不传则自动生成并回传
+ * @param {{include?:number[], exclude?:number[], blueFixed?:number}} [input.params]
+ * @param {string} [input.complianceState] 记录生成时的闸门状态
+ * @returns {{ok:boolean, code:string, message?:string, batch?:object}}
+ */
+function generateCandidates(input) {
+  const src = input || {};
+  const game = src.game;
+  if (!isGame(game)) {
+    return { ok: false, code: CODE.BAD_GAME, message: '只支持双色球（ssq）与快乐8选十（kl8）' };
+  }
+
+  const strategy = src.strategy || STRATEGY.RANDOM;
+  if (!Object.values(STRATEGY).includes(strategy)) {
+    return { ok: false, code: CODE.BAD_STRATEGY, message: '策略只能是 random / balanced / preference' };
+  }
+
+  const count = src.count === undefined || src.count === null ? DEFAULT_COUNT : Number(src.count);
+  if (!Number.isInteger(count) || count < MIN_COUNT || count > MAX_COUNT) {
+    return { ok: false, code: CODE.BAD_COUNT, message: `注数需为 ${MIN_COUNT}–${MAX_COUNT} 的整数` };
+  }
+
+  let targetIssue = null;
+  if (src.targetIssue !== undefined && src.targetIssue !== null && src.targetIssue !== '') {
+    const issue = String(src.targetIssue).trim();
+    if (!isValidIssue(issue)) {
+      return { ok: false, code: CODE.BAD_ISSUE, message: '目标期号需为 7 位数字，如 2026127' };
+    }
+    targetIssue = issue;
+  }
+
+  const meta = GAME_META[game];
+  const numberMin = game === GAME.SSQ ? meta.redMin : meta.min;
+  const numberMax = game === GAME.SSQ ? meta.redMax : meta.max;
+  const need = game === GAME.SSQ ? meta.redCount : meta.count;
+
+  const params = src.params || {};
+  const inc = normalizeList(params.include, {
+    min: numberMin,
+    max: numberMax,
+    label: 'include',
+    maxLen: need,
+  });
+  if (!inc.ok) return inc;
+
+  const exc = normalizeList(params.exclude, {
+    min: numberMin,
+    max: numberMax,
+    label: 'exclude',
+    maxLen: MAX_EXCLUDE_NUMBERS,
+  });
+  if (!exc.ok) return exc;
+
+  const conflict = inc.list.filter((n) => exc.list.includes(n));
+  if (conflict.length) {
+    return { ok: false, code: CODE.BAD_INCLUDE, message: `号码 ${conflict.join('、')} 同时出现在必含与排除里` };
+  }
+
+  if (inc.list.length > need) {
+    return { ok: false, code: CODE.NO_ROOM, message: `必含号码最多 ${need} 个` };
+  }
+  const available = numberMax - numberMin + 1 - exc.list.length;
+  if (available < need) {
+    return { ok: false, code: CODE.NO_ROOM, message: '排除的号码太多，剩余号码不足以组成一注' };
+  }
+
+  const seedRes = normalizeSeed(src.seed);
+  if (!seedRes.ok) {
+    return { ok: false, code: CODE.BAD_SEED, message: seedRes.message };
+  }
+  const rng = createRng(seedRes.seed);
+
+  const groups = [];
+  const seen = new Set();
+  const buildGroup = game === GAME.SSQ ? buildSsqGroup : buildKl8Group;
+
+  for (let i = 0; i < count; i += 1) {
+    let built = null;
+    let attempts = 0;
+    while (attempts < MAX_ATTEMPTS_PER_GROUP) {
+      attempts += 1;
+      const candidate = buildGroup({
+        strategy,
+        include: inc.list,
+        exclude: exc.list,
+        blueFixed: params.blueFixed,
+        rng,
+      });
+      if (!candidate) break;
+      const key = groupKey(game, candidate.numbers);
+      if (seen.has(key)) continue;
+      built = { ...candidate, key };
+      break;
+    }
+    if (!built) {
+      return {
+        ok: false,
+        code: CODE.DUPLICATE_EXHAUSTED,
+        message:
+          groups.length === 0
+            ? '当前约束下无法生成合法号码，请放宽必含/排除条件'
+            : '当前约束下可生成的组合不足，请减少注数或放宽约束',
+      };
+    }
+    seen.add(built.key);
+    groups.push({
+      index: i,
+      numbers: built.numbers,
+      key: built.key,
+      displayText: game === GAME.SSQ
+        ? `${built.numbers.red.map((n) => String(n).padStart(2, '0')).join(' ')} + ${String(built.numbers.blue).padStart(2, '0')}`
+        : built.numbers.kl8.map((n) => String(n).padStart(2, '0')).join(' '),
+    });
+  }
+
+  return {
+    ok: true,
+    code: CODE.OK,
+    batch: {
+      algorithmVersion: ALGORITHM_VERSION,
+      game,
+      strategy,
+      count,
+      randomSeed: seedRes.seed,
+      seedGenerated: seedRes.generated,
+      parameterSnapshot: snapshotParams(game, { ...params, include: inc.list, exclude: exc.list }),
+      targetIssue,
+      complianceState: src.complianceState || null,
+      createdAt: (src.now instanceof Date ? src.now : new Date()).toISOString(),
+      groups,
+    },
+  };
+}
+
+/**
+ * 批次完整性自检：用于导入历史批次、以及"复现校验"。
+ * 只做结构校验，不判奖。
+ */
+function verifyBatch(batch) {
+  if (!batch || typeof batch !== 'object') {
+    return { ok: false, code: 'BATCH_INVALID', message: '批次数据为空' };
+  }
+  if (!isGame(batch.game)) {
+    return { ok: false, code: 'BATCH_INVALID', message: '批次彩种不合法' };
+  }
+  if (batch.algorithmVersion !== ALGORITHM_VERSION) {
+    return {
+      ok: false,
+      code: 'ALGORITHM_VERSION_MISMATCH',
+      message: `批次算法版本为 ${batch.algorithmVersion || '(空)'}，当前为 ${ALGORITHM_VERSION}`,
+    };
+  }
+  if (!Array.isArray(batch.groups) || !batch.groups.length) {
+    return { ok: false, code: 'BATCH_INVALID', message: '批次没有号码组' };
+  }
+  const seen = new Set();
+  for (const g of batch.groups) {
+    const n = g && g.numbers;
+    const list = batch.game === GAME.SSQ ? n && n.red : n && n.kl8;
+    if (!Array.isArray(list) || !list.length) {
+      return { ok: false, code: 'BATCH_INVALID', message: '存在空号码组' };
+    }
+    const key = groupKey(batch.game, n);
+    if (seen.has(key)) {
+      return { ok: false, code: 'GROUP_DUPLICATED', message: '批次内存在重复号码组' };
+    }
+    seen.add(key);
+  }
+  return { ok: true, code: 'OK' };
+}
+
+/**
+ * 用一期开奖结果回看批次命中情况（描述性，不判奖、不算钱）。
+ * 判奖仍只走 shared/rules/judge.js。
+ */
+function reviewBatch(batch, draw) {
+  if (!batch || !draw) {
+    return { ok: false, code: 'NO_DRAW', message: '缺少批次或开奖数据' };
+  }
+  if (batch.game !== draw.game) {
+    return { ok: false, code: 'GAME_MISMATCH', message: '批次与开奖彩种不一致' };
+  }
+  const isSsq = batch.game === GAME.SSQ;
+  const drawRed = isSsq ? draw.numbers.red || [] : draw.numbers.kl8 || [];
+  const drawBlue = isSsq ? draw.numbers.blue : null;
+
+  const groups = (batch.groups || []).map((g) => {
+    const list = isSsq ? g.numbers.red : g.numbers.kl8;
+    const matched = list.filter((n) => drawRed.includes(n));
+    const blueHit = isSsq && drawBlue !== null && drawBlue !== undefined ? g.numbers.blue === drawBlue : null;
+    return {
+      index: g.index,
+      mainHits: matched.length,
+      matched,
+      blueHit,
+      totalHits: matched.length + (blueHit ? 1 : 0),
+    };
+  });
+
+  const best = groups.reduce((acc, g) => (acc === null || g.totalHits > acc.totalHits ? g : acc), null);
+  return {
+    ok: true,
+    game: batch.game,
+    issue: draw.issue,
+    groups,
+    best,
+    note: '这是候选组合与开奖号码的重合情况，不代表已购买，也不构成任何预测结论。',
+  };
+}
+
+module.exports = {
+  ALGORITHM_VERSION,
+  STRATEGY,
+  STRATEGY_META,
+  CODE,
+  DEFAULT_COUNT,
+  MIN_COUNT,
+  MAX_COUNT,
+  generateCandidates,
+  verifyBatch,
+  reviewBatch,
+  normalizeSeed,
+  createRng,
+  hashSeed,
+  groupKey,
+};
+
+});
+
 /* ===== shared/domain/tickets.js ===== */
 __define("shared/domain/tickets.js", function(module, exports, require){
 /**
@@ -3542,6 +4626,8 @@ const DEFAULT_MODEL = 'deepseek-flash';
 function createAi(options = {}) {
   const {
     store,
+    getGate = null,
+    saveBatch = null,
     fetchImpl = typeof fetch !== 'undefined' ? fetch.bind(globalThis) : null,
     storage = typeof localStorage !== 'undefined' ? localStorage : null,
   } = options;
@@ -3649,19 +4735,33 @@ function createAi(options = {}) {
       throw Object.assign(new Error('还没有填写 DeepSeek 密钥，请先在下方粘贴并保存'), { code: 'AI_NO_KEY' });
     }
 
+    // 闸门状态每次都现读：用户刚在「选号」页关掉，下一步对话就必须拿不到生成工具
+    let gate = null;
+    try {
+      gate = getGate ? await getGate() : null;
+    } catch (err) {
+      gate = null;
+    }
+    const futureNumbers = !!(gate && gate.aiFutureNumber);
+
     const history = Array.isArray(input.history) ? input.history.slice(-LIMITS.historyMessages) : [];
     const messages = [
-      { role: 'system', content: buildSystemPrompt() },
+      { role: 'system', content: buildSystemPrompt({ futureNumbers }) },
       ...history
         .filter((m) => (m.role === 'user' || m.role === 'assistant') && m.text)
         .map((m) => ({ role: m.role, content: m.text })),
       { role: 'user', content: checked.value },
     ];
 
-    const executors = createExecutors({ db: createLocalDb(store), openid: 'local' });
+    const executors = createExecutors({
+      db: createLocalDb(store),
+      openid: 'local',
+      gate: { futureNumbers, complianceState: gate ? gate.complianceState : null },
+      saveBatch,
+    });
     const out = await runToolLoop({
       messages,
-      toolSchemas: getToolSchemas(),
+      toolSchemas: getToolSchemas({ futureNumbers }),
       callModel,
       executeTool: (name, args) => executors.execute(name, args),
       finalizeInstruction: FINALIZE_INSTRUCTION,
@@ -3707,12 +4807,12 @@ module.exports = { createAi, KEY_STORAGE, MODEL_STORAGE, DEFAULT_MODEL, ENDPOINT
 __define("shared/ai/prompt.js", function(module, exports, require){
 /**
  * AI 系统提示词（版本化，服务端维护）。
- * 改动必须升 SYSTEM_PROMPT_VERSION，并在 docs/phase-5-report.md 记录原因。
+ * 改动必须升 SYSTEM_PROMPT_VERSION，并在 docs/phase-6-report.md 记录原因。
  *
  * 原则：模型只是"解释器"，事实一律来自工具返回；不许编数据、不许宣称能提升中奖机会。
  */
 
-const SYSTEM_PROMPT_VERSION = 'ai_system@1.0.0';
+const SYSTEM_PROMPT_VERSION = 'ai_system@1.1.0';
 
 const RULES = [
   '你是「竞彩助手」的个人数据分析助手，不是彩票发行机构，也不是选号专家。',
@@ -3722,15 +4822,29 @@ const RULES = [
   '用户问最新开奖时，必须调用 get_latest_draw；若返回为空或未核验，明确说明"本地尚未同步/核验"，并给出最后一次同步时间。',
   '中奖等级与奖金只能引用 get_ticket_check 或 get_rule_info 的结果，不得自行推断或按比例估算。',
   '若工具返回 pending_manual_review 或 pendingReason，如实说明"待人工核验"及原因，不要给出结论金额。',
-  '当前候选号码/未来号码功能默认未开放。若未开放，明确告知不可用，不要以文本形式给出任何未来期号码组合。',
   '所有数值分析要说明时间范围与样本数（例如"近 30 期"）。',
   '只服务当前用户本人的记录；不要假设或询问他人的数据。',
   '回答用简体中文，简洁、分点；不写营销话术，不做收益承诺。',
 ];
 
-function buildSystemPrompt({ today } = {}) {
-  const date = today || new Date().toISOString().slice(0, 10);
-  return [`今天是 ${date}（Asia/Shanghai）。`, ...RULES.map((r, i) => `${i + 1}. ${r}`)].join('\n');
+/** 闸门关闭时的规则：不给任何未来期号码，连"文本形式"都不给 */
+const DISABLED_RULE =
+  '当前候选号码/未来号码功能未开放。若未开放，明确告知不可用，不要以文本形式给出任何未来期号码组合。';
+
+/** 闸门开启时的规则：号码只能原样引用工具结果，且必须带上"不代表更容易中奖" */
+const FUTURE_RULES = [
+  '候选号码功能当前已开启。只有用户明确要求"给我几注/生成号码"时，才调用 generate_candidates；号码必须原样引用工具返回的 displayText，不得改动、补号或重新排序。',
+  '给出号码时必须同时说明：这些号码由随机或结构策略生成，历史开奖不改变任何概率，不代表更容易中奖；候选不是已购买，导入后仍是草稿。',
+  '即使 get_number_stats 显示某些号码出现更多或更少，也不得说"这些号更可能出"或"该补冷号"，只能如实陈述统计与样本量。',
+];
+
+/**
+ * @param {{today?: string, futureNumbers?: boolean}} [options]
+ */
+function buildSystemPrompt(options = {}) {
+  const date = options.today || new Date().toISOString().slice(0, 10);
+  const rules = options.futureNumbers ? RULES.concat(FUTURE_RULES) : RULES.concat([DISABLED_RULE]);
+  return [`今天是 ${date}（Asia/Shanghai）。`, ...rules.map((r, i) => `${i + 1}. ${r}`)].join('\n');
 }
 
 /** 触发"轮次超限"时给模型的收尾指令（不带工具再请求一次） */
@@ -3739,11 +4853,13 @@ const FINALIZE_INSTRUCTION =
 
 /** 工具未开放时的统一说明，避免模型自由发挥 */
 const FEATURE_DISABLED_TEXT =
-  '候选号码与未来号码相关功能当前未开放（需微信平台明确许可后在服务端开启），因此我无法提供任何未来期号码组合。可以帮你查历史开奖、你自己的号码记录、规则与统计。';
+  '候选号码与未来号码相关功能当前未开启，因此我无法提供任何未来期号码组合。可以帮你查历史开奖、你自己的号码记录、规则与统计；需要生成时请到「选号」页开启。';
 
 module.exports = {
   SYSTEM_PROMPT_VERSION,
   RULES,
+  FUTURE_RULES,
+  DISABLED_RULE,
   FINALIZE_INSTRUCTION,
   FEATURE_DISABLED_TEXT,
   buildSystemPrompt,
@@ -3763,8 +4879,9 @@ __define("shared/ai/tools.js", function(module, exports, require){
  *   - 不提供任何写库、删库、改奖级、改开奖数据的能力。
  */
 
-const { GAME, PURCHASE_STATUS } = require('../constants/games');
+const { GAME, GAME_META, PURCHASE_STATUS } = require('../constants/games');
 const { isValidIssue } = require('../rules/registry');
+const { STRATEGY } = require('../domain/candidates');
 
 const TOOL_NAMES = [
   'get_latest_draw',
@@ -3776,10 +4893,14 @@ const TOOL_NAMES = [
   'get_rule_info',
 ];
 
+/** 默认不注册的工具：只有候选/未来号码闸门开启时才允许模型看到它 */
+const GATED_TOOL_NAMES = ['generate_candidates'];
+
 const CODE = {
   OK: 'OK',
   UNKNOWN_TOOL: 'UNKNOWN_TOOL',
   BAD_ARGS: 'BAD_ARGS',
+  FEATURE_DISABLED: 'FEATURE_DISABLED',
 };
 
 const GAMES = [GAME.SSQ, GAME.KL8];
@@ -3941,6 +5062,93 @@ const TOOLS = {
     },
   },
 
+  generate_candidates: {
+    description:
+      '按策略生成候选号码组合（1–5 注，组间不重复）。号码由确定性算法产生，不是预测，也不代表更容易中奖；只能原样转述，不得改写或补充号码。',
+    parameters: {
+      type: 'object',
+      properties: {
+        game: { type: 'string', enum: GAMES },
+        strategy: {
+          type: 'string',
+          enum: [STRATEGY.RANDOM, STRATEGY.BALANCED, STRATEGY.PREFERENCE],
+          description: 'random=随机；balanced=分区均衡；preference=偏好约束',
+        },
+        count: { type: 'integer', minimum: 1, maximum: 5, description: '注数，默认 3' },
+        targetIssue: { type: 'string', description: '目标期号（7 位），可留空' },
+        seed: { type: 'string', description: '随机种子；不传则自动生成并回传' },
+        include: {
+          type: 'array',
+          items: { type: 'integer' },
+          description: '必含号码（仅 preference 策略使用）',
+        },
+        exclude: {
+          type: 'array',
+          items: { type: 'integer' },
+          description: '排除号码（仅 preference 策略使用）',
+        },
+      },
+      required: ['game'],
+      additionalProperties: false,
+    },
+    validate(raw) {
+      const src = raw || {};
+      const g = requireGame(src);
+      if (!g.ok) return { ok: false, code: CODE.BAD_ARGS, message: g.message };
+
+      const strategy = src.strategy || STRATEGY.RANDOM;
+      if (![STRATEGY.RANDOM, STRATEGY.BALANCED, STRATEGY.PREFERENCE].includes(strategy)) {
+        return { ok: false, code: CODE.BAD_ARGS, message: 'strategy 只能是 random / balanced / preference' };
+      }
+
+      const count = src.count === undefined || src.count === null ? 3 : Number(src.count);
+      if (!Number.isInteger(count) || count < 1 || count > 5) {
+        return { ok: false, code: CODE.BAD_ARGS, message: 'count 需为 1–5 的整数' };
+      }
+
+      const args = { game: g.game, strategy, count };
+
+      if (src.targetIssue !== undefined && src.targetIssue !== null && src.targetIssue !== '') {
+        const issue = String(src.targetIssue);
+        if (!isValidIssue(issue)) {
+          return { ok: false, code: CODE.BAD_ARGS, message: 'targetIssue 必须是 7 位数字期号' };
+        }
+        args.targetIssue = issue;
+      }
+
+      if (src.seed !== undefined && src.seed !== null && src.seed !== '') {
+        if (typeof src.seed !== 'string' && typeof src.seed !== 'number') {
+          return { ok: false, code: CODE.BAD_ARGS, message: 'seed 只支持字符串或数字' };
+        }
+        args.seed = String(src.seed).slice(0, 64);
+      }
+
+      const meta = GAME_META[g.game];
+      const lo = g.game === GAME.SSQ ? meta.redMin : meta.min;
+      const hi = g.game === GAME.SSQ ? meta.redMax : meta.max;
+      const need = g.game === GAME.SSQ ? meta.redCount : meta.count;
+
+      for (const key of ['include', 'exclude']) {
+        if (src[key] === undefined || src[key] === null) continue;
+        if (!Array.isArray(src[key])) {
+          return { ok: false, code: CODE.BAD_ARGS, message: `${key} 必须是数字数组` };
+        }
+        const limit = key === 'include' ? need : 30;
+        if (src[key].length > limit) {
+          return { ok: false, code: CODE.BAD_ARGS, message: `${key} 最多 ${limit} 个号码` };
+        }
+        for (const n of src[key]) {
+          if (!Number.isInteger(n) || n < lo || n > hi) {
+            return { ok: false, code: CODE.BAD_ARGS, message: `${key} 里的号码需在 ${lo}–${hi}` };
+          }
+        }
+        args[key] = src[key].slice();
+      }
+
+      return { ok: true, args };
+    },
+  },
+
   get_rule_info: {
     description: '查询某彩种某期适用的规则版本、奖级表与来源（用于解释规则变化，例如快乐8 新旧规则奖金差异）。',
     parameters: {
@@ -3968,9 +5176,13 @@ const TOOLS = {
   },
 };
 
-/** 发给模型的 function schema 列表（不含 validate） */
-function getToolSchemas() {
-  return TOOL_NAMES.map((name) => ({
+/**
+ * 发给模型的 function schema 列表（不含 validate）。
+ * @param {{futureNumbers?: boolean}} [options] 候选/未来号码闸门是否开启
+ */
+function getToolSchemas(options = {}) {
+  const names = options.futureNumbers ? TOOL_NAMES.concat(GATED_TOOL_NAMES) : TOOL_NAMES;
+  return names.map((name) => ({
     type: 'function',
     function: {
       name,
@@ -3980,9 +5192,20 @@ function getToolSchemas() {
   }));
 }
 
-/** 校验工具名与参数；拒绝一切未列入白名单的调用 */
-function validateToolCall(name, rawArgs) {
-  if (!TOOL_NAMES.includes(name)) {
+/**
+ * 校验工具名与参数；拒绝一切未列入白名单的调用。
+ * 闸门关闭时，即使模型凭空调用 generate_candidates 也会被这里拦下（不靠提示词）。
+ * @param {{futureNumbers?: boolean}} [options]
+ */
+function validateToolCall(name, rawArgs, options = {}) {
+  if (GATED_TOOL_NAMES.includes(name) && options.futureNumbers !== true) {
+    return {
+      ok: false,
+      code: CODE.FEATURE_DISABLED,
+      message: '候选号码功能当前未开启，无法生成号码组合',
+    };
+  }
+  if (!TOOL_NAMES.includes(name) && !GATED_TOOL_NAMES.includes(name)) {
     return { ok: false, code: CODE.UNKNOWN_TOOL, message: `工具 ${name} 不在允许列表内` };
   }
   let parsed = rawArgs;
@@ -3996,7 +5219,7 @@ function validateToolCall(name, rawArgs) {
   return TOOLS[name].validate(parsed || {});
 }
 
-module.exports = { TOOL_NAMES, CODE, TOOLS, getToolSchemas, validateToolCall };
+module.exports = { TOOL_NAMES, GATED_TOOL_NAMES, CODE, TOOLS, getToolSchemas, validateToolCall };
 
 });
 
@@ -4133,6 +5356,7 @@ __define("shared/cloud/aiTools.js", function(module, exports, require){
 const { GAME, GAME_META, PURCHASE_STATUS } = require('../constants/games');
 const { resolveRuleVersion } = require('../rules/registry');
 const { validateToolCall } = require('../ai/tools');
+const { generateCandidates } = require('../domain/candidates');
 
 const DRAWS = 'draw_records';
 const TICKETS = 'ticket_records';
@@ -4171,7 +5395,15 @@ async function latestSync(db) {
   }
 }
 
-function createExecutors({ db, openid, now = () => new Date() }) {
+/**
+ * @param {object} options
+ * @param {object} options.db 云数据库或本地适配器
+ * @param {string} options.openid 服务端注入，工具参数无法指定
+ * @param {{futureNumbers?: boolean, complianceState?: string}} [options.gate] 候选闸门状态
+ * @param {(batch:object)=>Promise<object>} [options.saveBatch] 可选：生成后落库（留痕）
+ */
+function createExecutors({ db, openid, now = () => new Date(), gate = null, saveBatch = null }) {
+  const gateOptions = { futureNumbers: !!(gate && gate.futureNumbers) };
   const draws = db.collection(DRAWS);
   const tickets = db.collection(TICKETS);
   const checks = db.collection(CHECKS);
@@ -4383,6 +5615,53 @@ function createExecutors({ db, openid, now = () => new Date() }) {
       return result;
     },
 
+    async generate_candidates(args) {
+      if (!gateOptions.futureNumbers) {
+        return { ok: false, code: 'FEATURE_DISABLED', message: '候选号码功能未开启，无法生成号码组合' };
+      }
+      const res = generateCandidates({
+        game: args.game,
+        strategy: args.strategy,
+        count: args.count,
+        targetIssue: args.targetIssue,
+        seed: args.seed,
+        params: { include: args.include, exclude: args.exclude },
+        complianceState: (gate && gate.complianceState) || null,
+      });
+      if (!res.ok) {
+        return { ok: false, code: res.code, message: res.message };
+      }
+
+      let batch = res.batch;
+      if (saveBatch) {
+        try {
+          batch = (await saveBatch(res.batch)) || res.batch;
+        } catch (err) {
+          // 落库失败不影响回答，但必须让模型知道"这批没有存下来"
+          batch = { ...res.batch, saved: false };
+        }
+      }
+
+      return {
+        ok: true,
+        batchId: batch.id || null,
+        saved: batch.saved !== false,
+        game: batch.game,
+        strategy: batch.strategy,
+        count: batch.count,
+        targetIssue: batch.targetIssue,
+        randomSeed: batch.randomSeed,
+        algorithmVersion: batch.algorithmVersion,
+        groups: batch.groups.map((g) => ({
+          index: g.index,
+          displayText: g.displayText,
+          numbers: g.numbers,
+        })),
+        notice:
+          '以上号码由确定性算法按你选择的策略生成，属于随机/结构约束结果，不代表更容易中奖；到「选号」页可导入为草稿，导入后仍需自行确认购买。',
+      };
+    },
+
     async get_ticket_check(args) {
       const res = await tickets.where({ _id: args.ticketId, ownerOpenId: openid }).limit(1).get();
       const ticket = (res.data && res.data[0]) || null;
@@ -4468,7 +5747,7 @@ function createExecutors({ db, openid, now = () => new Date() }) {
 
   /** 统一入口：先校验工具名与参数，再执行 */
   async function execute(name, rawArgs) {
-    const checked = validateToolCall(name, rawArgs);
+    const checked = validateToolCall(name, rawArgs, gateOptions);
     if (!checked.ok) {
       return { ok: false, code: checked.code, message: checked.message };
     }

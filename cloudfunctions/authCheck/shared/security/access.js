@@ -56,16 +56,62 @@ function resolveOwner(openid, config = {}) {
 }
 
 /**
- * 合规闸门：候选号码生成 / AI 未来号码推荐是否可用。
- * 两个条件必须同时满足，缺一即关闭。
- * @param {{wxComplianceStatus?: string, candidateGenerationEnabled?: boolean, aiFutureNumberFeatureEnabled?: boolean}} flags
+ * 合规状态取值。
+ * 前四个用于微信小程序（需平台结论）；最后一个用于自托管静态站：
+ * 没有平台可审批，只能由使用者本人显式确认"我知道这是随机组合、不代表更容易中"。
+ * 两种状态不可混用——调用方必须显式传 acceptSelfAttested 才认最后一种。
  */
-function resolveCandidateGate(flags = {}) {
-  const approved = flags.wxComplianceStatus === 'approved';
+const COMPLIANCE_STATUS = {
+  NOT_CHECKED: 'not_checked',
+  PENDING: 'pending',
+  APPROVED: 'approved',
+  REJECTED: 'rejected',
+  SELF_ATTESTED: 'self_attested_personal_use',
+};
+
+const GATE_REASON = {
+  OK: 'GATE_OK',
+  COMPLIANCE_NOT_APPROVED: 'COMPLIANCE_NOT_APPROVED',
+  CANDIDATE_DISABLED: 'CANDIDATE_DISABLED',
+  AI_FUTURE_DISABLED: 'AI_FUTURE_DISABLED',
+};
+
+/**
+ * 合规闸门：候选号码生成 / AI 未来号码推荐是否可用。
+ * 两个条件必须同时满足，缺一即关闭（fail-closed）。
+ *
+ * @param {{wxComplianceStatus?: string, complianceState?: string, candidateGenerationEnabled?: boolean, aiFutureNumberFeatureEnabled?: boolean}} flags
+ * @param {{acceptSelfAttested?: boolean}} [options] 仅自托管场景传 true；云函数不得传
+ */
+function resolveCandidateGate(flags = {}, options = {}) {
+  const status = flags.wxComplianceStatus || flags.complianceState || COMPLIANCE_STATUS.NOT_CHECKED;
+  const approvedByPlatform = status === COMPLIANCE_STATUS.APPROVED;
+  const selfAttested =
+    status === COMPLIANCE_STATUS.SELF_ATTESTED && options.acceptSelfAttested === true;
+  const complianceOk = approvedByPlatform || selfAttested;
+
+  const candidateGeneration = complianceOk && flags.candidateGenerationEnabled === true;
+  const aiFutureNumber = complianceOk && flags.aiFutureNumberFeatureEnabled === true;
+
+  let reason = GATE_REASON.OK;
+  if (!complianceOk) reason = GATE_REASON.COMPLIANCE_NOT_APPROVED;
+  else if (!candidateGeneration) reason = GATE_REASON.CANDIDATE_DISABLED;
+
   return {
-    candidateGeneration: approved && flags.candidateGenerationEnabled === true,
-    aiFutureNumber: approved && flags.aiFutureNumberFeatureEnabled === true,
+    candidateGeneration,
+    aiFutureNumber,
+    complianceState: status,
+    reason,
+    selfAttested,
   };
 }
 
-module.exports = { REASON, AUTH_SOURCE, normalizeWhitelist, resolveOwner, resolveCandidateGate };
+module.exports = {
+  REASON,
+  AUTH_SOURCE,
+  COMPLIANCE_STATUS,
+  GATE_REASON,
+  normalizeWhitelist,
+  resolveOwner,
+  resolveCandidateGate,
+};

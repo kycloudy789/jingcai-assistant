@@ -4,10 +4,12 @@
  */
 
 const store = require('./store');
-const { GAME, PURCHASE_STATUS } = require('../../shared/constants/games');
+const { GAME, PURCHASE_STATUS, DEFAULT_FEATURE_FLAGS } = require('../../shared/constants/games');
 const { validateDrawRecord } = require('../../shared/validators/draws');
 const { resolveRuleVersion } = require('../../shared/rules/registry');
 const { judgeTicket } = require('../../shared/rules/judge');
+const { resolveCandidateGate, COMPLIANCE_STATUS } = require('../../shared/security/access');
+const candidatesDomain = require('../../shared/domain/candidates');
 const {
   buildTicketDraft,
   applyPatch,
@@ -195,8 +197,7 @@ async function deleteTicket(id) {
 /**
  * 核对：与云端 checkTickets 同语义——只判已确认购买的票，只用于已核验开奖，
  * 幂等（同票+同期+同规则版本+同数据不重复写入）。
- */
-async function runChecks(game) {
+ */async function runChecks(game) {
   const [tickets, draws] = await Promise.all([store.getAll('tickets'), store.getAll('draws')]);
   const drawMap = new Map(draws.map((d) => [drawKey(d.game, d.issue), d]));
   const checks = await store.getAll('checks');
@@ -270,6 +271,145 @@ async function latestChecks() {
   return map;
 }
 
+/* ---------------- 候选组合（阶段 6） ---------------- */
+
+const GATE_KEY = 'gate';
+
+async function getGateFlags() {
+  const saved = await store.getMeta(GATE_KEY);
+  return { ...DEFAULT_FEATURE_FLAGS, ...(saved || {}) };
+}
+
+async function setGateFlags(patch) {
+  const next = { ...(await getGateFlags()), ...(patch || {}) };
+  await store.setMeta(GATE_KEY, next);
+  return next;
+}
+
+/**
+ * 闸门状态。静态站没有平台可审批，因此这里允许"本人显式确认"这一种状态
+ * （见 decisions.md D23）。默认仍是关闭：用户不点开关就用不了。
+ */
+async function gateState() {
+  const flags = await getGateFlags();
+  return { flags, ...resolveCandidateGate(flags, { acceptSelfAttested: true }) };
+}
+
+async function setCandidateGate(enabled, options = {}) {
+  const patch = enabled
+    ? {
+        wxComplianceStatus: COMPLIANCE_STATUS.SELF_ATTESTED,
+        candidateGenerationEnabled: true,
+        aiFutureNumberFeatureEnabled: options.allowAi !== false,
+        acknowledgedAt: new Date().toISOString(),
+      }
+    : {
+        wxComplianceStatus: DEFAULT_FEATURE_FLAGS.wxComplianceStatus,
+        candidateGenerationEnabled: false,
+        aiFutureNumberFeatureEnabled: false,
+      };
+  const flags = await setGateFlags(patch);
+  return { flags, ...resolveCandidateGate(flags, { acceptSelfAttested: true }) };
+}
+
+/** 生成并落库一个批次；未开启闸门时直接拒绝（不靠前端隐藏按钮） */
+async function generateCandidateBatch(input) {
+  const gate = await gateState();
+  if (!gate.candidateGeneration) {
+    return {
+      ok: false,
+      code: 'FEATURE_DISABLED',
+      message: '候选生成未开启，请先在上方确认开启',
+      gate,
+    };
+  }
+  const res = candidatesDomain.generateCandidates({
+    ...(input || {}),
+    complianceState: gate.complianceState,
+  });
+  if (!res.ok) return res;
+
+  const batch = await saveCandidateBatch(res.batch);
+  return { ok: true, batch };
+}
+
+/** 批次落库（AI 生成与手动生成共用同一条路径，避免两套写入逻辑） */
+async function saveCandidateBatch(batch) {
+  const record = {
+    ...batch,
+    id: newId('b'),
+    ownerOpenId: 'local',
+    importedAt: null,
+    importedTicketIds: [],
+  };
+  await store.put('candidates', record);
+  return record;
+}
+
+async function listCandidates(game) {
+  const all = await store.getAll('candidates');
+  return all
+    .filter((b) => !game || b.game === game)
+    .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+}
+
+async function deleteCandidateBatch(id) {
+  await store.remove('candidates', id);
+  return { ok: true };
+}
+
+/**
+ * 把批次导入为号码记录：**只生成 draft**，不改变"是否买了"。
+ * 一注一条记录，便于逐注确认购买、逐注作废（与线下小票一致）。
+ */
+async function importCandidateBatch(id, issue) {
+  const gate = await gateState();
+  if (!gate.candidateGeneration) {
+    return { ok: false, code: 'FEATURE_DISABLED', message: '候选功能未开启', gate };
+  }
+  const batch = await store.get('candidates', id);
+  if (!batch) return { ok: false, code: 'NOT_FOUND', message: '批次不存在' };
+
+  const targetIssue = String(issue || batch.targetIssue || '').trim();
+  if (!targetIssue) {
+    return { ok: false, code: 'ISSUE_REQUIRED', message: '请填写目标期号后再导入' };
+  }
+
+  const verify = candidatesDomain.verifyBatch(batch);
+  if (!verify.ok) return verify;
+
+  const inputs = batch.groups.map((g) => ({
+    game: batch.game,
+    issue: targetIssue,
+    numbers: g.numbers,
+    multiple: 1,
+    recordSource: 'candidate_import',
+    candidateId: `${batch.id}#${g.index}`,
+  }));
+
+  const res = await createTickets(inputs);
+  if (!res.ok) return res;
+
+  await store.put('candidates', {
+    ...batch,
+    targetIssue,
+    importedAt: new Date().toISOString(),
+    importedTicketIds: res.tickets.map((t) => t.id),
+  });
+  return { ok: true, count: res.count, ids: res.tickets.map((t) => t.id) };
+}
+
+/** 批次回看：目标期已开奖时，算每注与开奖号码的重合数（描述性，不判奖） */
+async function listCandidateReviews(game) {
+  const [batches, draws] = await Promise.all([listCandidates(game), store.getAll('draws')]);
+  const map = new Map(draws.map((d) => [drawKey(d.game, d.issue), d]));
+  return batches.map((b) => {
+    const draw = b.targetIssue ? map.get(drawKey(b.game, b.targetIssue)) : null;
+    const usable = draw && draw.drawStatus === 'verified' ? draw : null;
+    return { ...b, review: usable ? candidatesDomain.reviewBatch(b, usable) : null };
+  });
+}
+
 /** 统计：只统计已确认购买的票；奖金只来自核对结果 */
 async function stats() {
   const [tickets, checks] = await Promise.all([store.getAll('tickets'), store.getAll('checks')]);
@@ -331,29 +471,31 @@ function decorateNumbers(draw) {
 
 /** 全量导出（备份用） */
 async function exportAll() {
-  const [tickets, checks, draws, meta] = await Promise.all([
+  const [tickets, checks, draws, candidates, meta] = await Promise.all([
     store.getAll('tickets'),
     store.getAll('checks'),
     store.getAll('draws'),
+    store.getAll('candidates'),
     store.getAll('meta'),
   ]);
   return {
     exportedAt: new Date().toISOString(),
-    schema: 'jingcai-web@1',
+    schema: 'jingcai-web@2',
     tickets,
     checks,
     draws,
+    candidates,
     meta,
   };
 }
 
 /** 导入备份：按 id 覆盖，不删除现有数据 */
 async function importAll(payload) {
-  if (!payload || payload.schema !== 'jingcai-web@1') {
-    throw new Error('备份文件格式不匹配（需要 jingcai-web@1）');
+  if (!payload || (payload.schema !== 'jingcai-web@2' && payload.schema !== 'jingcai-web@1')) {
+    throw new Error('备份文件格式不匹配（需要 jingcai-web@1 或 @2）');
   }
   const counts = {};
-  for (const name of ['tickets', 'checks', 'draws', 'meta']) {
+  for (const name of ['tickets', 'checks', 'draws', 'candidates', 'meta']) {
     const rows = Array.isArray(payload[name]) ? payload[name] : [];
     await store.putAll(name, rows);
     counts[name] = rows.length;
@@ -379,6 +521,15 @@ module.exports = {
   deleteTicket,
   runChecks,
   latestChecks,
+  getGateFlags,
+  gateState,
+  setCandidateGate,
+  generateCandidateBatch,
+  saveCandidateBatch,
+  listCandidates,
+  deleteCandidateBatch,
+  importCandidateBatch,
+  listCandidateReviews,
   stats,
   decorateNumbers,
   exportAll,

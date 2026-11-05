@@ -8,8 +8,8 @@
  */
 
 const DB_NAME = 'jingcai_assistant';
-const DB_VERSION = 1;
-const STORES = ['draws', 'tickets', 'checks', 'meta'];
+const DB_VERSION = 2;
+const STORES = ['draws', 'tickets', 'checks', 'candidates', 'meta'];
 const LS_PREFIX = 'jc:';
 
 let backendPromise = null;

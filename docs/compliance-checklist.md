@@ -20,6 +20,23 @@
 `candidateGenerationEnabled === true && wxComplianceStatus === 'approved'`，
 否则返回 `FEATURE_DISABLED`。前端 `picker` 页面不进入 tabBar，即使手动输 URL 也会被云函数拒绝。
 
+## 1.5 静态站（GitHub Pages）的适用说明
+
+> 2026-11-05：主线已从微信小程序迁到自托管静态站（decisions.md D20）。
+> 本文件 C1–C6 是**小程序平台**的核实项，对静态站不产生平台审核约束，但**不构成任何合规结论**。
+
+静态站的候选功能闸门（decisions.md D23）：
+
+| 配置项 | 默认值 | 开启方式 |
+|---|---|---|
+| `wxComplianceStatus` | `not_checked` | 选号页点「我已了解，开启」→ `self_attested_personal_use` |
+| `candidateGenerationEnabled` | `false` | 同上 |
+| `aiFutureNumberFeatureEnabled` | `false` | 同上（页面有独立勾选框） |
+
+- `self_attested_personal_use` **只代表使用者本人的知情确认**，不代表平台批准，也不得在任何文案里表述为"已通过审核"。
+- 关闭闸门后，生成、导入、AI 生成工具三处全部拒绝（有测试锁定）。
+- 若将来回到小程序形态，闸门自动回到严格模式（云函数不传 `acceptSelfAttested`）。
+
 ## 2. 已知风险事实（不作为结论，仅作依据）
 
 - 微信公众平台运营中心 2022-11-14 公告（媒体转述，参考 R1）：公众号及小程序禁止彩票预测类宣传，典型示例为"通过数字排列规律预测彩票数字"，并禁止销售彩票预测类商品。

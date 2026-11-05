@@ -9,6 +9,7 @@
 const { GAME, GAME_META, PURCHASE_STATUS } = require('../constants/games');
 const { resolveRuleVersion } = require('../rules/registry');
 const { validateToolCall } = require('../ai/tools');
+const { generateCandidates } = require('../domain/candidates');
 
 const DRAWS = 'draw_records';
 const TICKETS = 'ticket_records';
@@ -47,7 +48,15 @@ async function latestSync(db) {
   }
 }
 
-function createExecutors({ db, openid, now = () => new Date() }) {
+/**
+ * @param {object} options
+ * @param {object} options.db 云数据库或本地适配器
+ * @param {string} options.openid 服务端注入，工具参数无法指定
+ * @param {{futureNumbers?: boolean, complianceState?: string}} [options.gate] 候选闸门状态
+ * @param {(batch:object)=>Promise<object>} [options.saveBatch] 可选：生成后落库（留痕）
+ */
+function createExecutors({ db, openid, now = () => new Date(), gate = null, saveBatch = null }) {
+  const gateOptions = { futureNumbers: !!(gate && gate.futureNumbers) };
   const draws = db.collection(DRAWS);
   const tickets = db.collection(TICKETS);
   const checks = db.collection(CHECKS);
@@ -259,6 +268,53 @@ function createExecutors({ db, openid, now = () => new Date() }) {
       return result;
     },
 
+    async generate_candidates(args) {
+      if (!gateOptions.futureNumbers) {
+        return { ok: false, code: 'FEATURE_DISABLED', message: '候选号码功能未开启，无法生成号码组合' };
+      }
+      const res = generateCandidates({
+        game: args.game,
+        strategy: args.strategy,
+        count: args.count,
+        targetIssue: args.targetIssue,
+        seed: args.seed,
+        params: { include: args.include, exclude: args.exclude },
+        complianceState: (gate && gate.complianceState) || null,
+      });
+      if (!res.ok) {
+        return { ok: false, code: res.code, message: res.message };
+      }
+
+      let batch = res.batch;
+      if (saveBatch) {
+        try {
+          batch = (await saveBatch(res.batch)) || res.batch;
+        } catch (err) {
+          // 落库失败不影响回答，但必须让模型知道"这批没有存下来"
+          batch = { ...res.batch, saved: false };
+        }
+      }
+
+      return {
+        ok: true,
+        batchId: batch.id || null,
+        saved: batch.saved !== false,
+        game: batch.game,
+        strategy: batch.strategy,
+        count: batch.count,
+        targetIssue: batch.targetIssue,
+        randomSeed: batch.randomSeed,
+        algorithmVersion: batch.algorithmVersion,
+        groups: batch.groups.map((g) => ({
+          index: g.index,
+          displayText: g.displayText,
+          numbers: g.numbers,
+        })),
+        notice:
+          '以上号码由确定性算法按你选择的策略生成，属于随机/结构约束结果，不代表更容易中奖；到「选号」页可导入为草稿，导入后仍需自行确认购买。',
+      };
+    },
+
     async get_ticket_check(args) {
       const res = await tickets.where({ _id: args.ticketId, ownerOpenId: openid }).limit(1).get();
       const ticket = (res.data && res.data[0]) || null;
@@ -344,7 +400,7 @@ function createExecutors({ db, openid, now = () => new Date() }) {
 
   /** 统一入口：先校验工具名与参数，再执行 */
   async function execute(name, rawArgs) {
-    const checked = validateToolCall(name, rawArgs);
+    const checked = validateToolCall(name, rawArgs, gateOptions);
     if (!checked.ok) {
       return { ok: false, code: checked.code, message: checked.message };
     }

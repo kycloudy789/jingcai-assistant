@@ -33,6 +33,8 @@ const DEFAULT_MODEL = 'deepseek-flash';
 function createAi(options = {}) {
   const {
     store,
+    getGate = null,
+    saveBatch = null,
     fetchImpl = typeof fetch !== 'undefined' ? fetch.bind(globalThis) : null,
     storage = typeof localStorage !== 'undefined' ? localStorage : null,
   } = options;
@@ -140,19 +142,33 @@ function createAi(options = {}) {
       throw Object.assign(new Error('还没有填写 DeepSeek 密钥，请先在下方粘贴并保存'), { code: 'AI_NO_KEY' });
     }
 
+    // 闸门状态每次都现读：用户刚在「选号」页关掉，下一步对话就必须拿不到生成工具
+    let gate = null;
+    try {
+      gate = getGate ? await getGate() : null;
+    } catch (err) {
+      gate = null;
+    }
+    const futureNumbers = !!(gate && gate.aiFutureNumber);
+
     const history = Array.isArray(input.history) ? input.history.slice(-LIMITS.historyMessages) : [];
     const messages = [
-      { role: 'system', content: buildSystemPrompt() },
+      { role: 'system', content: buildSystemPrompt({ futureNumbers }) },
       ...history
         .filter((m) => (m.role === 'user' || m.role === 'assistant') && m.text)
         .map((m) => ({ role: m.role, content: m.text })),
       { role: 'user', content: checked.value },
     ];
 
-    const executors = createExecutors({ db: createLocalDb(store), openid: 'local' });
+    const executors = createExecutors({
+      db: createLocalDb(store),
+      openid: 'local',
+      gate: { futureNumbers, complianceState: gate ? gate.complianceState : null },
+      saveBatch,
+    });
     const out = await runToolLoop({
       messages,
-      toolSchemas: getToolSchemas(),
+      toolSchemas: getToolSchemas({ futureNumbers }),
       callModel,
       executeTool: (name, args) => executors.execute(name, args),
       finalizeInstruction: FINALIZE_INSTRUCTION,

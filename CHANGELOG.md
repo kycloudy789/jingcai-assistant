@@ -1,5 +1,28 @@
 # CHANGELOG
 
+## [0.8.0] - 2026-11-05
+
+### 新增（阶段 6：候选组合）
+- `shared/domain/candidates.js`：`random` / `balanced` / `preference` 三策略；确定性种子（mulberry32 + FNV-1a），同参数同种子必得同结果；默认 3 注、上限 5、组间去重；`verifyBatch` 自检、`reviewBatch` 开奖回看。
+- 选号页：闸门开关（默认关闭）、策略选择、注数/期号/种子、必含/排除、结果展示、导入为草稿、历史批次（含命中回看）、删除批次。
+- 批次留痕：`algorithmVersion` / `randomSeed` / `parameterSnapshot` / `targetIssue` / `complianceState`，可完整重放。
+- AI 工具 `generate_candidates`：**仅在闸门开启时注册**；号码由代码产出，模型只能原样转述；每次生成都落库留痕（失败会返回 `saved:false`）。
+- 提示词升级 `ai_system@1.1.0`：开启时要求原样引用 + 必须声明"不代表更容易中奖"；关闭时禁止以任何文本形式给号码。
+
+### 变更
+- 本地库 IndexedDB 版本 1 → 2，新增 `candidates` 对象仓库（老数据自动保留）。
+- 备份格式 `jingcai-web@1` → `@2`（含 `candidates`），仍兼容导入 `@1`。
+- 导出/恢复同时覆盖候选批次。
+- 闸门判定新增 `self_attested_personal_use`：只有调用方显式传 `acceptSelfAttested` 才认，云函数保持严格模式（D23）。
+
+### 明确未做
+- 小程序侧 `generateCandidates` 云函数（主线已迁静态站）。
+- 按历史频次加权的"冷热选号"（拒绝伪预测，D24）。
+- 服务端强制闸门（静态站无服务端，详见 `docs/phase-6-report.md` 第 6 节）。
+
+### 测试
+- 用例 243 → **265**：候选域模型 18、闸门与 AI 工具 14、Web 仓库层 8。
+
 ## [0.7.0] - 2026-11-05
 
 ### 新增

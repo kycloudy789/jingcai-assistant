@@ -3,6 +3,7 @@
  * 密钥缺失降级、AI 关闭、正常对话、工具调用、上游错误映射、会话归属。
  */
 const test = require('node:test');
+const { SYSTEM_PROMPT_VERSION } = require('../shared/ai/prompt');
 const assert = require('node:assert/strict');
 
 const { createFakeCloud, installFakeModule, createFakeHttps } = require('./helpers/fake-cloud');
@@ -101,13 +102,13 @@ test('普通问答：返回回复并落库两条消息', async () => {
   assert.equal(res.data.reply, '你好，我可以查已核验的开奖数据。');
   assert.ok(res.data.sessionId);
   assert.equal(res.data.model, 'deepseek-flash');
-  assert.equal(res.data.promptVersion, 'ai_system@1.0.0');
+  assert.equal(res.data.promptVersion, SYSTEM_PROMPT_VERSION);
   assert.equal(fake.rows('ai_messages').length, before + 2);
 
   const userMsg = fake.rows('ai_messages').find((m) => m.role === 'user' && m.content === '你好');
   assert.ok(userMsg);
   const assistantMsg = fake.rows('ai_messages').find((m) => m.role === 'assistant');
-  assert.equal(assistantMsg.promptVersion, 'ai_system@1.0.0');
+  assert.equal(assistantMsg.promptVersion, SYSTEM_PROMPT_VERSION);
 });
 
 test('工具调用：模型请求查开奖，服务端执行后作答', async () => {
