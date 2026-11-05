@@ -87,7 +87,7 @@ test('闸门开启：schema 多出 generate_candidates，且参数有 enum 约�
   const tool = schemas.find((t) => t.function.name === 'generate_candidates');
   assert.ok(tool, '应包含生成工具');
   assert.deepEqual(tool.function.parameters.properties.game.enum, ['ssq', 'kl8']);
-  assert.deepEqual(tool.function.parameters.properties.strategy.enum, ['random', 'balanced', 'preference']);
+  assert.deepEqual(tool.function.parameters.properties.strategy.enum, ['random', 'balanced', 'preference', 'analyzed']);
   assert.equal(tool.function.parameters.properties.count.maximum, 5);
   assert.equal(tool.function.parameters.additionalProperties, false);
 });
@@ -178,7 +178,8 @@ test('执行器：闸门开启时生成并调用 saveBatch 留痕', async () => 
   assert.equal(r.batchId, 'b_test');
   assert.equal(r.groups.length, 2);
   assert.equal(r.saved, true);
-  assert.match(r.notice, /不代表更容易中奖/);
+  assert.match(r.notice, /中奖概率与任何选号方式完全相同/);
+  assert.match(r.notice, /推定值/);
   assert.equal(captured.length, 1);
   assert.equal(captured[0].complianceState, COMPLIANCE_STATUS.SELF_ATTESTED);
   assert.equal(captured[0].groups.length, 2);
@@ -210,5 +211,77 @@ test('提示词：闸门关闭时禁止给号码，开启时要求原样引用�
   assert.ok(open.includes(FUTURE_RULES[0]));
   assert.ok(!open.includes(DISABLED_RULE));
   assert.match(open, /不得改动、补号或重新排序/);
-  assert.match(open, /不代表更容易中奖/);
+  assert.match(open, /浮动奖，按中奖注数均分/);
+  assert.match(open, /推定值/);
+});
+
+/* ---------------- 分析选号的工具层 ---------------- */
+
+test('工具层：analysis 权重被白名单校验（只认这几个字段）', () => {
+  const opt = { futureNumbers: true };
+  const ok = validateToolCall(
+    'generate_candidates',
+    {
+      game: 'ssq',
+      strategy: 'analyzed',
+      analysis: { avoidPatterns: true, avoidRepeat: false, includeCold: 2, sumRange: [80, 120] },
+    },
+    opt
+  );
+  assert.equal(ok.ok, true);
+  assert.deepEqual(ok.args.analysis, {
+    avoidPatterns: true,
+    avoidRepeat: false,
+    includeCold: 2,
+    sumRange: [80, 120],
+  });
+
+  assert.equal(
+    validateToolCall('generate_candidates', { game: 'ssq', analysis: { includeCold: 9 } }, opt).ok,
+    false
+  );
+  assert.equal(
+    validateToolCall('generate_candidates', { game: 'ssq', analysis: { sumRange: [120, 80] } }, opt).ok,
+    false
+  );
+  assert.equal(
+    validateToolCall('generate_candidates', { game: 'ssq', analysis: { avoidRepeat: 'yes' } }, opt).ok,
+    false
+  );
+});
+
+test('执行器：analyzed 策略会把拥挤度与代价一并回给模型', async () => {
+  const ex = createExecutors({
+    db: fakeDb(),
+    openid: 'local',
+    gate: { futureNumbers: true, complianceState: 'self_attested_personal_use' },
+    saveBatch: async (b) => ({ ...b, id: 'b_insight' }),
+  });
+  const r = await ex.execute('generate_candidates', {
+    game: 'ssq',
+    strategy: 'analyzed',
+    count: 2,
+    seed: 'tool-analyzed',
+    analysis: { includeCold: 0 },
+  });
+  assert.equal(r.ok, true);
+  assert.equal(r.groups.length, 2);
+  assert.ok(typeof r.groups[0].crowd.index === 'number');
+  assert.ok(Array.isArray(r.groups[0].crowd.reasons));
+  assert.ok(r.tradeoff && typeof r.tradeoff.avgCrowdIndex === 'number');
+  assert.match(r.notice, /中奖概率与任何选号方式完全相同/);
+  assert.match(r.notice, /推定值/);
+});
+
+test('执行器：没有历史数据时 analyzed 仍可生成（只是没有冷号）', async () => {
+  const ex = createExecutors({
+    db: fakeDb(),
+    openid: 'local',
+    gate: { futureNumbers: true },
+  });
+  const r = await ex.execute('generate_candidates', { game: 'ssq', strategy: 'analyzed', count: 1 });
+  assert.equal(r.ok, true);
+  assert.equal(r.groups.length, 1);
+  assert.equal(r.analysis.includeCold, 0);
+  assert.deepEqual(r.analysis.coldNumbers, []);
 });

@@ -100,7 +100,19 @@ const state = {
     detail: null,
     busy: false,
     error: '',
-    form: { strategy: 'random', count: 3, targetIssue: '', include: '', exclude: '', seed: '' },
+    form: {
+      strategy: 'random',
+      count: 3,
+      targetIssue: '',
+      include: '',
+      exclude: '',
+      seed: '',
+      avoidPatterns: true,
+      avoidRepeat: true,
+      includeCold: 0,
+      sumMin: '',
+      sumMax: '',
+    },
   },
 };
 
@@ -485,16 +497,32 @@ function ticketsView() {
 
 /* ---------------- 选号：候选组合（阶段 6） ---------------- */
 
-const STRATEGY_ORDER = ['random', 'balanced', 'preference'];
+const STRATEGY_ORDER = ['random', 'balanced', 'preference', 'analyzed'];
 
 function candForm() {
-  return { strategy: 'random', count: 3, targetIssue: '', include: '', exclude: '', seed: '' };
+  return {
+    strategy: 'random',
+    count: 3,
+    targetIssue: '',
+    include: '',
+    exclude: '',
+    seed: '',
+    avoidPatterns: true,
+    avoidRepeat: true,
+    includeCold: 0,
+    sumMin: '',
+    sumMax: '',
+  };
 }
 
 function readCandForm() {
   const val = (id) => {
     const el = document.getElementById(id);
     return el ? String(el.value || '') : '';
+  };
+  const bool = (id, fallback) => {
+    const el = document.getElementById(id);
+    return el ? !!el.checked : fallback;
   };
   const f = state.candidates.form;
   return {
@@ -504,7 +532,25 @@ function readCandForm() {
     include: val('cand-include').trim(),
     exclude: val('cand-exclude').trim(),
     seed: val('cand-seed').trim(),
+    avoidPatterns: bool('cand-avoid-patterns', f.avoidPatterns),
+    avoidRepeat: bool('cand-avoid-repeat', f.avoidRepeat),
+    includeCold: Number(val('cand-cold') || f.includeCold || 0),
+    sumMin: val('cand-sum-min').trim(),
+    sumMax: val('cand-sum-max').trim(),
   };
+}
+
+/** 只有填了和值区间才传，避免空字符串被当成 0 */
+function buildAnalysisInput(f) {
+  const input = {
+    avoidPatterns: f.avoidPatterns !== false,
+    avoidRepeat: f.avoidRepeat !== false,
+    includeCold: Number(f.includeCold) || 0,
+  };
+  if (f.sumMin !== '' && f.sumMax !== '') {
+    input.sumRange = [Number(f.sumMin), Number(f.sumMax)];
+  }
+  return input;
 }
 
 function splitNumbers(text) {
@@ -521,15 +567,51 @@ function batchGroupsHtml(batch) {
       (g) => `<div class="batch-group">
         <span class="bet-idx">第 ${g.index + 1} 注</span>
         ${balls(g.numbers, batch.game)}
-      </div>`
+        ${
+          g.crowd
+            ? `<span class="crowd-badge ${g.crowd.level}">拥挤 ${g.crowd.index}</span>`
+            : ''
+        }
+      </div>
+      ${
+        g.crowd && g.crowd.factors && g.crowd.factors.length
+          ? `<div class="crowd-why">${esc(g.crowd.factors.join('；'))}</div>`
+          : ''
+      }`
     )
     .join('')}</div>`;
+}
+
+/** 兼顾的代价：把"为了冷门牺牲了什么"直接摊开，不只报喜 */
+function tradeoffHtml(tradeoff) {
+  if (!tradeoff) return '';
+  return `
+    <div class="tradeoff">
+      <div class="muted small">平均拥挤指数 ${tradeoff.avgCrowdIndex}（越低越冷门）· 和值 ${tradeoff.sumRange[0]}–${tradeoff.sumRange[1]} · ${tradeoff.withHighNumber} 注含 32/33 类大号 · ${tradeoff.withConsecutive} 注带连号</div>
+      <div class="muted small">${esc(tradeoff.note)}</div>
+    </div>`;
 }
 
 function batchMetaLine(b) {
   const meta = STRATEGY_META[b.strategy] || { label: b.strategy };
   const when = String(b.createdAt || '').replace('T', ' ').slice(0, 16);
   return `${meta.label} · ${b.count} 注 · 种子 ${b.randomSeed}${b.seedGenerated ? '（自动）' : ''} · ${when}`;
+}
+
+function analysisPanel(f) {
+  return `
+    <div class="analysis-panel">
+      <div class="pick-title">分析权重</div>
+      <label class="check-row"><input id="cand-avoid-patterns" type="checkbox" ${f.avoidPatterns ? 'checked' : ''} /> 避开连号、等差、同尾扎堆</label>
+      <label class="check-row"><input id="cand-avoid-repeat" type="checkbox" ${f.avoidRepeat ? 'checked' : ''} /> 不含上一期开奖号码</label>
+      <div class="form-inline">
+        <label>每注至少带几个冷号<input id="cand-cold" type="number" min="0" max="2" value="${f.includeCold}" /></label>
+        <label>和值下限<input id="cand-sum-min" type="number" placeholder="默认 ${state.game === GAME.SSQ ? 75 : 300}" value="${esc(f.sumMin)}" /></label>
+        <label>和值上限<input id="cand-sum-max" type="number" placeholder="默认 ${state.game === GAME.SSQ ? 130 : 500}" value="${esc(f.sumMax)}" /></label>
+      </div>
+      <p class="muted small">冷号 = 近 30 期没出现的号码。这里只把它当"大众较少选"的号码用，不代表它"该开了"——这是两件事。</p>
+      <p class="muted small">生成时会采 600 组候选，丢掉不合格的，再按「拥挤度 + 和值偏离惩罚」取最优。</p>
+    </div>`;
 }
 
 function candidatesView() {
@@ -592,6 +674,8 @@ function candidatesView() {
           </div>`
         : ''}
 
+      ${f.strategy === 'analyzed' ? analysisPanel(f) : ''}
+
       <div class="actions">
         <button class="btn primary" data-act="cand-generate" ${c.busy ? 'disabled' : ''}>${c.busy ? '生成中…' : '生成'}</button>
         <button class="link" data-act="cand-disable">关闭候选功能</button>
@@ -614,7 +698,9 @@ function candidatesView() {
                  </label>`
           }
           ${batchGroupsHtml(last)}
+          ${tradeoffHtml(last.tradeoff)}
           <p class="muted small">导入后是草稿：需要在「我的号码」里逐注确认已购买，才会进入花费与中奖统计。</p>
+          <p class="muted small">中奖概率与任何选号方式完全相同；上面这些分析只影响"万一中的是浮动奖，会不会被很多人平分"。</p>
         </section>`
       : ''}
 
@@ -632,14 +718,20 @@ function candidatesView() {
               <div class="muted small">${esc(batchMetaLine(b))}${b.targetIssue ? ` · 期号 ${esc(b.targetIssue)}` : ''}</div>
               <div class="muted small">${
                 b.importedAt ? `已导入 ${b.importedTicketIds ? b.importedTicketIds.length : b.count} 注草稿` : '尚未导入'
-              }${b.review ? ` · 该期最高命中 ${b.review.best ? b.review.best.totalHits : 0} 个` : ''}</div>
+              }${b.tradeoff ? ` · 平均拥挤 ${b.tradeoff.avgCrowdIndex}` : ''}${
+                b.review ? ` · 该期最高命中 ${b.review.best ? b.review.best.totalHits : 0} 个` : ''
+              }</div>
             </div>
             <div class="batch-ops">
               <button class="link" data-act="cand-toggle" data-id="${b.id}">${c.detail === b.id ? '收起' : '展开'}</button>
               <button class="link danger" data-act="cand-delete" data-id="${b.id}">删除</button>
             </div>
           </div>
-          ${c.detail === b.id ? `${batchGroupsHtml(b)}${b.review ? batchReviewHtml(b.review) : ''}` : ''}
+          ${
+            c.detail === b.id
+              ? `${batchGroupsHtml(b)}${tradeoffHtml(b.tradeoff)}${b.review ? batchReviewHtml(b.review) : ''}`
+              : ''
+          }
         </div>`
               )
               .join('')
@@ -1113,8 +1205,15 @@ async function onAction(act, el) {
   if (act === 'cand-generate') {
     const f = readCandForm();
     state.candidates.form = f;
-    state.candidates.busy = true;
     state.candidates.error = '';
+
+    if (f.sumMin !== '' && f.sumMax !== '' && Number(f.sumMin) > Number(f.sumMax)) {
+      state.candidates.error = '和值下限不能大于上限';
+      render();
+      return;
+    }
+
+    state.candidates.busy = true;
     render();
     const res = await repo.generateCandidateBatch({
       game: state.game,
@@ -1123,6 +1222,7 @@ async function onAction(act, el) {
       targetIssue: f.targetIssue || undefined,
       seed: f.seed || undefined,
       params: { include: splitNumbers(f.include), exclude: splitNumbers(f.exclude) },
+      ...(f.strategy === 'analyzed' ? { analysis: buildAnalysisInput(f) } : {}),
     });
     state.candidates.busy = false;
     if (!res.ok) {
@@ -1134,7 +1234,8 @@ async function onAction(act, el) {
     // 把实际用到的种子回填，下次能复现同一批
     state.candidates.form = { ...f, seed: String(res.batch.randomSeed) };
     await refreshAll();
-    notify(`已生成 ${res.batch.count} 注（种子 ${res.batch.randomSeed}）`, 'ok');
+    const crowd = res.batch.tradeoff ? `，平均拥挤指数 ${res.batch.tradeoff.avgCrowdIndex}` : '';
+    notify(`已生成 ${res.batch.count} 注（种子 ${res.batch.randomSeed}${crowd}）`, 'ok');
     return;
   }
   if (act === 'cand-import') {
@@ -1284,6 +1385,7 @@ async function boot() {
   if (!state.draws.length) {
     await syncDraws();
   }
+
 
   if (typeof location !== 'undefined' && location.search.indexOf('debug') >= 0) {
     document.title = JSON.stringify({
@@ -1632,8 +1734,16 @@ async function generateCandidateBatch(input) {
       gate,
     };
   }
+  // 分析选号需要近期开奖（冷号、上期重号）；其余策略不读数据，保持零依赖
+  let recentDraws = [];
+  if ((input && input.strategy) === 'analyzed') {
+    recentDraws = await listDraws((input && input.game) || GAME.SSQ, 30);
+  }
+
   const res = candidatesDomain.generateCandidates({
     ...(input || {}),
+    recentDraws,
+    previousDraw: recentDraws[0] || null,
     complianceState: gate.complianceState,
   });
   if (!res.ok) return res;
@@ -3164,6 +3274,14 @@ __define("shared/domain/candidates.js", function(module, exports, require){
 
 const { GAME, GAME_META, isGame } = require('../constants/games');
 const { isValidIssue } = require('../rules/registry');
+const {
+  crowdIndex,
+  coldNumbers,
+  consecutivePairs,
+  hasArithmeticRun,
+  sameTailPairs,
+  CROWD_MODEL_VERSION,
+} = require('./analysis');
 
 const ALGORITHM_VERSION = 'candidate@1.0.0';
 
@@ -3171,6 +3289,7 @@ const STRATEGY = {
   RANDOM: 'random',
   BALANCED: 'balanced',
   PREFERENCE: 'preference',
+  ANALYZED: 'analyzed',
 };
 
 const STRATEGY_META = {
@@ -3186,6 +3305,10 @@ const STRATEGY_META = {
     label: '偏好约束',
     desc: '先满足你指定的必含/排除号码，余下随机补足。',
   },
+  [STRATEGY.ANALYZED]: {
+    label: '分析选号',
+    desc: '在结构合格的前提下，挑「拥挤度最低」的组合：避开生日区扎堆、连号等差、上期重号，并可要求带冷门号。',
+  },
 };
 
 const CODE = {
@@ -3199,6 +3322,7 @@ const CODE = {
   BAD_EXCLUDE: 'BAD_EXCLUDE',
   NO_ROOM: 'NO_ROOM',
   DUPLICATE_EXHAUSTED: 'DUPLICATE_EXHAUSTED',
+  BAD_ANALYSIS: 'BAD_ANALYSIS',
 };
 
 const MIN_COUNT = 1;
@@ -3432,11 +3556,183 @@ function buildKl8Group({ strategy, include, exclude, rng }) {
   return { numbers: { red: [], blue: null, kl8 } };
 }
 
+/**
+ * 兼顾的"代价"：为降拥挤度，必然有些注看起来不那么"均衡"。
+ * 这里把代价量化出来给用户看，而不是只报喜。
+ */
+function summarizeTradeoff(game, groups) {
+  const list = groups.map((g) => g.crowd.index);
+  const sums = groups.map((g) => {
+    const main = game === GAME.SSQ ? g.numbers.red : g.numbers.kl8;
+    return main.reduce((acc, n) => acc + n, 0);
+  });
+  const withHigh = groups.filter((g) => {
+    const main = game === GAME.SSQ ? g.numbers.red : g.numbers.kl8;
+    return main.some((n) => n > 31);
+  }).length;
+  const withConsecutive = groups.filter((g) => {
+    const main = game === GAME.SSQ ? g.numbers.red : g.numbers.kl8;
+    return consecutivePairs(main).length > 0;
+  }).length;
+
+  const avg = Math.round((list.reduce((acc, n) => acc + n, 0) / list.length) * 10) / 10;
+  return {
+    avgCrowdIndex: avg,
+    minCrowdIndex: Math.min(...list),
+    maxCrowdIndex: Math.max(...list),
+    withHighNumber: withHigh,
+    withConsecutive,
+    sumRange: [Math.min(...sums), Math.max(...sums)],
+    note: '拥挤度越低，越不像大众会选的号码；代价是可能出现 32/33、连号这类"不好看"的组合。结构约束仍然满足。',
+  };
+}
+
 /** 一组号码的规范化键，用于组间去重 */
 function groupKey(game, numbers) {
   const list = game === GAME.SSQ ? numbers.red : numbers.kl8;
   const tail = game === GAME.SSQ ? `|${numbers.blue}` : '';
   return `${list.join(',')}${tail}`;
+}
+
+/* ---------------- 分析选号：拥挤度优化 ---------------- */
+
+const ANALYSIS_DEFAULTS = {
+  avoidPatterns: true,
+  avoidRepeat: true,
+  includeCold: 0,
+  maxCrowdIndex: 92,
+};
+
+/** 每注采多少个候选再挑最优；越大越"冷门"，也越慢（本地毫秒级） */
+const ANALYSIS_SAMPLES = 600;
+
+function normalizeAnalysisParams(game, raw) {
+  const src = raw || {};
+  const meta = GAME_META[game];
+  const count = game === GAME.SSQ ? meta.redCount : meta.count;
+  const max = game === GAME.SSQ ? meta.redMax : meta.max;
+
+  const boolOr = (value, fallback) => (typeof value === 'boolean' ? value : fallback);
+
+  const includeCold = src.includeCold === undefined || src.includeCold === null ? 0 : Number(src.includeCold);
+  if (!Number.isInteger(includeCold) || includeCold < 0 || includeCold > 2) {
+    return { ok: false, code: CODE.BAD_ANALYSIS, message: 'includeCold 只能是 0 / 1 / 2' };
+  }
+
+  const maxCrowdIndex =
+    src.maxCrowdIndex === undefined || src.maxCrowdIndex === null
+      ? ANALYSIS_DEFAULTS.maxCrowdIndex
+      : Number(src.maxCrowdIndex);
+  if (!Number.isFinite(maxCrowdIndex) || maxCrowdIndex < 0 || maxCrowdIndex > 100) {
+    return { ok: false, code: CODE.BAD_ANALYSIS, message: 'maxCrowdIndex 需在 0–100 之间' };
+  }
+
+  const rangeOr = (value, fallback) => {
+    if (value === undefined || value === null) return fallback;
+    if (!Array.isArray(value) || value.length !== 2) return null;
+    const [a, b] = value.map(Number);
+    if (!Number.isFinite(a) || !Number.isFinite(b) || a > b) return null;
+    return [Math.max(0, Math.trunc(a)), Math.min(max * count, Math.trunc(b))];
+  };
+
+  const sumRange = rangeOr(src.sumRange, game === GAME.SSQ ? [75, 130] : [300, 500]);
+  if (!sumRange) {
+    return { ok: false, code: CODE.BAD_ANALYSIS, message: 'sumRange 需要 [最小, 最大] 且最小 ≤ 最大' };
+  }
+
+  const oddRange = rangeOr(src.oddRange, game === GAME.SSQ ? [2, 4] : [4, 6]);
+  if (!oddRange || oddRange[1] > count) {
+    return { ok: false, code: CODE.BAD_ANALYSIS, message: `oddRange 需要 [最小, 最大]，上限不超过 ${count}` };
+  }
+
+  return {
+    ok: true,
+    params: {
+      avoidPatterns: boolOr(src.avoidPatterns, ANALYSIS_DEFAULTS.avoidPatterns),
+      avoidRepeat: boolOr(src.avoidRepeat, ANALYSIS_DEFAULTS.avoidRepeat),
+      includeCold,
+      maxCrowdIndex: Math.round(maxCrowdIndex),
+      sumRange,
+      oddRange,
+    },
+  };
+}
+
+function mainOf(game, numbers) {
+  return game === GAME.SSQ ? numbers.red : numbers.kl8;
+}
+
+function overlapCount(a, b) {
+  const set = new Set(a);
+  return b.filter((n) => set.has(n)).length;
+}
+
+/** 结构硬约束：不满足就整注丢弃，而不是"稍微调整"（避免调到不合法） */
+function passesAnalysis(game, numbers, analysis, coldSet, prevSet) {
+  const main = mainOf(game, numbers);
+  const sum = main.reduce((acc, n) => acc + n, 0);
+  if (sum < analysis.sumRange[0] || sum > analysis.sumRange[1]) return false;
+
+  const odd = main.filter((n) => n % 2 === 1).length;
+  if (odd < analysis.oddRange[0] || odd > analysis.oddRange[1]) return false;
+
+  if (analysis.avoidRepeat && prevSet.size && main.some((n) => prevSet.has(n))) return false;
+
+  if (analysis.avoidPatterns) {
+    // 阈值必须随号码个数放大：快乐8 选 10 个号，同尾/连号本来就是常态，
+    // 用双色球的 6 号阈值会把绝大多数合法组合误杀（踩过这个坑）。
+    const isSsq = game === GAME.SSQ;
+    if (consecutivePairs(main).length > (isSsq ? 1 : 2)) return false;
+    if (hasArithmeticRun(main, isSsq ? 4 : 5)) return false;
+    if (sameTailPairs(main) > (isSsq ? 1 : 2)) return false;
+  }
+
+  if (analysis.includeCold > 0) {
+    const hits = main.filter((n) => coldSet.has(n)).length;
+    if (hits < analysis.includeCold) return false;
+  }
+  return true;
+}
+
+/**
+ * 采 260 个候选，逐个丢掉不合格的，再取拥挤度最低的那个。
+ * 组间再做一次"重合度"限制，避免两注只差一个号（那等于把钱押在一个形状上）。
+ */
+const SUM_CENTER = { [GAME.SSQ]: 100, [GAME.KL8]: 400 };
+/** 和值偏离的惩罚系数：每偏离 10 点，多算 2.5 分（等价于"拥挤 2.5 点"） */
+const SUM_DEVIATION_WEIGHT = 0.25;
+
+function buildAnalyzedGroup(options) {
+  const { game, rng, include, exclude, blueFixed, analysis, coldSet, prevSet, previousDraw, chosen } = options;
+  const maxOverlap = game === GAME.SSQ ? 3 : 6;
+  const center = SUM_CENTER[game];
+  let best = null;
+
+  for (let i = 0; i < ANALYSIS_SAMPLES; i += 1) {
+    const built =
+      game === GAME.SSQ
+        ? buildSsqGroup({ strategy: STRATEGY.RANDOM, include, exclude, blueFixed, rng })
+        : buildKl8Group({ strategy: STRATEGY.RANDOM, include, exclude, rng });
+    if (!built) break;
+
+    const main = mainOf(game, built.numbers);
+    if (!passesAnalysis(game, built.numbers, analysis, coldSet, prevSet)) continue;
+    if (chosen.some((prev) => overlapCount(prev, main) > maxOverlap)) continue;
+
+    const crowd = crowdIndex(game, built.numbers, { previousDraw });
+    if (!crowd.ok) continue;
+    if (crowd.index > analysis.maxCrowdIndex) continue;
+
+    // 纯取最冷会让每注都挤到"全大号"那一角，结构就崩了。
+    // 所以目标函数是「拥挤度 + 和值偏离惩罚」——这就是"两者兼顾"的具体含义。
+    const sum = main.reduce((acc, n) => acc + n, 0);
+    const objective = crowd.index + Math.abs(sum - center) * SUM_DEVIATION_WEIGHT;
+
+    if (!best || objective < best.objective) {
+      best = { numbers: built.numbers, crowd, objective: Math.round(objective * 10) / 10 };
+    }
+  }
+  return best;
 }
 
 /* ---------------- 对外主函数 ---------------- */
@@ -3522,12 +3818,61 @@ function generateCandidates(input) {
 
   const groups = [];
   const seen = new Set();
+  const chosen = [];
   const buildGroup = game === GAME.SSQ ? buildSsqGroup : buildKl8Group;
+
+  const isAnalyzed = strategy === STRATEGY.ANALYZED;
+  const previousDraw = src.previousDraw || null;
+  let analysisParams = null;
+  let coldList = [];
+  let coldSet = new Set();
+  let prevSet = new Set();
+
+  if (isAnalyzed) {
+    const normalized = normalizeAnalysisParams(game, src.analysis);
+    if (!normalized.ok) return normalized;
+    analysisParams = normalized.params;
+
+    const coldInfo = coldNumbers(game, src.recentDraws || [], 30);
+    if (!coldInfo.ok) return coldInfo;
+    coldList = coldInfo.cold;
+    coldSet = new Set(coldList);
+
+    if (analysisParams.includeCold > coldList.length) {
+      return {
+        ok: false,
+        code: CODE.BAD_ANALYSIS,
+        message: `当前窗口内只有 ${coldList.length} 个冷号，无法要求带上 ${analysisParams.includeCold} 个`,
+      };
+    }
+
+    if (previousDraw && previousDraw.numbers) {
+      prevSet = new Set(mainOf(game, previousDraw.numbers));
+    }
+  }
 
   for (let i = 0; i < count; i += 1) {
     let built = null;
-    let attempts = 0;
-    while (attempts < MAX_ATTEMPTS_PER_GROUP) {
+
+    if (isAnalyzed) {
+      const picked = buildAnalyzedGroup({
+        game,
+        rng,
+        include: inc.list,
+        exclude: exc.list,
+        blueFixed: params.blueFixed,
+        analysis: analysisParams,
+        coldSet,
+        prevSet,
+        previousDraw,
+        chosen,
+      });
+      if (picked) {
+        built = { numbers: picked.numbers, key: groupKey(game, picked.numbers), crowd: picked.crowd };
+      }
+    } else {
+      let attempts = 0;
+      while (attempts < MAX_ATTEMPTS_PER_GROUP) {
       attempts += 1;
       const candidate = buildGroup({
         strategy,
@@ -3539,20 +3884,24 @@ function generateCandidates(input) {
       if (!candidate) break;
       const key = groupKey(game, candidate.numbers);
       if (seen.has(key)) continue;
-      built = { ...candidate, key };
-      break;
+        built = { ...candidate, key };
+        break;
+      }
     }
+
     if (!built) {
       return {
         ok: false,
         code: CODE.DUPLICATE_EXHAUSTED,
-        message:
-          groups.length === 0
-            ? '当前约束下无法生成合法号码，请放宽必含/排除条件'
-            : '当前约束下可生成的组合不足，请减少注数或放宽约束',
+        message: isAnalyzed
+          ? '当前分析条件太紧（和值区间/奇偶/冷号/避开模式），可生成的合法组合不足。请放宽条件或减少注数。'
+          : groups.length === 0
+          ? '当前约束下无法生成合法号码，请放宽必含/排除条件'
+          : '当前约束下可生成的组合不足，请减少注数或放宽约束',
       };
     }
     seen.add(built.key);
+    chosen.push(mainOf(game, built.numbers));
     groups.push({
       index: i,
       numbers: built.numbers,
@@ -3560,6 +3909,16 @@ function generateCandidates(input) {
       displayText: game === GAME.SSQ
         ? `${built.numbers.red.map((n) => String(n).padStart(2, '0')).join(' ')} + ${String(built.numbers.blue).padStart(2, '0')}`
         : built.numbers.kl8.map((n) => String(n).padStart(2, '0')).join(' '),
+      ...(built.crowd
+        ? {
+            crowd: {
+              index: built.crowd.index,
+              level: built.crowd.level,
+              levelText: built.crowd.levelText,
+              factors: built.crowd.factors.map((f) => f.label),
+            },
+          }
+        : {}),
     });
   }
 
@@ -3577,6 +3936,25 @@ function generateCandidates(input) {
       targetIssue,
       complianceState: src.complianceState || null,
       createdAt: (src.now instanceof Date ? src.now : new Date()).toISOString(),
+      analysis: isAnalyzed
+        ? {
+            ...analysisParams,
+            coldNumbers: coldList,
+            crowdModelVersion: CROWD_MODEL_VERSION,
+            sampleCount: ANALYSIS_SAMPLES,
+            previousIssue: previousDraw ? previousDraw.issue || null : null,
+          }
+        : null,
+      crowdSummary: isAnalyzed
+        ? groups.map((g) => ({
+            index: g.index,
+            crowdIndex: g.crowd.index,
+            level: g.crowd.level,
+            levelText: g.crowd.levelText,
+            reasons: g.crowd.factors,
+          }))
+        : null,
+      tradeoff: isAnalyzed ? summarizeTradeoff(game, groups) : null,
       groups,
     },
   };
@@ -3673,6 +4051,427 @@ module.exports = {
   createRng,
   hashSeed,
   groupKey,
+};
+
+});
+
+/* ===== shared/domain/analysis.js ===== */
+__define("shared/domain/analysis.js", function(module, exports, require){
+/**
+ * 号码分析：结构画像 + 拥挤度（"会不会被很多人同时选中"）。
+ *
+ * 这个文件只回答两个问题：
+ *   1. 这组号码的形态是什么？（和值/跨度/奇偶/大小/分区/连号/AC/重号）
+ *   2. 这组号码有多"像大众会选的号"？（拥挤度指数）
+ *
+ * 它明确不回答"下期会开什么"——那在数学上不成立，不做。
+ *
+ * 拥挤度的现实意义：
+ *   双色球一/二等奖、快乐8选十中十是**浮动奖**，按中奖注数均分。
+ *   中奖概率与号码选择无关，但"有多少人跟你选了同一组"会影响到手金额。
+ *   所以避开大众偏好，改变的是"中了分多少"，不是"能不能中"。
+ *
+ * 研究依据（参数据此设定，不是拍脑袋）：
+ *   - Cook & Clotfelter (1993) "conscious selection"：玩家系统性偏向日期号，1–31 被超额选择。
+ *   - Farrell, Hartley, Lanot & Walker (2000)：英国彩票中 7 最热，被选频率比最冷的 46 高约 25%。
+ *   - Cox 等 (1998, JRSS-A)：冷门组合长期回报约 95 便士/英镑，随机约 45 便士（仍 < 1，赚不了钱）。
+ *   - Baker & McHale (2009)：玩家偏爱"看起来像设计过"的票（连号、等差、等间距）。
+ *
+ * 重要限制：中国福彩不公布每注号码的投注分布，因此这里的权重是**基于公开研究的推定**，
+ * 不是实测数据。界面必须如实标注这一点，不得表述为"测算出的真实中奖人数"。
+ */
+
+const { GAME, GAME_META } = require('../constants/games');
+
+const CROWD_MODEL_VERSION = 'crowd@1.0.0';
+
+const CODE = {
+  OK: 'OK',
+  BAD_GAME: 'BAD_GAME',
+  BAD_NUMBERS: 'BAD_NUMBERS',
+};
+
+/** 拥挤度等级（按指数切分，越低越冷门） */
+const CROWD_LEVEL = {
+  LOW: 'low',
+  MEDIUM_LOW: 'medium_low',
+  MEDIUM: 'medium',
+  MEDIUM_HIGH: 'medium_high',
+  HIGH: 'high',
+};
+
+const CROWD_LEVEL_TEXT = {
+  low: '低',
+  medium_low: '中低',
+  medium: '中',
+  medium_high: '中高',
+  high: '高',
+};
+
+/**
+ * 权重表：单位是"人群偏好分"，正数=更像大众会选，负数=大众回避。
+ * 全部集中在这里，改权重必须升 CROWD_MODEL_VERSION 并补测试。
+ */
+const WEIGHTS = {
+  // 生日区（日期可达）：按"超出随机期望的个数"计，而不是按绝对个数。
+  // 双色球只有 32/33 两个号在日期之外，若按绝对个数算，几乎每注都会被判"拥挤"，
+  // 指数就失去区分度——这是第一版校准踩过的坑。
+  birthdayExcess: 1.6,
+  monthDayExcess: 0.5, // ≤12 的号码（既是日也是月），同样按超出期望计
+  // 文化偏好
+  luckyCN: 0.5, // 6 / 8 / 9
+  unluckyCN: -0.5, // 4（中文语境忌讳，被选得更少）
+  luckySeven: 0.6, // 7（多国数据一致偏热）
+  // 形态
+  allInBirthdayZone: 3.0, // 整注都在 1–31
+  consecutivePair: 0.8, // 每有一对连号
+  arithmeticRun: 2.0, // 存在长度 ≥3 的等差
+  sameTailPair: 0.4, // 同尾号（个位相同）每对
+  repeatWithPrev: 1.0, // 与上期重号，每个
+  centerSum: 0.5, // 和值落在"最常见区间"（看着最正常）
+  allOddOrEven: -0.8, // 全奇/全偶，人很少这么选
+  // 蓝球
+  blueMonthDay: 0.5, // 蓝球 ≤12
+  blueHigh: -0.3, // 蓝球 13–16
+  blueLucky: 0.4, // 蓝球 7 / 8
+};
+
+/** 和值"最正常"的区间：双色球按研究常提到的 85–115；快乐8 按 10 个号的均值换算 */
+const CENTER_SUM = {
+  [GAME.SSQ]: [85, 115],
+  [GAME.KL8]: [360, 450],
+};
+
+function numList(game, numbers) {
+  if (game === GAME.SSQ) return (numbers && numbers.red) || [];
+  return (numbers && numbers.kl8) || [];
+}
+
+function range(from, to) {
+  const out = [];
+  for (let n = from; n <= to; n += 1) out.push(n);
+  return out;
+}
+
+/** 连号对数：相邻且差 1 的号码对 */
+function consecutivePairs(list) {
+  const sorted = list.slice().sort((a, b) => a - b);
+  const pairs = [];
+  for (let i = 1; i < sorted.length; i += 1) {
+    if (sorted[i] - sorted[i - 1] === 1) pairs.push([sorted[i - 1], sorted[i]]);
+  }
+  return pairs;
+}
+
+/**
+ * 是否存在"看起来被设计过"的等差数列。
+ * 阈值：长度 ≥4，或长度 3 且公差为 1（三连号）。
+ * 随意 6 个号里出现 3 项等差太常见，不算大众模式，否则会误伤普通组合。
+ */
+function hasArithmeticRun(list, minLen = 4) {
+  const sorted = list.slice().sort((a, b) => a - b);
+  for (let i = 0; i <= sorted.length - minLen; i += 1) {
+    for (let j = i + 1; j < sorted.length; j += 1) {
+      const step = sorted[j] - sorted[i];
+      if (step <= 0) continue;
+      let count = 2;
+      let last = sorted[j];
+      for (let k = j + 1; k < sorted.length; k += 1) {
+        if (sorted[k] - last === step) {
+          count += 1;
+          last = sorted[k];
+          const qualifies = count >= minLen || (count === 3 && step === 1);
+          if (qualifies) return { start: sorted[i], step, length: count };
+        } else if (sorted[k] - last > step) {
+          break;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+/** 同尾号对数（个位相同） */
+function sameTailPairs(list) {
+  const buckets = new Map();
+  for (const n of list) {
+    const tail = n % 10;
+    buckets.set(tail, (buckets.get(tail) || 0) + 1);
+  }
+  let pairs = 0;
+  for (const count of buckets.values()) {
+    if (count >= 2) pairs += (count * (count - 1)) / 2;
+  }
+  return pairs;
+}
+
+/** AC 值：不同差值个数 - (号码个数 - 1)，衡量号码离散程度 */
+function acValue(list) {
+  const diffs = new Set();
+  for (let i = 0; i < list.length; i += 1) {
+    for (let j = i + 1; j < list.length; j += 1) {
+      diffs.add(Math.abs(list[j] - list[i]));
+    }
+  }
+  return diffs.size - (list.length - 1);
+}
+
+/**
+ * 结构画像：纯描述，不含任何倾向性判断。
+ * @param {'ssq'|'kl8'} game
+ * @param {{red?:number[], blue?:number, kl8?:number[]}} numbers
+ * @param {{previousDraw?: object}} [options]
+ */
+function describeStructure(game, numbers, options = {}) {
+  if (game !== GAME.SSQ && game !== GAME.KL8) {
+    return { ok: false, code: CODE.BAD_GAME, message: '彩种不合法' };
+  }
+  const main = numList(game, numbers);
+  const count = game === GAME.SSQ ? GAME_META[GAME.SSQ].redCount : GAME_META[GAME.KL8].count;
+  if (!Array.isArray(main) || main.length !== count) {
+    return { ok: false, code: CODE.BAD_NUMBERS, message: `号码数量应为 ${count} 个` };
+  }
+
+  const sorted = main.slice().sort((a, b) => a - b);
+  const sum = sorted.reduce((acc, n) => acc + n, 0);
+  const span = sorted[sorted.length - 1] - sorted[0];
+  const odd = sorted.filter((n) => n % 2 === 1).length;
+  const even = sorted.length - odd;
+  const bigLine = game === GAME.SSQ ? 17 : 41;
+  const big = sorted.filter((n) => n >= bigLine).length;
+  const small = sorted.length - big;
+
+  const zones = game === GAME.SSQ
+    ? [
+        [1, 11],
+        [12, 22],
+        [23, 33],
+      ]
+    : [
+        [1, 20],
+        [21, 40],
+        [41, 60],
+        [61, 80],
+      ];
+  const zoneCounts = zones.map(() => 0);
+  for (const n of sorted) {
+    for (let i = 0; i < zones.length; i += 1) {
+      if (n >= zones[i][0] && n <= zones[i][1]) {
+        zoneCounts[i] += 1;
+        break;
+      }
+    }
+  }
+
+  const prev = options.previousDraw ? numList(game, options.previousDraw.numbers) : [];
+  const repeats = prev.length ? sorted.filter((n) => prev.includes(n)) : [];
+  const pairs = consecutivePairs(sorted);
+  const run = hasArithmeticRun(sorted);
+  const center = CENTER_SUM[game];
+  const inCenterSum = sum >= center[0] && sum <= center[1];
+
+  return {
+    ok: true,
+    game,
+    numbers: sorted,
+    blue: game === GAME.SSQ && numbers.blue !== undefined ? numbers.blue : null,
+    sum,
+    span,
+    odd,
+    even,
+    big,
+    small,
+    zones: zoneCounts,
+    zoneLabels: game === GAME.SSQ ? ['1–11', '12–22', '23–33'] : ['1–20', '21–40', '41–60', '61–80'],
+    consecutivePairs: pairs.length,
+    consecutive: pairs,
+    arithmeticRun: run,
+    sameTailPairs: sameTailPairs(sorted),
+    acValue: acValue(sorted),
+    repeats,
+    inCenterSum,
+    centerSumRange: center,
+    count: sorted.length,
+  };
+}
+
+/**
+ * 拥挤度指数：0（最冷门）–100（最拥挤）。
+ * 这是公开研究推导出的**推定值**，不是实测投注人数。
+ */
+function crowdIndex(game, numbers, options = {}) {
+  if (game !== GAME.SSQ && game !== GAME.KL8) {
+    return { ok: false, code: CODE.BAD_GAME, message: '彩种不合法' };
+  }
+  const main = numList(game, numbers);
+  const count = game === GAME.SSQ ? GAME_META[GAME.SSQ].redCount : GAME_META[GAME.KL8].count;
+  if (!Array.isArray(main) || main.length !== count) {
+    return { ok: false, code: CODE.BAD_NUMBERS, message: `号码数量应为 ${count} 个` };
+  }
+
+  const sorted = main.slice().sort((a, b) => a - b);
+  const factors = [];
+  let score = 0;
+
+  const add = (key, label, delta) => {
+    if (!delta) return;
+    score += delta;
+    factors.push({ key, label, delta: Math.round(delta * 100) / 100 });
+  };
+
+  const poolMax = game === GAME.SSQ ? GAME_META[GAME.SSQ].redMax : GAME_META[GAME.KL8].max;
+  const lowInBirthday = sorted.filter((n) => n <= 31).length;
+  const highAbove = sorted.filter((n) => n > 31).length;
+  const monthDay = sorted.filter((n) => n <= 12).length;
+  const lucky = sorted.filter((n) => n === 6 || n === 8 || n === 9).length;
+  const unlucky = sorted.filter((n) => n === 4).length;
+  const sevens = sorted.filter((n) => n === 7).length;
+
+  // 随机选号时"落在生日区"的期望个数；超出多少才算偏大众
+  const expectedLow = (31 / poolMax) * sorted.length;
+  const expectedMonthDay = (12 / poolMax) * sorted.length;
+  const lowExcess = lowInBirthday - expectedLow;
+  const monthExcess = monthDay - expectedMonthDay;
+
+  add(
+    'birthdayZone',
+    `${lowInBirthday} 个号在 1–31（随机期望约 ${expectedLow.toFixed(1)} 个）`,
+    lowExcess * WEIGHTS.birthdayExcess
+  );
+  add(
+    'monthDay',
+    `${monthDay} 个号 ≤12（日/月重叠，随机期望约 ${expectedMonthDay.toFixed(1)} 个）`,
+    monthExcess * WEIGHTS.monthDayExcess
+  );
+  add('luckyCN', `${lucky} 个号码是 6/8/9（中文吉利数）`, lucky * WEIGHTS.luckyCN);
+  add('unluckyCN', `${unlucky} 个号码是 4（中文忌讳，反而少人选）`, unlucky * WEIGHTS.unluckyCN);
+  add('luckySeven', `${sevens} 个号码是 7（多国最热号）`, sevens * WEIGHTS.luckySeven);
+
+  if (highAbove === 0) add('allInBirthdayZone', '整注都在 1–31 内', WEIGHTS.allInBirthdayZone);
+
+  const pairs = consecutivePairs(sorted).length;
+  add('consecutivePair', `${pairs} 对连号`, Math.min(pairs, 2) * WEIGHTS.consecutivePair);
+
+  const run = hasArithmeticRun(sorted);
+  add('arithmeticRun', run ? `存在等差 ${run.start} 起、公差 ${run.step}` : '', run ? WEIGHTS.arithmeticRun : 0);
+
+  const tails = sameTailPairs(sorted);
+  add('sameTailPair', `${tails} 对同尾号`, Math.min(tails, 2) * WEIGHTS.sameTailPair);
+
+  const prev = options.previousDraw ? numList(game, options.previousDraw.numbers) : [];
+  const repeats = prev.length ? sorted.filter((n) => prev.includes(n)) : [];
+  add('repeatWithPrev', prev.length ? `${repeats.length} 个号与上期重号` : '', Math.min(repeats.length, 3) * WEIGHTS.repeatWithPrev);
+
+  const sum = sorted.reduce((acc, n) => acc + n, 0);
+  const center = CENTER_SUM[game];
+  const inCenter = sum >= center[0] && sum <= center[1];
+  add('centerSum', inCenter ? `和值 ${sum} 落在「最常见」区间` : '', inCenter ? WEIGHTS.centerSum : 0);
+
+  const odd = sorted.filter((n) => n % 2 === 1).length;
+  if (odd === 0 || odd === sorted.length) {
+    add('allOddOrEven', odd === 0 ? '全偶数（人很少这么选）' : '全奇数（人很少这么选）', WEIGHTS.allOddOrEven);
+  }
+
+  if (game === GAME.SSQ && numbers.blue !== undefined && numbers.blue !== null) {
+    const blue = numbers.blue;
+    add('blueMonthDay', blue <= 12 ? `蓝球 ${blue} ≤12（日期可达）` : '', blue <= 12 ? WEIGHTS.blueMonthDay : 0);
+    add('blueHigh', blue > 12 ? `蓝球 ${blue} 在 13–16（日期不可达）` : '', blue > 12 ? WEIGHTS.blueHigh : 0);
+    add('blueLucky', blue === 7 || blue === 8 ? `蓝球 ${blue} 是热门号` : '', blue === 7 || blue === 8 ? WEIGHTS.blueLucky : 0);
+  }
+
+  const index = Math.max(0, Math.min(100, Math.round(50 + score * 5)));
+  const level =
+    index <= 25
+      ? CROWD_LEVEL.LOW
+      : index <= 42
+      ? CROWD_LEVEL.MEDIUM_LOW
+      : index <= 58
+      ? CROWD_LEVEL.MEDIUM
+      : index <= 72
+      ? CROWD_LEVEL.MEDIUM_HIGH
+      : CROWD_LEVEL.HIGH;
+
+  return {
+    ok: true,
+    game,
+    index,
+    level,
+    levelText: CROWD_LEVEL_TEXT[level],
+    score: Math.round(score * 100) / 100,
+    factors: factors.filter((f) => f.delta !== 0),
+    modelVersion: CROWD_MODEL_VERSION,
+    caveat:
+      '拥挤度是基于公开研究（生日偏好、幸运号、连号/等差偏好等）推导的推定值，不是实测投注人数——中国福彩不公布每注号码的投注分布。它只影响浮动奖的均分，不改变中奖概率。',
+  };
+}
+
+/** 组合分析：一次拿到结构 + 拥挤度 */
+function analyzeNumbers(game, numbers, options = {}) {
+  const structure = describeStructure(game, numbers, options);
+  if (!structure.ok) return structure;
+  const crowd = crowdIndex(game, numbers, options);
+  if (!crowd.ok) return crowd;
+  return {
+    ok: true,
+    game,
+    numbers: structure.numbers,
+    structure,
+    crowd,
+    note: '结构是描述，拥挤度是推定；两者都不改变中奖概率。',
+  };
+}
+
+/**
+ * 冷号：近 window 期一次都没出现的号码。
+ * 用途只有一个——当作"大众会回避的号"来降低拥挤度，
+ * **不是**"该回补了"。这两件事必须区分清楚。
+ */
+function coldNumbers(game, recentDraws, window = 30) {
+  if (game !== GAME.SSQ && game !== GAME.KL8) {
+    return { ok: false, code: CODE.BAD_GAME, message: '彩种不合法' };
+  }
+  const meta = GAME_META[game];
+  const max = game === GAME.SSQ ? meta.redMax : meta.max;
+  const list = (recentDraws || []).slice(0, Math.max(0, window));
+  if (!list.length) {
+    return { ok: true, window: 0, sampleSize: 0, cold: [], frequencies: {}, note: '没有历史开奖数据，冷号为空' };
+  }
+  const freq = {};
+  for (let n = 1; n <= max; n += 1) freq[n] = 0;
+  for (const d of list) {
+    const nums = numList(game, d.numbers);
+    for (const n of nums) {
+      if (freq[n] !== undefined) freq[n] += 1;
+    }
+  }
+  const cold = Object.keys(freq)
+    .map(Number)
+    .filter((n) => freq[n] === 0)
+    .sort((a, b) => a - b);
+  return {
+    ok: true,
+    window: list.length,
+    sampleSize: list.length,
+    cold,
+    frequencies: freq,
+    note: '冷号只代表这段时间没出现过，不代表下期更可能或更不可能出现。',
+  };
+}
+
+module.exports = {
+  CROWD_MODEL_VERSION,
+  CROWD_LEVEL,
+  CROWD_LEVEL_TEXT,
+  WEIGHTS,
+  CODE,
+  describeStructure,
+  crowdIndex,
+  analyzeNumbers,
+  coldNumbers,
+  consecutivePairs,
+  hasArithmeticRun,
+  sameTailPairs,
+  acValue,
 };
 
 });
@@ -4812,7 +5611,7 @@ __define("shared/ai/prompt.js", function(module, exports, require){
  * 原则：模型只是"解释器"，事实一律来自工具返回；不许编数据、不许宣称能提升中奖机会。
  */
 
-const SYSTEM_PROMPT_VERSION = 'ai_system@1.1.0';
+const SYSTEM_PROMPT_VERSION = 'ai_system@1.2.0';
 
 const RULES = [
   '你是「竞彩助手」的个人数据分析助手，不是彩票发行机构，也不是选号专家。',
@@ -4833,9 +5632,13 @@ const DISABLED_RULE =
 
 /** 闸门开启时的规则：号码只能原样引用工具结果，且必须带上"不代表更容易中奖" */
 const FUTURE_RULES = [
-  '候选号码功能当前已开启。只有用户明确要求"给我几注/生成号码"时，才调用 generate_candidates；号码必须原样引用工具返回的 displayText，不得改动、补号或重新排序。',
-  '给出号码时必须同时说明：这些号码由随机或结构策略生成，历史开奖不改变任何概率，不代表更容易中奖；候选不是已购买，导入后仍是草稿。',
-  '即使 get_number_stats 显示某些号码出现更多或更少，也不得说"这些号更可能出"或"该补冷号"，只能如实陈述统计与样本量。',
+  '候选号码功能当前已开启。只有用户明确要求"给我几注/生成号码/分析选号"时，才调用 generate_candidates；号码必须原样引用工具返回的 displayText，不得改动、补号或重新排序。',
+  '给出号码时必须同时说明：中奖概率与任何选号方式完全相同；候选不是已购买，导入后仍是草稿。',
+  '用户要求"分析选号"时，用 strategy=analyzed，并把他的自然语言翻成 analysis 权重（例如"别要生日号"→ avoidPatterns/降低 1–31 占比；"别跟上期重样"→ avoidRepeat；"带个冷门号"→ includeCold 1–2；"和值别太极端"→ sumRange）。只能用工具 schema 里列出的字段，不要自造参数名。',
+  '解释分析时，必须讲清它改变的是什么：双色球一/二等奖、快乐8选十中十是**浮动奖，按中奖注数均分**，避开大众号只影响"万一中了会不会被很多人分"；三等奖及以下是固定奖金，不受影响。',
+  '拥挤度是基于公开研究（生日偏好、幸运号、连号/等差偏好）的**推定值**，不得说成"实测有多少人买了这组号"，也不得给出虚构的中奖人数或奖金。',
+  '也不得说"更可能出""该补冷号""回补"；冷号只能被描述为"大众较少选的号"，不是"该开的号"。',
+  '即使 get_number_stats 显示某些号码出现更多或更少，也不得说"这些号更可能出"，只能如实陈述统计与样本量。',
 ];
 
 /**
@@ -5064,15 +5867,16 @@ const TOOLS = {
 
   generate_candidates: {
     description:
-      '按策略生成候选号码组合（1–5 注，组间不重复）。号码由确定性算法产生，不是预测，也不代表更容易中奖；只能原样转述，不得改写或补充号码。',
+      '按策略生成候选号码组合（1–5 注，组间不重复）。strategy=analyzed 时按"拥挤度最低"挑选（避开生日区扎堆、连号等差、上期重号，可要求带冷号），这只影响浮动奖被均分的风险，不改变中奖概率。号码由确定性算法产生，只能原样转述，不得改写或补充。',
     parameters: {
       type: 'object',
       properties: {
         game: { type: 'string', enum: GAMES },
         strategy: {
           type: 'string',
-          enum: [STRATEGY.RANDOM, STRATEGY.BALANCED, STRATEGY.PREFERENCE],
-          description: 'random=随机；balanced=分区均衡；preference=偏好约束',
+          enum: [STRATEGY.RANDOM, STRATEGY.BALANCED, STRATEGY.PREFERENCE, STRATEGY.ANALYZED],
+          description:
+            'random=随机；balanced=分区均衡；preference=偏好约束；analyzed=分析选号（结构合格前提下挑拥挤度最低）',
         },
         count: { type: 'integer', minimum: 1, maximum: 5, description: '注数，默认 3' },
         targetIssue: { type: 'string', description: '目标期号（7 位），可留空' },
@@ -5087,6 +5891,45 @@ const TOOLS = {
           items: { type: 'integer' },
           description: '排除号码（仅 preference 策略使用）',
         },
+        analysis: {
+          type: 'object',
+          description:
+            '分析权重，仅 strategy=analyzed 生效。用户说"别要生日号"就开 avoidBirthday 类约束（由 avoidPatterns/avoidRepeat 覆盖）；说"带几个冷门号"就调 includeCold。不要自己发明权重名。',
+          properties: {
+            avoidPatterns: {
+              type: 'boolean',
+              description: '避开连号≥2 对、等差、同尾≥2 对的组合（默认 true）',
+            },
+            avoidRepeat: { type: 'boolean', description: '不包含上一期开出的号码（默认 true）' },
+            includeCold: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 2,
+              description: '每注至少包含几个近 30 期未出现的号码（默认 0）',
+            },
+            maxCrowdIndex: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 100,
+              description: '可接受的拥挤度上限（越低越冷门，默认 92）',
+            },
+            sumRange: {
+              type: 'array',
+              items: { type: 'integer' },
+              minItems: 2,
+              maxItems: 2,
+              description: '和值区间 [最小, 最大]',
+            },
+            oddRange: {
+              type: 'array',
+              items: { type: 'integer' },
+              minItems: 2,
+              maxItems: 2,
+              description: '奇数个数区间 [最小, 最大]',
+            },
+          },
+          additionalProperties: false,
+        },
       },
       required: ['game'],
       additionalProperties: false,
@@ -5097,8 +5940,12 @@ const TOOLS = {
       if (!g.ok) return { ok: false, code: CODE.BAD_ARGS, message: g.message };
 
       const strategy = src.strategy || STRATEGY.RANDOM;
-      if (![STRATEGY.RANDOM, STRATEGY.BALANCED, STRATEGY.PREFERENCE].includes(strategy)) {
-        return { ok: false, code: CODE.BAD_ARGS, message: 'strategy 只能是 random / balanced / preference' };
+      if (![STRATEGY.RANDOM, STRATEGY.BALANCED, STRATEGY.PREFERENCE, STRATEGY.ANALYZED].includes(strategy)) {
+        return {
+          ok: false,
+          code: CODE.BAD_ARGS,
+          message: 'strategy 只能是 random / balanced / preference / analyzed',
+        };
       }
 
       const count = src.count === undefined || src.count === null ? 3 : Number(src.count);
@@ -5143,6 +5990,44 @@ const TOOLS = {
           }
         }
         args[key] = src[key].slice();
+      }
+
+      if (src.analysis !== undefined && src.analysis !== null) {
+        if (typeof src.analysis !== 'object' || Array.isArray(src.analysis)) {
+          return { ok: false, code: CODE.BAD_ARGS, message: 'analysis 必须是对象' };
+        }
+        const a = src.analysis;
+        const clean = {};
+        for (const key of ['avoidPatterns', 'avoidRepeat']) {
+          if (a[key] !== undefined) {
+            if (typeof a[key] !== 'boolean') {
+              return { ok: false, code: CODE.BAD_ARGS, message: `${key} 必须是布尔值` };
+            }
+            clean[key] = a[key];
+          }
+        }
+        for (const key of ['includeCold', 'maxCrowdIndex']) {
+          if (a[key] !== undefined) {
+            const n = Number(a[key]);
+            if (!Number.isInteger(n) || n < 0 || n > (key === 'includeCold' ? 2 : 100)) {
+              return { ok: false, code: CODE.BAD_ARGS, message: `${key} 超出允许范围` };
+            }
+            clean[key] = n;
+          }
+        }
+        for (const key of ['sumRange', 'oddRange']) {
+          if (a[key] !== undefined) {
+            if (!Array.isArray(a[key]) || a[key].length !== 2) {
+              return { ok: false, code: CODE.BAD_ARGS, message: `${key} 必须是长度为 2 的数组` };
+            }
+            const pair = a[key].map(Number);
+            if (!pair.every((n) => Number.isInteger(n)) || pair[0] > pair[1]) {
+              return { ok: false, code: CODE.BAD_ARGS, message: `${key} 需要 [最小, 最大] 且最小 ≤ 最大` };
+            }
+            clean[key] = pair;
+          }
+        }
+        args.analysis = clean;
       }
 
       return { ok: true, args };
@@ -5619,6 +6504,13 @@ function createExecutors({ db, openid, now = () => new Date(), gate = null, save
       if (!gateOptions.futureNumbers) {
         return { ok: false, code: 'FEATURE_DISABLED', message: '候选号码功能未开启，无法生成号码组合' };
       }
+      // 分析选号要把近期开奖喂给模型之外的代码（冷号、上期重号），
+      // 但它只用于"降低拥挤度"，不用于推断下期号码。
+      let drawList = [];
+      if (args.strategy === 'analyzed') {
+        drawList = await recentDraws(args.game, 30);
+      }
+
       const res = generateCandidates({
         game: args.game,
         strategy: args.strategy,
@@ -5626,6 +6518,9 @@ function createExecutors({ db, openid, now = () => new Date(), gate = null, save
         targetIssue: args.targetIssue,
         seed: args.seed,
         params: { include: args.include, exclude: args.exclude },
+        analysis: args.analysis,
+        recentDraws: drawList,
+        previousDraw: drawList[0] || null,
         complianceState: (gate && gate.complianceState) || null,
       });
       if (!res.ok) {
@@ -5656,9 +6551,24 @@ function createExecutors({ db, openid, now = () => new Date(), gate = null, save
           index: g.index,
           displayText: g.displayText,
           numbers: g.numbers,
+          crowd: g.crowd
+            ? { index: g.crowd.index, level: g.crowd.levelText, reasons: g.crowd.factors }
+            : undefined,
         })),
+        analysis: batch.analysis
+          ? {
+              sumRange: batch.analysis.sumRange,
+              oddRange: batch.analysis.oddRange,
+              includeCold: batch.analysis.includeCold,
+              coldNumbers: batch.analysis.coldNumbers,
+              avoidPatterns: batch.analysis.avoidPatterns,
+              avoidRepeat: batch.analysis.avoidRepeat,
+              crowdModelVersion: batch.analysis.crowdModelVersion,
+            }
+          : null,
+        tradeoff: batch.tradeoff || null,
         notice:
-          '以上号码由确定性算法按你选择的策略生成，属于随机/结构约束结果，不代表更容易中奖；到「选号」页可导入为草稿，导入后仍需自行确认购买。',
+          '号码由确定性算法在你给定的权重下生成：中奖概率与任何选号方式完全相同；分析只影响"万一中的是浮动奖，会不会被很多人平分"。拥挤度是基于公开研究（生日偏好、幸运号、连号/等差偏好）的推定值，不是实测投注人数。导入后仍是草稿，需自行确认购买。',
       };
     },
 

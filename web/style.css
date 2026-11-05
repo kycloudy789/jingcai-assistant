@@ -701,3 +701,57 @@ input[type="date"] {
   flex-direction: column;
   gap: 3px;
 }
+
+/* 分析选号 */
+.analysis-panel {
+  background: #f7f8fa;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 10px 0 6px;
+}
+.analysis-panel .check-row {
+  margin: 6px 0;
+}
+.crowd-badge {
+  font-size: 11.5px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  margin-left: auto;
+  background: #f1f2f5;
+  color: #5f5e5a;
+  font-variant-numeric: tabular-nums;
+}
+.crowd-badge.low {
+  background: #e7f6ec;
+  color: #1b7a3d;
+}
+.crowd-badge.medium_low {
+  background: #e8f4f1;
+  color: #0f6e56;
+}
+.crowd-badge.medium {
+  background: #f1f2f5;
+  color: #5f5e5a;
+}
+.crowd-badge.medium_high {
+  background: #fff6e5;
+  color: #b26a00;
+}
+.crowd-badge.high {
+  background: #fdecec;
+  color: #a32d2d;
+}
+.crowd-why {
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: -2px 0 6px 58px;
+}
+.tradeoff {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-left: 2px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}

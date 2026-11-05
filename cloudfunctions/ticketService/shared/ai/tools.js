@@ -193,15 +193,16 @@ const TOOLS = {
 
   generate_candidates: {
     description:
-      '按策略生成候选号码组合（1–5 注，组间不重复）。号码由确定性算法产生，不是预测，也不代表更容易中奖；只能原样转述，不得改写或补充号码。',
+      '按策略生成候选号码组合（1–5 注，组间不重复）。strategy=analyzed 时按"拥挤度最低"挑选（避开生日区扎堆、连号等差、上期重号，可要求带冷号），这只影响浮动奖被均分的风险，不改变中奖概率。号码由确定性算法产生，只能原样转述，不得改写或补充。',
     parameters: {
       type: 'object',
       properties: {
         game: { type: 'string', enum: GAMES },
         strategy: {
           type: 'string',
-          enum: [STRATEGY.RANDOM, STRATEGY.BALANCED, STRATEGY.PREFERENCE],
-          description: 'random=随机；balanced=分区均衡；preference=偏好约束',
+          enum: [STRATEGY.RANDOM, STRATEGY.BALANCED, STRATEGY.PREFERENCE, STRATEGY.ANALYZED],
+          description:
+            'random=随机；balanced=分区均衡；preference=偏好约束；analyzed=分析选号（结构合格前提下挑拥挤度最低）',
         },
         count: { type: 'integer', minimum: 1, maximum: 5, description: '注数，默认 3' },
         targetIssue: { type: 'string', description: '目标期号（7 位），可留空' },
@@ -216,6 +217,45 @@ const TOOLS = {
           items: { type: 'integer' },
           description: '排除号码（仅 preference 策略使用）',
         },
+        analysis: {
+          type: 'object',
+          description:
+            '分析权重，仅 strategy=analyzed 生效。用户说"别要生日号"就开 avoidBirthday 类约束（由 avoidPatterns/avoidRepeat 覆盖）；说"带几个冷门号"就调 includeCold。不要自己发明权重名。',
+          properties: {
+            avoidPatterns: {
+              type: 'boolean',
+              description: '避开连号≥2 对、等差、同尾≥2 对的组合（默认 true）',
+            },
+            avoidRepeat: { type: 'boolean', description: '不包含上一期开出的号码（默认 true）' },
+            includeCold: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 2,
+              description: '每注至少包含几个近 30 期未出现的号码（默认 0）',
+            },
+            maxCrowdIndex: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 100,
+              description: '可接受的拥挤度上限（越低越冷门，默认 92）',
+            },
+            sumRange: {
+              type: 'array',
+              items: { type: 'integer' },
+              minItems: 2,
+              maxItems: 2,
+              description: '和值区间 [最小, 最大]',
+            },
+            oddRange: {
+              type: 'array',
+              items: { type: 'integer' },
+              minItems: 2,
+              maxItems: 2,
+              description: '奇数个数区间 [最小, 最大]',
+            },
+          },
+          additionalProperties: false,
+        },
       },
       required: ['game'],
       additionalProperties: false,
@@ -226,8 +266,12 @@ const TOOLS = {
       if (!g.ok) return { ok: false, code: CODE.BAD_ARGS, message: g.message };
 
       const strategy = src.strategy || STRATEGY.RANDOM;
-      if (![STRATEGY.RANDOM, STRATEGY.BALANCED, STRATEGY.PREFERENCE].includes(strategy)) {
-        return { ok: false, code: CODE.BAD_ARGS, message: 'strategy 只能是 random / balanced / preference' };
+      if (![STRATEGY.RANDOM, STRATEGY.BALANCED, STRATEGY.PREFERENCE, STRATEGY.ANALYZED].includes(strategy)) {
+        return {
+          ok: false,
+          code: CODE.BAD_ARGS,
+          message: 'strategy 只能是 random / balanced / preference / analyzed',
+        };
       }
 
       const count = src.count === undefined || src.count === null ? 3 : Number(src.count);
@@ -272,6 +316,44 @@ const TOOLS = {
           }
         }
         args[key] = src[key].slice();
+      }
+
+      if (src.analysis !== undefined && src.analysis !== null) {
+        if (typeof src.analysis !== 'object' || Array.isArray(src.analysis)) {
+          return { ok: false, code: CODE.BAD_ARGS, message: 'analysis 必须是对象' };
+        }
+        const a = src.analysis;
+        const clean = {};
+        for (const key of ['avoidPatterns', 'avoidRepeat']) {
+          if (a[key] !== undefined) {
+            if (typeof a[key] !== 'boolean') {
+              return { ok: false, code: CODE.BAD_ARGS, message: `${key} 必须是布尔值` };
+            }
+            clean[key] = a[key];
+          }
+        }
+        for (const key of ['includeCold', 'maxCrowdIndex']) {
+          if (a[key] !== undefined) {
+            const n = Number(a[key]);
+            if (!Number.isInteger(n) || n < 0 || n > (key === 'includeCold' ? 2 : 100)) {
+              return { ok: false, code: CODE.BAD_ARGS, message: `${key} 超出允许范围` };
+            }
+            clean[key] = n;
+          }
+        }
+        for (const key of ['sumRange', 'oddRange']) {
+          if (a[key] !== undefined) {
+            if (!Array.isArray(a[key]) || a[key].length !== 2) {
+              return { ok: false, code: CODE.BAD_ARGS, message: `${key} 必须是长度为 2 的数组` };
+            }
+            const pair = a[key].map(Number);
+            if (!pair.every((n) => Number.isInteger(n)) || pair[0] > pair[1]) {
+              return { ok: false, code: CODE.BAD_ARGS, message: `${key} 需要 [最小, 最大] 且最小 ≤ 最大` };
+            }
+            clean[key] = pair;
+          }
+        }
+        args.analysis = clean;
       }
 
       return { ok: true, args };

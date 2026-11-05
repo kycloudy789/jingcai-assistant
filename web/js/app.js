@@ -67,7 +67,19 @@ const state = {
     detail: null,
     busy: false,
     error: '',
-    form: { strategy: 'random', count: 3, targetIssue: '', include: '', exclude: '', seed: '' },
+    form: {
+      strategy: 'random',
+      count: 3,
+      targetIssue: '',
+      include: '',
+      exclude: '',
+      seed: '',
+      avoidPatterns: true,
+      avoidRepeat: true,
+      includeCold: 0,
+      sumMin: '',
+      sumMax: '',
+    },
   },
 };
 
@@ -452,16 +464,32 @@ function ticketsView() {
 
 /* ---------------- 选号：候选组合（阶段 6） ---------------- */
 
-const STRATEGY_ORDER = ['random', 'balanced', 'preference'];
+const STRATEGY_ORDER = ['random', 'balanced', 'preference', 'analyzed'];
 
 function candForm() {
-  return { strategy: 'random', count: 3, targetIssue: '', include: '', exclude: '', seed: '' };
+  return {
+    strategy: 'random',
+    count: 3,
+    targetIssue: '',
+    include: '',
+    exclude: '',
+    seed: '',
+    avoidPatterns: true,
+    avoidRepeat: true,
+    includeCold: 0,
+    sumMin: '',
+    sumMax: '',
+  };
 }
 
 function readCandForm() {
   const val = (id) => {
     const el = document.getElementById(id);
     return el ? String(el.value || '') : '';
+  };
+  const bool = (id, fallback) => {
+    const el = document.getElementById(id);
+    return el ? !!el.checked : fallback;
   };
   const f = state.candidates.form;
   return {
@@ -471,7 +499,25 @@ function readCandForm() {
     include: val('cand-include').trim(),
     exclude: val('cand-exclude').trim(),
     seed: val('cand-seed').trim(),
+    avoidPatterns: bool('cand-avoid-patterns', f.avoidPatterns),
+    avoidRepeat: bool('cand-avoid-repeat', f.avoidRepeat),
+    includeCold: Number(val('cand-cold') || f.includeCold || 0),
+    sumMin: val('cand-sum-min').trim(),
+    sumMax: val('cand-sum-max').trim(),
   };
+}
+
+/** 只有填了和值区间才传，避免空字符串被当成 0 */
+function buildAnalysisInput(f) {
+  const input = {
+    avoidPatterns: f.avoidPatterns !== false,
+    avoidRepeat: f.avoidRepeat !== false,
+    includeCold: Number(f.includeCold) || 0,
+  };
+  if (f.sumMin !== '' && f.sumMax !== '') {
+    input.sumRange = [Number(f.sumMin), Number(f.sumMax)];
+  }
+  return input;
 }
 
 function splitNumbers(text) {
@@ -488,15 +534,51 @@ function batchGroupsHtml(batch) {
       (g) => `<div class="batch-group">
         <span class="bet-idx">第 ${g.index + 1} 注</span>
         ${balls(g.numbers, batch.game)}
-      </div>`
+        ${
+          g.crowd
+            ? `<span class="crowd-badge ${g.crowd.level}">拥挤 ${g.crowd.index}</span>`
+            : ''
+        }
+      </div>
+      ${
+        g.crowd && g.crowd.factors && g.crowd.factors.length
+          ? `<div class="crowd-why">${esc(g.crowd.factors.join('；'))}</div>`
+          : ''
+      }`
     )
     .join('')}</div>`;
+}
+
+/** 兼顾的代价：把"为了冷门牺牲了什么"直接摊开，不只报喜 */
+function tradeoffHtml(tradeoff) {
+  if (!tradeoff) return '';
+  return `
+    <div class="tradeoff">
+      <div class="muted small">平均拥挤指数 ${tradeoff.avgCrowdIndex}（越低越冷门）· 和值 ${tradeoff.sumRange[0]}–${tradeoff.sumRange[1]} · ${tradeoff.withHighNumber} 注含 32/33 类大号 · ${tradeoff.withConsecutive} 注带连号</div>
+      <div class="muted small">${esc(tradeoff.note)}</div>
+    </div>`;
 }
 
 function batchMetaLine(b) {
   const meta = STRATEGY_META[b.strategy] || { label: b.strategy };
   const when = String(b.createdAt || '').replace('T', ' ').slice(0, 16);
   return `${meta.label} · ${b.count} 注 · 种子 ${b.randomSeed}${b.seedGenerated ? '（自动）' : ''} · ${when}`;
+}
+
+function analysisPanel(f) {
+  return `
+    <div class="analysis-panel">
+      <div class="pick-title">分析权重</div>
+      <label class="check-row"><input id="cand-avoid-patterns" type="checkbox" ${f.avoidPatterns ? 'checked' : ''} /> 避开连号、等差、同尾扎堆</label>
+      <label class="check-row"><input id="cand-avoid-repeat" type="checkbox" ${f.avoidRepeat ? 'checked' : ''} /> 不含上一期开奖号码</label>
+      <div class="form-inline">
+        <label>每注至少带几个冷号<input id="cand-cold" type="number" min="0" max="2" value="${f.includeCold}" /></label>
+        <label>和值下限<input id="cand-sum-min" type="number" placeholder="默认 ${state.game === GAME.SSQ ? 75 : 300}" value="${esc(f.sumMin)}" /></label>
+        <label>和值上限<input id="cand-sum-max" type="number" placeholder="默认 ${state.game === GAME.SSQ ? 130 : 500}" value="${esc(f.sumMax)}" /></label>
+      </div>
+      <p class="muted small">冷号 = 近 30 期没出现的号码。这里只把它当"大众较少选"的号码用，不代表它"该开了"——这是两件事。</p>
+      <p class="muted small">生成时会采 600 组候选，丢掉不合格的，再按「拥挤度 + 和值偏离惩罚」取最优。</p>
+    </div>`;
 }
 
 function candidatesView() {
@@ -559,6 +641,8 @@ function candidatesView() {
           </div>`
         : ''}
 
+      ${f.strategy === 'analyzed' ? analysisPanel(f) : ''}
+
       <div class="actions">
         <button class="btn primary" data-act="cand-generate" ${c.busy ? 'disabled' : ''}>${c.busy ? '生成中…' : '生成'}</button>
         <button class="link" data-act="cand-disable">关闭候选功能</button>
@@ -581,7 +665,9 @@ function candidatesView() {
                  </label>`
           }
           ${batchGroupsHtml(last)}
+          ${tradeoffHtml(last.tradeoff)}
           <p class="muted small">导入后是草稿：需要在「我的号码」里逐注确认已购买，才会进入花费与中奖统计。</p>
+          <p class="muted small">中奖概率与任何选号方式完全相同；上面这些分析只影响"万一中的是浮动奖，会不会被很多人平分"。</p>
         </section>`
       : ''}
 
@@ -599,14 +685,20 @@ function candidatesView() {
               <div class="muted small">${esc(batchMetaLine(b))}${b.targetIssue ? ` · 期号 ${esc(b.targetIssue)}` : ''}</div>
               <div class="muted small">${
                 b.importedAt ? `已导入 ${b.importedTicketIds ? b.importedTicketIds.length : b.count} 注草稿` : '尚未导入'
-              }${b.review ? ` · 该期最高命中 ${b.review.best ? b.review.best.totalHits : 0} 个` : ''}</div>
+              }${b.tradeoff ? ` · 平均拥挤 ${b.tradeoff.avgCrowdIndex}` : ''}${
+                b.review ? ` · 该期最高命中 ${b.review.best ? b.review.best.totalHits : 0} 个` : ''
+              }</div>
             </div>
             <div class="batch-ops">
               <button class="link" data-act="cand-toggle" data-id="${b.id}">${c.detail === b.id ? '收起' : '展开'}</button>
               <button class="link danger" data-act="cand-delete" data-id="${b.id}">删除</button>
             </div>
           </div>
-          ${c.detail === b.id ? `${batchGroupsHtml(b)}${b.review ? batchReviewHtml(b.review) : ''}` : ''}
+          ${
+            c.detail === b.id
+              ? `${batchGroupsHtml(b)}${tradeoffHtml(b.tradeoff)}${b.review ? batchReviewHtml(b.review) : ''}`
+              : ''
+          }
         </div>`
               )
               .join('')
@@ -1080,8 +1172,15 @@ async function onAction(act, el) {
   if (act === 'cand-generate') {
     const f = readCandForm();
     state.candidates.form = f;
-    state.candidates.busy = true;
     state.candidates.error = '';
+
+    if (f.sumMin !== '' && f.sumMax !== '' && Number(f.sumMin) > Number(f.sumMax)) {
+      state.candidates.error = '和值下限不能大于上限';
+      render();
+      return;
+    }
+
+    state.candidates.busy = true;
     render();
     const res = await repo.generateCandidateBatch({
       game: state.game,
@@ -1090,6 +1189,7 @@ async function onAction(act, el) {
       targetIssue: f.targetIssue || undefined,
       seed: f.seed || undefined,
       params: { include: splitNumbers(f.include), exclude: splitNumbers(f.exclude) },
+      ...(f.strategy === 'analyzed' ? { analysis: buildAnalysisInput(f) } : {}),
     });
     state.candidates.busy = false;
     if (!res.ok) {
@@ -1101,7 +1201,8 @@ async function onAction(act, el) {
     // 把实际用到的种子回填，下次能复现同一批
     state.candidates.form = { ...f, seed: String(res.batch.randomSeed) };
     await refreshAll();
-    notify(`已生成 ${res.batch.count} 注（种子 ${res.batch.randomSeed}）`, 'ok');
+    const crowd = res.batch.tradeoff ? `，平均拥挤指数 ${res.batch.tradeoff.avgCrowdIndex}` : '';
+    notify(`已生成 ${res.batch.count} 注（种子 ${res.batch.randomSeed}${crowd}）`, 'ok');
     return;
   }
   if (act === 'cand-import') {
@@ -1251,6 +1352,7 @@ async function boot() {
   if (!state.draws.length) {
     await syncDraws();
   }
+
 
   if (typeof location !== 'undefined' && location.search.indexOf('debug') >= 0) {
     document.title = JSON.stringify({

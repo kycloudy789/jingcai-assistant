@@ -255,7 +255,16 @@
       "key": "4,6,13,15,26,33|12", "displayText": "04 06 13 15 26 33 + 12" }
   ],
   "importedAt": null,
-  "importedTicketIds": []
+  "importedTicketIds": [],
+  // 仅 analyzed 策略：
+  "analysis": {
+    "avoidPatterns": true, "avoidRepeat": true, "includeCold": 1,
+    "maxCrowdIndex": 92, "sumRange": [75, 130], "oddRange": [2, 4],
+    "coldNumbers": [11, 27], "crowdModelVersion": "crowd@1.0.0",
+    "sampleCount": 600, "previousIssue": "2026126"
+  },
+  "crowdSummary": [{ "index": 0, "crowdIndex": 42, "level": "medium_low", "reasons": ["…"] }],
+  "tradeoff": { "avgCrowdIndex": 44.7, "sumRange": [104, 117], "withHighNumber": 3, "withConsecutive": 0 }
 }
 ```
 
@@ -264,6 +273,8 @@
 2. 导入只生成 `purchaseStatus: 'draft'` 的 `ticket_records`，`actualCost`/`purchaseAt` 为 `null`。
 3. `algorithmVersion` 不匹配的批次拒绝导入（避免用旧算法结果冒充当前规则）。
 4. `complianceState` 记录生成当时的闸门状态，便于回溯"这批是在什么授权下生成的"。
+5. `analysis.coldNumbers` 与 `sampleCount` 一并入库：没有它就无法复现"为什么挑了这几注"。
+6. `crowdSummary[].crowdIndex` 是**推定值**（见 `docs/analysis-model.md`），不得当作实测投注人数。
 
 **索引**：无需额外索引（按 `createdAt` 内存排序即可；本地数据量级为几十到几百条）。
 

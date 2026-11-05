@@ -13,6 +13,14 @@
 
 const { GAME, GAME_META, isGame } = require('../constants/games');
 const { isValidIssue } = require('../rules/registry');
+const {
+  crowdIndex,
+  coldNumbers,
+  consecutivePairs,
+  hasArithmeticRun,
+  sameTailPairs,
+  CROWD_MODEL_VERSION,
+} = require('./analysis');
 
 const ALGORITHM_VERSION = 'candidate@1.0.0';
 
@@ -20,6 +28,7 @@ const STRATEGY = {
   RANDOM: 'random',
   BALANCED: 'balanced',
   PREFERENCE: 'preference',
+  ANALYZED: 'analyzed',
 };
 
 const STRATEGY_META = {
@@ -35,6 +44,10 @@ const STRATEGY_META = {
     label: '偏好约束',
     desc: '先满足你指定的必含/排除号码，余下随机补足。',
   },
+  [STRATEGY.ANALYZED]: {
+    label: '分析选号',
+    desc: '在结构合格的前提下，挑「拥挤度最低」的组合：避开生日区扎堆、连号等差、上期重号，并可要求带冷门号。',
+  },
 };
 
 const CODE = {
@@ -48,6 +61,7 @@ const CODE = {
   BAD_EXCLUDE: 'BAD_EXCLUDE',
   NO_ROOM: 'NO_ROOM',
   DUPLICATE_EXHAUSTED: 'DUPLICATE_EXHAUSTED',
+  BAD_ANALYSIS: 'BAD_ANALYSIS',
 };
 
 const MIN_COUNT = 1;
@@ -281,11 +295,183 @@ function buildKl8Group({ strategy, include, exclude, rng }) {
   return { numbers: { red: [], blue: null, kl8 } };
 }
 
+/**
+ * 兼顾的"代价"：为降拥挤度，必然有些注看起来不那么"均衡"。
+ * 这里把代价量化出来给用户看，而不是只报喜。
+ */
+function summarizeTradeoff(game, groups) {
+  const list = groups.map((g) => g.crowd.index);
+  const sums = groups.map((g) => {
+    const main = game === GAME.SSQ ? g.numbers.red : g.numbers.kl8;
+    return main.reduce((acc, n) => acc + n, 0);
+  });
+  const withHigh = groups.filter((g) => {
+    const main = game === GAME.SSQ ? g.numbers.red : g.numbers.kl8;
+    return main.some((n) => n > 31);
+  }).length;
+  const withConsecutive = groups.filter((g) => {
+    const main = game === GAME.SSQ ? g.numbers.red : g.numbers.kl8;
+    return consecutivePairs(main).length > 0;
+  }).length;
+
+  const avg = Math.round((list.reduce((acc, n) => acc + n, 0) / list.length) * 10) / 10;
+  return {
+    avgCrowdIndex: avg,
+    minCrowdIndex: Math.min(...list),
+    maxCrowdIndex: Math.max(...list),
+    withHighNumber: withHigh,
+    withConsecutive,
+    sumRange: [Math.min(...sums), Math.max(...sums)],
+    note: '拥挤度越低，越不像大众会选的号码；代价是可能出现 32/33、连号这类"不好看"的组合。结构约束仍然满足。',
+  };
+}
+
 /** 一组号码的规范化键，用于组间去重 */
 function groupKey(game, numbers) {
   const list = game === GAME.SSQ ? numbers.red : numbers.kl8;
   const tail = game === GAME.SSQ ? `|${numbers.blue}` : '';
   return `${list.join(',')}${tail}`;
+}
+
+/* ---------------- 分析选号：拥挤度优化 ---------------- */
+
+const ANALYSIS_DEFAULTS = {
+  avoidPatterns: true,
+  avoidRepeat: true,
+  includeCold: 0,
+  maxCrowdIndex: 92,
+};
+
+/** 每注采多少个候选再挑最优；越大越"冷门"，也越慢（本地毫秒级） */
+const ANALYSIS_SAMPLES = 600;
+
+function normalizeAnalysisParams(game, raw) {
+  const src = raw || {};
+  const meta = GAME_META[game];
+  const count = game === GAME.SSQ ? meta.redCount : meta.count;
+  const max = game === GAME.SSQ ? meta.redMax : meta.max;
+
+  const boolOr = (value, fallback) => (typeof value === 'boolean' ? value : fallback);
+
+  const includeCold = src.includeCold === undefined || src.includeCold === null ? 0 : Number(src.includeCold);
+  if (!Number.isInteger(includeCold) || includeCold < 0 || includeCold > 2) {
+    return { ok: false, code: CODE.BAD_ANALYSIS, message: 'includeCold 只能是 0 / 1 / 2' };
+  }
+
+  const maxCrowdIndex =
+    src.maxCrowdIndex === undefined || src.maxCrowdIndex === null
+      ? ANALYSIS_DEFAULTS.maxCrowdIndex
+      : Number(src.maxCrowdIndex);
+  if (!Number.isFinite(maxCrowdIndex) || maxCrowdIndex < 0 || maxCrowdIndex > 100) {
+    return { ok: false, code: CODE.BAD_ANALYSIS, message: 'maxCrowdIndex 需在 0–100 之间' };
+  }
+
+  const rangeOr = (value, fallback) => {
+    if (value === undefined || value === null) return fallback;
+    if (!Array.isArray(value) || value.length !== 2) return null;
+    const [a, b] = value.map(Number);
+    if (!Number.isFinite(a) || !Number.isFinite(b) || a > b) return null;
+    return [Math.max(0, Math.trunc(a)), Math.min(max * count, Math.trunc(b))];
+  };
+
+  const sumRange = rangeOr(src.sumRange, game === GAME.SSQ ? [75, 130] : [300, 500]);
+  if (!sumRange) {
+    return { ok: false, code: CODE.BAD_ANALYSIS, message: 'sumRange 需要 [最小, 最大] 且最小 ≤ 最大' };
+  }
+
+  const oddRange = rangeOr(src.oddRange, game === GAME.SSQ ? [2, 4] : [4, 6]);
+  if (!oddRange || oddRange[1] > count) {
+    return { ok: false, code: CODE.BAD_ANALYSIS, message: `oddRange 需要 [最小, 最大]，上限不超过 ${count}` };
+  }
+
+  return {
+    ok: true,
+    params: {
+      avoidPatterns: boolOr(src.avoidPatterns, ANALYSIS_DEFAULTS.avoidPatterns),
+      avoidRepeat: boolOr(src.avoidRepeat, ANALYSIS_DEFAULTS.avoidRepeat),
+      includeCold,
+      maxCrowdIndex: Math.round(maxCrowdIndex),
+      sumRange,
+      oddRange,
+    },
+  };
+}
+
+function mainOf(game, numbers) {
+  return game === GAME.SSQ ? numbers.red : numbers.kl8;
+}
+
+function overlapCount(a, b) {
+  const set = new Set(a);
+  return b.filter((n) => set.has(n)).length;
+}
+
+/** 结构硬约束：不满足就整注丢弃，而不是"稍微调整"（避免调到不合法） */
+function passesAnalysis(game, numbers, analysis, coldSet, prevSet) {
+  const main = mainOf(game, numbers);
+  const sum = main.reduce((acc, n) => acc + n, 0);
+  if (sum < analysis.sumRange[0] || sum > analysis.sumRange[1]) return false;
+
+  const odd = main.filter((n) => n % 2 === 1).length;
+  if (odd < analysis.oddRange[0] || odd > analysis.oddRange[1]) return false;
+
+  if (analysis.avoidRepeat && prevSet.size && main.some((n) => prevSet.has(n))) return false;
+
+  if (analysis.avoidPatterns) {
+    // 阈值必须随号码个数放大：快乐8 选 10 个号，同尾/连号本来就是常态，
+    // 用双色球的 6 号阈值会把绝大多数合法组合误杀（踩过这个坑）。
+    const isSsq = game === GAME.SSQ;
+    if (consecutivePairs(main).length > (isSsq ? 1 : 2)) return false;
+    if (hasArithmeticRun(main, isSsq ? 4 : 5)) return false;
+    if (sameTailPairs(main) > (isSsq ? 1 : 2)) return false;
+  }
+
+  if (analysis.includeCold > 0) {
+    const hits = main.filter((n) => coldSet.has(n)).length;
+    if (hits < analysis.includeCold) return false;
+  }
+  return true;
+}
+
+/**
+ * 采 260 个候选，逐个丢掉不合格的，再取拥挤度最低的那个。
+ * 组间再做一次"重合度"限制，避免两注只差一个号（那等于把钱押在一个形状上）。
+ */
+const SUM_CENTER = { [GAME.SSQ]: 100, [GAME.KL8]: 400 };
+/** 和值偏离的惩罚系数：每偏离 10 点，多算 2.5 分（等价于"拥挤 2.5 点"） */
+const SUM_DEVIATION_WEIGHT = 0.25;
+
+function buildAnalyzedGroup(options) {
+  const { game, rng, include, exclude, blueFixed, analysis, coldSet, prevSet, previousDraw, chosen } = options;
+  const maxOverlap = game === GAME.SSQ ? 3 : 6;
+  const center = SUM_CENTER[game];
+  let best = null;
+
+  for (let i = 0; i < ANALYSIS_SAMPLES; i += 1) {
+    const built =
+      game === GAME.SSQ
+        ? buildSsqGroup({ strategy: STRATEGY.RANDOM, include, exclude, blueFixed, rng })
+        : buildKl8Group({ strategy: STRATEGY.RANDOM, include, exclude, rng });
+    if (!built) break;
+
+    const main = mainOf(game, built.numbers);
+    if (!passesAnalysis(game, built.numbers, analysis, coldSet, prevSet)) continue;
+    if (chosen.some((prev) => overlapCount(prev, main) > maxOverlap)) continue;
+
+    const crowd = crowdIndex(game, built.numbers, { previousDraw });
+    if (!crowd.ok) continue;
+    if (crowd.index > analysis.maxCrowdIndex) continue;
+
+    // 纯取最冷会让每注都挤到"全大号"那一角，结构就崩了。
+    // 所以目标函数是「拥挤度 + 和值偏离惩罚」——这就是"两者兼顾"的具体含义。
+    const sum = main.reduce((acc, n) => acc + n, 0);
+    const objective = crowd.index + Math.abs(sum - center) * SUM_DEVIATION_WEIGHT;
+
+    if (!best || objective < best.objective) {
+      best = { numbers: built.numbers, crowd, objective: Math.round(objective * 10) / 10 };
+    }
+  }
+  return best;
 }
 
 /* ---------------- 对外主函数 ---------------- */
@@ -371,12 +557,61 @@ function generateCandidates(input) {
 
   const groups = [];
   const seen = new Set();
+  const chosen = [];
   const buildGroup = game === GAME.SSQ ? buildSsqGroup : buildKl8Group;
+
+  const isAnalyzed = strategy === STRATEGY.ANALYZED;
+  const previousDraw = src.previousDraw || null;
+  let analysisParams = null;
+  let coldList = [];
+  let coldSet = new Set();
+  let prevSet = new Set();
+
+  if (isAnalyzed) {
+    const normalized = normalizeAnalysisParams(game, src.analysis);
+    if (!normalized.ok) return normalized;
+    analysisParams = normalized.params;
+
+    const coldInfo = coldNumbers(game, src.recentDraws || [], 30);
+    if (!coldInfo.ok) return coldInfo;
+    coldList = coldInfo.cold;
+    coldSet = new Set(coldList);
+
+    if (analysisParams.includeCold > coldList.length) {
+      return {
+        ok: false,
+        code: CODE.BAD_ANALYSIS,
+        message: `当前窗口内只有 ${coldList.length} 个冷号，无法要求带上 ${analysisParams.includeCold} 个`,
+      };
+    }
+
+    if (previousDraw && previousDraw.numbers) {
+      prevSet = new Set(mainOf(game, previousDraw.numbers));
+    }
+  }
 
   for (let i = 0; i < count; i += 1) {
     let built = null;
-    let attempts = 0;
-    while (attempts < MAX_ATTEMPTS_PER_GROUP) {
+
+    if (isAnalyzed) {
+      const picked = buildAnalyzedGroup({
+        game,
+        rng,
+        include: inc.list,
+        exclude: exc.list,
+        blueFixed: params.blueFixed,
+        analysis: analysisParams,
+        coldSet,
+        prevSet,
+        previousDraw,
+        chosen,
+      });
+      if (picked) {
+        built = { numbers: picked.numbers, key: groupKey(game, picked.numbers), crowd: picked.crowd };
+      }
+    } else {
+      let attempts = 0;
+      while (attempts < MAX_ATTEMPTS_PER_GROUP) {
       attempts += 1;
       const candidate = buildGroup({
         strategy,
@@ -388,20 +623,24 @@ function generateCandidates(input) {
       if (!candidate) break;
       const key = groupKey(game, candidate.numbers);
       if (seen.has(key)) continue;
-      built = { ...candidate, key };
-      break;
+        built = { ...candidate, key };
+        break;
+      }
     }
+
     if (!built) {
       return {
         ok: false,
         code: CODE.DUPLICATE_EXHAUSTED,
-        message:
-          groups.length === 0
-            ? '当前约束下无法生成合法号码，请放宽必含/排除条件'
-            : '当前约束下可生成的组合不足，请减少注数或放宽约束',
+        message: isAnalyzed
+          ? '当前分析条件太紧（和值区间/奇偶/冷号/避开模式），可生成的合法组合不足。请放宽条件或减少注数。'
+          : groups.length === 0
+          ? '当前约束下无法生成合法号码，请放宽必含/排除条件'
+          : '当前约束下可生成的组合不足，请减少注数或放宽约束',
       };
     }
     seen.add(built.key);
+    chosen.push(mainOf(game, built.numbers));
     groups.push({
       index: i,
       numbers: built.numbers,
@@ -409,6 +648,16 @@ function generateCandidates(input) {
       displayText: game === GAME.SSQ
         ? `${built.numbers.red.map((n) => String(n).padStart(2, '0')).join(' ')} + ${String(built.numbers.blue).padStart(2, '0')}`
         : built.numbers.kl8.map((n) => String(n).padStart(2, '0')).join(' '),
+      ...(built.crowd
+        ? {
+            crowd: {
+              index: built.crowd.index,
+              level: built.crowd.level,
+              levelText: built.crowd.levelText,
+              factors: built.crowd.factors.map((f) => f.label),
+            },
+          }
+        : {}),
     });
   }
 
@@ -426,6 +675,25 @@ function generateCandidates(input) {
       targetIssue,
       complianceState: src.complianceState || null,
       createdAt: (src.now instanceof Date ? src.now : new Date()).toISOString(),
+      analysis: isAnalyzed
+        ? {
+            ...analysisParams,
+            coldNumbers: coldList,
+            crowdModelVersion: CROWD_MODEL_VERSION,
+            sampleCount: ANALYSIS_SAMPLES,
+            previousIssue: previousDraw ? previousDraw.issue || null : null,
+          }
+        : null,
+      crowdSummary: isAnalyzed
+        ? groups.map((g) => ({
+            index: g.index,
+            crowdIndex: g.crowd.index,
+            level: g.crowd.level,
+            levelText: g.crowd.levelText,
+            reasons: g.crowd.factors,
+          }))
+        : null,
+      tradeoff: isAnalyzed ? summarizeTradeoff(game, groups) : null,
       groups,
     },
   };

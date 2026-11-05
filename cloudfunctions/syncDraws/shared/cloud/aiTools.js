@@ -272,6 +272,13 @@ function createExecutors({ db, openid, now = () => new Date(), gate = null, save
       if (!gateOptions.futureNumbers) {
         return { ok: false, code: 'FEATURE_DISABLED', message: '候选号码功能未开启，无法生成号码组合' };
       }
+      // 分析选号要把近期开奖喂给模型之外的代码（冷号、上期重号），
+      // 但它只用于"降低拥挤度"，不用于推断下期号码。
+      let drawList = [];
+      if (args.strategy === 'analyzed') {
+        drawList = await recentDraws(args.game, 30);
+      }
+
       const res = generateCandidates({
         game: args.game,
         strategy: args.strategy,
@@ -279,6 +286,9 @@ function createExecutors({ db, openid, now = () => new Date(), gate = null, save
         targetIssue: args.targetIssue,
         seed: args.seed,
         params: { include: args.include, exclude: args.exclude },
+        analysis: args.analysis,
+        recentDraws: drawList,
+        previousDraw: drawList[0] || null,
         complianceState: (gate && gate.complianceState) || null,
       });
       if (!res.ok) {
@@ -309,9 +319,24 @@ function createExecutors({ db, openid, now = () => new Date(), gate = null, save
           index: g.index,
           displayText: g.displayText,
           numbers: g.numbers,
+          crowd: g.crowd
+            ? { index: g.crowd.index, level: g.crowd.levelText, reasons: g.crowd.factors }
+            : undefined,
         })),
+        analysis: batch.analysis
+          ? {
+              sumRange: batch.analysis.sumRange,
+              oddRange: batch.analysis.oddRange,
+              includeCold: batch.analysis.includeCold,
+              coldNumbers: batch.analysis.coldNumbers,
+              avoidPatterns: batch.analysis.avoidPatterns,
+              avoidRepeat: batch.analysis.avoidRepeat,
+              crowdModelVersion: batch.analysis.crowdModelVersion,
+            }
+          : null,
+        tradeoff: batch.tradeoff || null,
         notice:
-          '以上号码由确定性算法按你选择的策略生成，属于随机/结构约束结果，不代表更容易中奖；到「选号」页可导入为草稿，导入后仍需自行确认购买。',
+          '号码由确定性算法在你给定的权重下生成：中奖概率与任何选号方式完全相同；分析只影响"万一中的是浮动奖，会不会被很多人平分"。拥挤度是基于公开研究（生日偏好、幸运号、连号/等差偏好）的推定值，不是实测投注人数。导入后仍是草稿，需自行确认购买。',
       };
     },
 

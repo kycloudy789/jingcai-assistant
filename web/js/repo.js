@@ -323,8 +323,16 @@ async function generateCandidateBatch(input) {
       gate,
     };
   }
+  // 分析选号需要近期开奖（冷号、上期重号）；其余策略不读数据，保持零依赖
+  let recentDraws = [];
+  if ((input && input.strategy) === 'analyzed') {
+    recentDraws = await listDraws((input && input.game) || GAME.SSQ, 30);
+  }
+
   const res = candidatesDomain.generateCandidates({
     ...(input || {}),
+    recentDraws,
+    previousDraw: recentDraws[0] || null,
     complianceState: gate.complianceState,
   });
   if (!res.ok) return res;
