@@ -755,3 +755,92 @@ input[type="date"] {
   flex-direction: column;
   gap: 3px;
 }
+
+/* 统计图表（纯 CSS，无图表库） */
+.segmented.tiny {
+  max-width: 380px;
+  margin: 0;
+  flex-wrap: nowrap;
+}
+.segmented.tiny .seg {
+  padding: 5px 10px;
+  font-size: 12.5px;
+}
+.mini-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin: 12px 0 4px;
+}
+.mini-list {
+  background: #f7f8fa;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.mini-title {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.mini-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12.5px;
+  line-height: 1.9;
+}
+.mono {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-weight: 500;
+}
+.chart-block {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.chart-title {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+  font-size: 12.5px;
+}
+.bar-label {
+  width: 76px;
+  flex-shrink: 0;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.bar-track {
+  flex: 1;
+  height: 10px;
+  background: #f1f2f5;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.bar-fill {
+  display: block;
+  height: 100%;
+  background: #7fa8d9;
+  border-radius: 999px;
+  min-width: 2px;
+}
+.bar-val {
+  width: 88px;
+  text-align: right;
+  flex-shrink: 0;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.restore-box {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: #f7f8fa;
+  border-radius: 12px;
+}

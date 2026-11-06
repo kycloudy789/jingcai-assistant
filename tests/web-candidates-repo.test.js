@@ -229,3 +229,68 @@ test('备份导出包含候选批次，且能原样恢复', async () => {
   const counts2 = await repo2.importAll(JSON.parse(JSON.stringify(legacy)));
   assert.equal(counts2.tickets, 0);
 });
+
+test('恢复预览：算清新增/覆盖/保留，不写库', async () => {
+  const mem = createMemStore();
+  const repo = loadRepoWithStore(mem);
+  await mem.putAll('tickets', [
+    { id: 't1', game: 'ssq', purchaseStatus: 'draft', numbers: { red: [1, 2, 3, 4, 5, 6], blue: 1 } },
+    { id: 't2', game: 'ssq', purchaseStatus: 'draft', numbers: { red: [7, 8, 9, 10, 11, 12], blue: 2 } },
+  ]);
+
+  const payload = {
+    schema: 'jingcai-web@2',
+    exportedAt: '2026-11-05T10:00:00.000Z',
+    tickets: [
+      { id: 't1', game: 'ssq', purchaseStatus: 'confirmed', numbers: { red: [1, 2, 3, 4, 5, 6], blue: 1 } },
+      { id: 't9', game: 'ssq', purchaseStatus: 'draft', numbers: { red: [2, 3, 4, 5, 6, 7], blue: 3 } },
+    ],
+    checks: [],
+    draws: [],
+    candidates: [{ id: 'b1' }],
+    meta: [{ k: 'gate', v: { candidateGenerationEnabled: true } }],
+  };
+
+  const p = await repo.previewImport(payload);
+  assert.equal(p.ok, true);
+  assert.equal(p.plan.tickets.total, 2);
+  assert.equal(p.plan.tickets.replaced, 1, 't1 会被覆盖');
+  assert.equal(p.plan.tickets.inserted, 1, 't9 是新增');
+  assert.equal(p.plan.tickets.kept, 1, 't2 不在备份里，应保留');
+  assert.equal(p.plan.candidates.inserted, 1);
+  assert.equal(p.gate.candidateGenerationEnabled, true);
+
+  // 预览不能写库
+  const after = await repo.listTickets();
+  assert.equal(after.length, 2);
+  assert.equal(after.find((t) => t.id === 't1').purchaseStatus, 'draft');
+});
+
+test('恢复预览：格式不符给出明确错误', async () => {
+  const repo = loadRepoWithStore(createMemStore());
+  const p = await repo.previewImport({ schema: 'other@1', tickets: [] });
+  assert.equal(p.ok, false);
+  assert.equal(p.code, 'BAD_SCHEMA');
+  assert.match(p.message, /格式不匹配/);
+});
+
+test('清空单类数据：只删指定集合，其余不受影响', async () => {
+  const mem = createMemStore();
+  const repo = loadRepoWithStore(mem);
+  await mem.putAll('tickets', [{ id: 't1' }, { id: 't2' }]);
+  await mem.putAll('checks', [{ id: 'c1' }]);
+
+  const ok = await repo.clearCollection('tickets');
+  assert.equal(ok.ok, true);
+  assert.equal((await mem.getAll('tickets')).length, 0);
+  assert.equal((await mem.getAll('checks')).length, 1, '核对结果不该被删');
+});
+
+test('清空单类数据：不允许清空开奖与配置', async () => {
+  const repo = loadRepoWithStore(createMemStore());
+  for (const name of ['draws', 'meta', 'app_config']) {
+    const r = await repo.clearCollection(name);
+    assert.equal(r.ok, false);
+    assert.equal(r.code, 'NOT_ALLOWED');
+  }
+});

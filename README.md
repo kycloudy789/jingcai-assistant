@@ -15,8 +15,8 @@
 - **我的号码**：手动点选或随机生成；注数与倍数分开（注数=几注，倍数=每注几倍）
 - **判奖**：按期号解析规则版本，六奖级 + 福运奖三态；快乐8 选十全档
 - **AI 助手**：自带 DeepSeek API Key（在 AI 页填，只存本机）问开奖、查自己记录、解释规则；候选闸门开启后可调用生成工具（号码由代码产出，模型只能原样转述）
-- **统计**：投入 / 中奖 / 净额，按彩种拆分
-- **数据**：CSV / JSON 导入开奖，个人数据导出与恢复备份
+- **统计**：投入 / 中奖 / 净额，按彩种拆分；开奖结构（频次、遗漏、和值、奇偶、分区、连号）+ 我的命中分布，可切近 30/50/100 期
+- **数据**：CSV / JSON 导入开奖；导出备份、**恢复前先预览**（新增/覆盖/保留）、分类清空
 
 ## 明确不做
 
@@ -79,12 +79,13 @@ shared/                  唯一事实来源（前后端共用，纯函数）
 ├── domain/tickets.js    号码状态机、字段冻结、统计准入
 ├── domain/candidates.js 候选四策略（确定性种子、组间去重、批次回看）
 ├── domain/analysis.js   结构画像 + 拥挤度模型（crowd@1.0.0）
+├── domain/analytics.js  开奖结构统计 + 命中分布（analytics@1.0.0）
 ├── security/access.js   单用户鉴权 + 候选闸门
 ├── parsers/csv.js       CSV 解析/导出
 └── adapters/cwl.js      官方接口映射（含实测坑位说明）
 
 scripts/                 build-web / sync-to-json / serve-web / sync-shared / verify-judge ...
-tests/                   node:test（287 用例）
+tests/                   node:test（303 用例）
 docs/                    部署、数据源、决策、各阶段报告
 miniprogram/ cloudfunctions/   早期小程序版（保留备查）
 ```
@@ -113,6 +114,9 @@ miniprogram/ cloudfunctions/   早期小程序版（保留备查）
 | AI 费用 | 由你自己的 DeepSeek 账户承担；单次对话最多 3 轮工具调用、900 tokens |
 | 候选闸门 | 默认关闭，需在「选号」页本人确认开启；开启状态存在本机，**不是服务端强制**（D23） |
 | 拥挤度 | 基于公开研究推导的**推定值**：福彩不公布每注号码的投注分布。它只影响浮动奖均分，不改变中奖概率（见 `docs/analysis-model.md`） |
+| 统计样本 | 结构统计用本地已同步的开奖期数；只有 10 期时会明确标"样本偏小"，跑 `npm run publish:data` 可拉到 60 期 |
+| 图表 | 纯 CSS 条形，没有交互缩放与导出图片（零依赖约束） |
+| 恢复语义 | 合并覆盖，不删除现有记录；想完全回到备份状态需先清空 |
 
 ## 文档
 
@@ -120,10 +124,12 @@ miniprogram/ cloudfunctions/   早期小程序版（保留备查）
 |---|---|
 | `docs/web-deploy.md` | **部署到 GitHub Pages 全流程 + 排错** |
 | `docs/analysis-model.md` | **分析选号模型**：研究依据、权重表、校准踩坑、明确不做 |
+| `docs/backup-restore.md` | **备份与恢复**：文件里有什么、预览怎么读、三个必知行为 |
+| `docs/phase-7-report.md` | 统计与备份的验收报告 + 已知问题 |
 | `docs/data-source-plan.md` | 官方接口实测记录、字段映射、两个坑、状态机 |
-| `docs/decisions.md` | D1–D20 决策记录 |
+| `docs/decisions.md` | D1–D26 决策记录 |
 | `docs/db-schema.md` | 小程序版数据库设计（Web 版用本地存储，字段同名） |
-| `docs/phase-1~5-report.md` | 各阶段交付与真实测试输出 |
+| `docs/phase-1~7-report.md` | 各阶段交付与真实测试输出 |
 | `docs/getting-started.md` | 小程序版上手手册（历史） |
 
 免责声明：本工具仅用于个人记录与核对，不构成任何购彩建议；兑奖以官方销售终端打印的彩票及法定兑奖机构认定为准。

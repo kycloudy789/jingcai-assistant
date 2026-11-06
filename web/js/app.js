@@ -60,6 +60,9 @@ const state = {
   form: null,
   detail: null,
   ai: { messages: [], busy: false, error: '', keyDraft: '', notice: '' },
+  analytics: null,
+  window: 30,
+  restore: null,
   candidates: {
     gate: null,
     batches: [],
@@ -465,6 +468,7 @@ function ticketsView() {
 /* ---------------- 选号：候选组合（阶段 6） ---------------- */
 
 const STRATEGY_ORDER = ['random', 'balanced', 'preference', 'analyzed'];
+const ANALYTICS_WINDOWS = [30, 50, 100];
 
 function candForm() {
   return {
@@ -723,6 +727,117 @@ function batchReviewHtml(review) {
     </div>`;
 }
 
+function barRow(label, count, max, suffix) {
+  const pct = max > 0 ? Math.round((count / max) * 100) : 0;
+  return `<div class="bar-row"><span class="bar-label">${esc(label)}</span><span class="bar-track"><span class="bar-fill" style="width:${pct}%"></span></span><span class="bar-val">${count}${suffix || ''}</span></div>`;
+}
+
+function numberList(title, rows) {
+  if (!rows || !rows.length) return '';
+  return `<div class="mini-list">
+    <div class="mini-title">${esc(title)}</div>
+    ${rows
+      .map(
+        (r) =>
+          `<div class="mini-row"><span class="mono">${String(r.number).padStart(2, '0')}</span><span class="muted">${r.count} 次 · 遗漏 ${r.omission} 期</span></div>`
+      )
+      .join('')}
+  </div>`;
+}
+
+function structureCard(a) {
+  if (!a) return '';
+  const freq = a.frequency;
+  if (!freq.ok) {
+    return `<section class="card"><h2>开奖结构</h2><p class="muted small">${esc(freq.message)}</p></section>`;
+  }
+
+  const sum = a.sum;
+  const parity = a.parity;
+  const zones = a.zones;
+  const cons = a.consecutive;
+
+  const maxSum = sum.ok ? Math.max(...sum.buckets.map((b) => b.count), 1) : 1;
+  const maxParity = parity.ok ? Math.max(...parity.rows.map((r) => r.count), 1) : 1;
+  const maxZone = zones.ok ? Math.max(...zones.zones.map((z) => z.count), 1) : 1;
+
+  return `
+    <section class="card">
+      <div class="form-head">
+        <h2>开奖结构</h2>
+        <div class="segmented tiny">
+          ${ANALYTICS_WINDOWS.map(
+            (w) => `<button class="seg ${state.window === w ? 'on' : ''}" data-act="stat-window" data-window="${w}">近 ${w} 期</button>`
+          ).join('')}
+        </div>
+      </div>
+      <p class="muted small">样本 ${freq.sampleSize} 期（${esc(freq.issueRange.from)}–${esc(freq.issueRange.to)}）。${esc(freq.note)}</p>
+
+      <div class="mini-grid">
+        ${numberList('出现最多', freq.mostSeen)}
+        ${numberList('出现最少', freq.leastSeen)}
+        ${numberList('遗漏最长', freq.longestOmission)}
+      </div>
+
+      ${
+        sum.ok
+          ? `<div class="chart-block">
+              <div class="chart-title">和值分布（最小 ${sum.min} / 平均 ${sum.avg} / 中位 ${sum.median} / 最大 ${sum.max}）</div>
+              ${sum.buckets.map((b) => barRow(`${b.from}–${b.to}`, b.count, maxSum, ' 期')).join('')}
+            </div>`
+          : ''
+      }
+
+      ${
+        parity.ok
+          ? `<div class="chart-block">
+              <div class="chart-title">奇偶结构（奇数个数 → 出现期数）</div>
+              ${parity.rows.map((r) => barRow(`${r.odd} 奇 ${r.even} 偶`, r.count, maxParity, ' 期')).join('')}
+            </div>`
+          : ''
+      }
+
+      ${
+        zones.ok
+          ? `<div class="chart-block">
+              <div class="chart-title">分区占比（平均每期 ${zones.zones.map((z) => z.avgPerIssue).join(' / ')} 个）</div>
+              ${zones.zones.map((z) => barRow(z.label, z.count, maxZone, ` 个 · ${z.share}%`)).join('')}
+              <p class="muted small">${esc(zones.note)}</p>
+            </div>`
+          : ''
+      }
+
+      ${
+        cons.ok
+          ? `<div class="chart-block">
+              <div class="chart-title">连号</div>
+              <p class="muted small">${cons.sampleSize} 期里有 ${cons.withConsecutive} 期出现连号（${cons.share}%），平均每期 ${cons.avgPairs} 对。</p>
+            </div>`
+          : ''
+      }
+    </section>`;
+}
+
+function hitsCard(a, game) {
+  if (!a || !a.hits) return '';
+  const h = a.hits;
+  if (!h.ok) {
+    return `<section class="card"><h2>我的命中分布</h2><p class="muted small">${esc(h.message)}</p></section>`;
+  }
+  const max = Math.max(...h.rows.map((r) => r.count), 1);
+  return `
+    <section class="card">
+      <h2>我的命中分布（${GAME_META[game].shortName}）</h2>
+      <p class="muted small">共 ${h.sampleSize} 条核对结果。${
+        game === GAME.SSQ ? `其中 ${h.blueHits} 注命中蓝球。` : ''
+      }${esc(h.note)}</p>
+      ${h.rows
+        .filter((r) => r.count > 0 || r.hits <= 3)
+        .map((r) => barRow(`中 ${r.hits} 个`, r.count, max, ' 注'))
+        .join('')}
+    </section>`;
+}
+
 function statsView() {
   const s = state.stats;
   if (!s) return emptyBlock('还没有统计数据', '先录入并确认购买号码。');
@@ -752,7 +867,9 @@ function statsView() {
       <p class="muted small">只统计「已购买」的记录；草稿与已作废不计入。奖金来自核对结果，待人工核验与待公告的金额未计入。${
         s.missingCost > 0 ? `另有 ${s.missingCost} 条未填金额，投入金额偏低。` : ''
       }</p>
-    </section>`;
+    </section>
+    ${structureCard(state.analytics)}
+    ${hitsCard(state.analytics, state.game)}`;
 }
 
 function aiView() {
@@ -812,6 +929,35 @@ function aiView() {
     </section>`;
 }
 
+function restorePanel() {
+  const r = state.restore;
+  if (!r || !r.preview) return '';
+  const p = r.preview;
+  const line = (label, v) =>
+    v
+      ? `<div class="mini-row"><span>${esc(label)}</span><span class="muted">新增 ${v.inserted} · 覆盖 ${v.replaced} · 保留现有 ${v.kept}</span></div>`
+      : '';
+  return `
+    <div class="restore-box">
+      <div class="chart-title">恢复预览${
+        p.exportedAt ? `（导出于 ${esc(String(p.exportedAt).replace('T', ' ').slice(0, 16))}）` : ''
+      }</div>
+      ${line('号码记录', p.plan.tickets)}
+      ${line('核对结果', p.plan.checks)}
+      ${line('开奖缓存', p.plan.draws)}
+      ${line('候选批次', p.plan.candidates)}
+      <p class="muted small">恢复是「合并覆盖」：同 id 用备份里的版本替换，备份里没有的现有记录会保留（不会删你的数据）。${
+        p.gate && p.gate.candidateGenerationEnabled
+          ? '注意：这份备份里候选功能处于开启状态，恢复后会一并开启。'
+          : ''
+      }</p>
+      <div class="actions">
+        <button class="btn primary" data-act="restore-confirm">确认恢复</button>
+        <button class="btn" data-act="restore-cancel">取消</button>
+      </div>
+    </div>`;
+}
+
 function dataView() {
   return `
     <section class="card">
@@ -831,6 +977,17 @@ function dataView() {
       <div class="actions">
         <button class="btn" data-act="export">导出备份 JSON</button>
         <label class="btn file">恢复备份<input type="file" accept=".json" data-file="backup" hidden /></label>
+      </div>
+      ${restorePanel()}
+    </section>
+
+    <section class="card">
+      <h2>清空数据</h2>
+      <p class="muted small">可以只清某一类。清空前建议先导出备份；清空不可撤销。</p>
+      <div class="actions">
+        <button class="btn danger-outline" data-act="clear-tickets">清空号码记录</button>
+        <button class="btn danger-outline" data-act="clear-checks">清空核对结果</button>
+        <button class="btn danger-outline" data-act="clear-candidates">清空候选批次</button>
         <button class="btn danger-outline" data-act="clear-all">清空全部本地数据</button>
       </div>
     </section>
@@ -874,6 +1031,7 @@ async function refreshAll() {
   state.syncInfo = await store.getMeta(`sync:${state.game}`);
   state.candidates.gate = await repo.gateState();
   state.candidates.batches = await repo.listCandidateReviews(state.game);
+  state.analytics = await repo.analytics(state.game, state.window);
 }
 
 async function syncDraws() {
@@ -1274,6 +1432,59 @@ async function onAction(act, el) {
   }
   if (act === 'ai-send') return aiSend();
 
+  if (act === 'stat-window') {
+    state.window = Number(el.dataset.window) || 30;
+    await refreshAll();
+    render();
+    return;
+  }
+  if (act === 'restore-cancel') {
+    state.restore = null;
+    notify('已取消恢复，没有写入任何数据', 'info');
+    return;
+  }
+  if (act === 'restore-confirm') {
+    if (!state.restore || !state.restore.payload) return;
+    try {
+      const counts = await repo.importAll(state.restore.payload);
+      state.restore = null;
+      await refreshAll();
+      notify(
+        `已恢复：号码 ${counts.tickets}、核对 ${counts.checks}、开奖 ${counts.draws}、候选 ${counts.candidates}`,
+        'ok'
+      );
+    } catch (err) {
+      notify(`恢复失败：${err.message}`, 'bad');
+    }
+    return;
+  }
+  if (act === 'clear-tickets') {
+    if (!confirm('清空全部号码记录（含草稿与已购买）？核对结果不会一并删除。此操作不可撤销。')) return;
+    await repo.clearCollection('tickets');
+    await refreshAll();
+    notify('已清空号码记录', 'ok');
+    return;
+  }
+  if (act === 'clear-checks') {
+    if (!confirm('清空全部核对结果？号码记录会保留，但需要重新核对才能看到中奖情况。')) return;
+    await repo.clearCollection('checks');
+    await refreshAll();
+    notify('已清空核对结果', 'ok');
+    return;
+  }
+  if (act === 'clear-candidates') {
+    if (!confirm('清空全部候选批次？已导入的号码草稿不受影响。')) return;
+    await repo.clearCollection('candidates');
+    if (state.candidates) {
+      state.candidates.batches = [];
+      state.candidates.last = null;
+      state.candidates.detail = null;
+    }
+    await refreshAll();
+    notify('已清空候选批次', 'ok');
+    return;
+  }
+
   if (act === 'export') {
     const data = await repo.exportAll();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -1306,8 +1517,16 @@ async function onFile(input) {
       const res = await repo.importDrawsJson(text);
       notify(`JSON 导入 ${res.saved} 条${res.errors.length ? `，跳过 ${res.errors.length} 条` : ''}`, res.saved ? 'ok' : 'bad');
     } else {
-      const counts = await repo.importAll(JSON.parse(text));
-      notify(`已恢复：号码 ${counts.tickets}、核对 ${counts.checks}、开奖 ${counts.draws}`, 'ok');
+      const payload = JSON.parse(text);
+      const preview = await repo.previewImport(payload);
+      if (!preview.ok) {
+        notify(preview.message, 'bad');
+        return;
+      }
+      state.restore = { payload, preview };
+      render();
+      notify('已读取备份，确认后才写入', 'ok');
+      return;
     }
     await refreshAll();
   } catch (err) {
@@ -1352,6 +1571,7 @@ async function boot() {
   if (!state.draws.length) {
     await syncDraws();
   }
+
 
 
   if (typeof location !== 'undefined' && location.search.indexOf('debug') >= 0) {

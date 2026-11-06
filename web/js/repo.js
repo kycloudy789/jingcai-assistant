@@ -10,6 +10,7 @@ const { resolveRuleVersion } = require('../../shared/rules/registry');
 const { judgeTicket } = require('../../shared/rules/judge');
 const { resolveCandidateGate, COMPLIANCE_STATUS } = require('../../shared/security/access');
 const candidatesDomain = require('../../shared/domain/candidates');
+const analyticsDomain = require('../../shared/domain/analytics');
 const {
   buildTicketDraft,
   applyPatch,
@@ -477,6 +478,60 @@ function decorateNumbers(draw) {
   return formatDisplay(draw.game, draw.numbers);
 }
 
+/** 统计：开奖结构 + 个人命中分布（只读，纯函数在 shared/domain/analytics.js） */
+async function analytics(game, window) {
+  const [draws, checks] = await Promise.all([
+    store.getAll('draws'),
+    store.getAll('checks'),
+  ]);
+  return analyticsDomain.buildAnalytics(
+    game,
+    draws.filter((d) => d.game === game),
+    checks,
+    { window: window || 30 }
+  );
+}
+
+/** 恢复前预览：只读，不写库。告诉用户会新增多少、覆盖多少、保留多少 */
+async function previewImport(payload) {
+  if (!payload || (payload.schema !== 'jingcai-web@2' && payload.schema !== 'jingcai-web@1')) {
+    return { ok: false, code: 'BAD_SCHEMA', message: '备份文件格式不匹配（需要 jingcai-web@1 或 @2）' };
+  }
+  const plan = {};
+  for (const name of ['tickets', 'checks', 'draws', 'candidates', 'meta']) {
+    const rows = Array.isArray(payload[name]) ? payload[name] : [];
+    const key = name === 'meta' ? 'k' : 'id';
+    const existing = await store.getAll(name);
+    const existingIds = new Set(existing.map((r) => r[key]));
+    const incomingIds = new Set(rows.map((r) => r[key]));
+    const replaced = rows.filter((r) => existingIds.has(r[key])).length;
+    plan[name] = {
+      total: rows.length,
+      replaced,
+      inserted: rows.length - replaced,
+      kept: existing.filter((r) => !incomingIds.has(r[key])).length,
+    };
+  }
+  const gateRow = (Array.isArray(payload.meta) ? payload.meta : []).find((r) => r && r.k === 'gate');
+  return {
+    ok: true,
+    schema: payload.schema,
+    exportedAt: payload.exportedAt || null,
+    plan,
+    gate: gateRow ? gateRow.v : null,
+  };
+}
+
+/** 仅清空某一类数据，不动其他 */
+async function clearCollection(name) {
+  const allowed = ['tickets', 'checks', 'candidates'];
+  if (!allowed.includes(name)) {
+    return { ok: false, code: 'NOT_ALLOWED', message: '不支持清空该集合' };
+  }
+  await store.clear(name);
+  return { ok: true };
+}
+
 /** 全量导出（备份用） */
 async function exportAll() {
   const [tickets, checks, draws, candidates, meta] = await Promise.all([
@@ -529,6 +584,9 @@ module.exports = {
   deleteTicket,
   runChecks,
   latestChecks,
+  analytics,
+  previewImport,
+  clearCollection,
   getGateFlags,
   gateState,
   setCandidateGate,

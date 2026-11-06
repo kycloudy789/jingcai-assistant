@@ -93,6 +93,9 @@ const state = {
   form: null,
   detail: null,
   ai: { messages: [], busy: false, error: '', keyDraft: '', notice: '' },
+  analytics: null,
+  window: 30,
+  restore: null,
   candidates: {
     gate: null,
     batches: [],
@@ -498,6 +501,7 @@ function ticketsView() {
 /* ---------------- 选号：候选组合（阶段 6） ---------------- */
 
 const STRATEGY_ORDER = ['random', 'balanced', 'preference', 'analyzed'];
+const ANALYTICS_WINDOWS = [30, 50, 100];
 
 function candForm() {
   return {
@@ -756,6 +760,117 @@ function batchReviewHtml(review) {
     </div>`;
 }
 
+function barRow(label, count, max, suffix) {
+  const pct = max > 0 ? Math.round((count / max) * 100) : 0;
+  return `<div class="bar-row"><span class="bar-label">${esc(label)}</span><span class="bar-track"><span class="bar-fill" style="width:${pct}%"></span></span><span class="bar-val">${count}${suffix || ''}</span></div>`;
+}
+
+function numberList(title, rows) {
+  if (!rows || !rows.length) return '';
+  return `<div class="mini-list">
+    <div class="mini-title">${esc(title)}</div>
+    ${rows
+      .map(
+        (r) =>
+          `<div class="mini-row"><span class="mono">${String(r.number).padStart(2, '0')}</span><span class="muted">${r.count} 次 · 遗漏 ${r.omission} 期</span></div>`
+      )
+      .join('')}
+  </div>`;
+}
+
+function structureCard(a) {
+  if (!a) return '';
+  const freq = a.frequency;
+  if (!freq.ok) {
+    return `<section class="card"><h2>开奖结构</h2><p class="muted small">${esc(freq.message)}</p></section>`;
+  }
+
+  const sum = a.sum;
+  const parity = a.parity;
+  const zones = a.zones;
+  const cons = a.consecutive;
+
+  const maxSum = sum.ok ? Math.max(...sum.buckets.map((b) => b.count), 1) : 1;
+  const maxParity = parity.ok ? Math.max(...parity.rows.map((r) => r.count), 1) : 1;
+  const maxZone = zones.ok ? Math.max(...zones.zones.map((z) => z.count), 1) : 1;
+
+  return `
+    <section class="card">
+      <div class="form-head">
+        <h2>开奖结构</h2>
+        <div class="segmented tiny">
+          ${ANALYTICS_WINDOWS.map(
+            (w) => `<button class="seg ${state.window === w ? 'on' : ''}" data-act="stat-window" data-window="${w}">近 ${w} 期</button>`
+          ).join('')}
+        </div>
+      </div>
+      <p class="muted small">样本 ${freq.sampleSize} 期（${esc(freq.issueRange.from)}–${esc(freq.issueRange.to)}）。${esc(freq.note)}</p>
+
+      <div class="mini-grid">
+        ${numberList('出现最多', freq.mostSeen)}
+        ${numberList('出现最少', freq.leastSeen)}
+        ${numberList('遗漏最长', freq.longestOmission)}
+      </div>
+
+      ${
+        sum.ok
+          ? `<div class="chart-block">
+              <div class="chart-title">和值分布（最小 ${sum.min} / 平均 ${sum.avg} / 中位 ${sum.median} / 最大 ${sum.max}）</div>
+              ${sum.buckets.map((b) => barRow(`${b.from}–${b.to}`, b.count, maxSum, ' 期')).join('')}
+            </div>`
+          : ''
+      }
+
+      ${
+        parity.ok
+          ? `<div class="chart-block">
+              <div class="chart-title">奇偶结构（奇数个数 → 出现期数）</div>
+              ${parity.rows.map((r) => barRow(`${r.odd} 奇 ${r.even} 偶`, r.count, maxParity, ' 期')).join('')}
+            </div>`
+          : ''
+      }
+
+      ${
+        zones.ok
+          ? `<div class="chart-block">
+              <div class="chart-title">分区占比（平均每期 ${zones.zones.map((z) => z.avgPerIssue).join(' / ')} 个）</div>
+              ${zones.zones.map((z) => barRow(z.label, z.count, maxZone, ` 个 · ${z.share}%`)).join('')}
+              <p class="muted small">${esc(zones.note)}</p>
+            </div>`
+          : ''
+      }
+
+      ${
+        cons.ok
+          ? `<div class="chart-block">
+              <div class="chart-title">连号</div>
+              <p class="muted small">${cons.sampleSize} 期里有 ${cons.withConsecutive} 期出现连号（${cons.share}%），平均每期 ${cons.avgPairs} 对。</p>
+            </div>`
+          : ''
+      }
+    </section>`;
+}
+
+function hitsCard(a, game) {
+  if (!a || !a.hits) return '';
+  const h = a.hits;
+  if (!h.ok) {
+    return `<section class="card"><h2>我的命中分布</h2><p class="muted small">${esc(h.message)}</p></section>`;
+  }
+  const max = Math.max(...h.rows.map((r) => r.count), 1);
+  return `
+    <section class="card">
+      <h2>我的命中分布（${GAME_META[game].shortName}）</h2>
+      <p class="muted small">共 ${h.sampleSize} 条核对结果。${
+        game === GAME.SSQ ? `其中 ${h.blueHits} 注命中蓝球。` : ''
+      }${esc(h.note)}</p>
+      ${h.rows
+        .filter((r) => r.count > 0 || r.hits <= 3)
+        .map((r) => barRow(`中 ${r.hits} 个`, r.count, max, ' 注'))
+        .join('')}
+    </section>`;
+}
+
 function statsView() {
   const s = state.stats;
   if (!s) return emptyBlock('还没有统计数据', '先录入并确认购买号码。');
@@ -785,7 +900,9 @@ function statsView() {
       <p class="muted small">只统计「已购买」的记录；草稿与已作废不计入。奖金来自核对结果，待人工核验与待公告的金额未计入。${
         s.missingCost > 0 ? `另有 ${s.missingCost} 条未填金额，投入金额偏低。` : ''
       }</p>
-    </section>`;
+    </section>
+    ${structureCard(state.analytics)}
+    ${hitsCard(state.analytics, state.game)}`;
 }
 
 function aiView() {
@@ -845,6 +962,35 @@ function aiView() {
     </section>`;
 }
 
+function restorePanel() {
+  const r = state.restore;
+  if (!r || !r.preview) return '';
+  const p = r.preview;
+  const line = (label, v) =>
+    v
+      ? `<div class="mini-row"><span>${esc(label)}</span><span class="muted">新增 ${v.inserted} · 覆盖 ${v.replaced} · 保留现有 ${v.kept}</span></div>`
+      : '';
+  return `
+    <div class="restore-box">
+      <div class="chart-title">恢复预览${
+        p.exportedAt ? `（导出于 ${esc(String(p.exportedAt).replace('T', ' ').slice(0, 16))}）` : ''
+      }</div>
+      ${line('号码记录', p.plan.tickets)}
+      ${line('核对结果', p.plan.checks)}
+      ${line('开奖缓存', p.plan.draws)}
+      ${line('候选批次', p.plan.candidates)}
+      <p class="muted small">恢复是「合并覆盖」：同 id 用备份里的版本替换，备份里没有的现有记录会保留（不会删你的数据）。${
+        p.gate && p.gate.candidateGenerationEnabled
+          ? '注意：这份备份里候选功能处于开启状态，恢复后会一并开启。'
+          : ''
+      }</p>
+      <div class="actions">
+        <button class="btn primary" data-act="restore-confirm">确认恢复</button>
+        <button class="btn" data-act="restore-cancel">取消</button>
+      </div>
+    </div>`;
+}
+
 function dataView() {
   return `
     <section class="card">
@@ -864,6 +1010,17 @@ function dataView() {
       <div class="actions">
         <button class="btn" data-act="export">导出备份 JSON</button>
         <label class="btn file">恢复备份<input type="file" accept=".json" data-file="backup" hidden /></label>
+      </div>
+      ${restorePanel()}
+    </section>
+
+    <section class="card">
+      <h2>清空数据</h2>
+      <p class="muted small">可以只清某一类。清空前建议先导出备份；清空不可撤销。</p>
+      <div class="actions">
+        <button class="btn danger-outline" data-act="clear-tickets">清空号码记录</button>
+        <button class="btn danger-outline" data-act="clear-checks">清空核对结果</button>
+        <button class="btn danger-outline" data-act="clear-candidates">清空候选批次</button>
         <button class="btn danger-outline" data-act="clear-all">清空全部本地数据</button>
       </div>
     </section>
@@ -907,6 +1064,7 @@ async function refreshAll() {
   state.syncInfo = await store.getMeta(`sync:${state.game}`);
   state.candidates.gate = await repo.gateState();
   state.candidates.batches = await repo.listCandidateReviews(state.game);
+  state.analytics = await repo.analytics(state.game, state.window);
 }
 
 async function syncDraws() {
@@ -1307,6 +1465,59 @@ async function onAction(act, el) {
   }
   if (act === 'ai-send') return aiSend();
 
+  if (act === 'stat-window') {
+    state.window = Number(el.dataset.window) || 30;
+    await refreshAll();
+    render();
+    return;
+  }
+  if (act === 'restore-cancel') {
+    state.restore = null;
+    notify('已取消恢复，没有写入任何数据', 'info');
+    return;
+  }
+  if (act === 'restore-confirm') {
+    if (!state.restore || !state.restore.payload) return;
+    try {
+      const counts = await repo.importAll(state.restore.payload);
+      state.restore = null;
+      await refreshAll();
+      notify(
+        `已恢复：号码 ${counts.tickets}、核对 ${counts.checks}、开奖 ${counts.draws}、候选 ${counts.candidates}`,
+        'ok'
+      );
+    } catch (err) {
+      notify(`恢复失败：${err.message}`, 'bad');
+    }
+    return;
+  }
+  if (act === 'clear-tickets') {
+    if (!confirm('清空全部号码记录（含草稿与已购买）？核对结果不会一并删除。此操作不可撤销。')) return;
+    await repo.clearCollection('tickets');
+    await refreshAll();
+    notify('已清空号码记录', 'ok');
+    return;
+  }
+  if (act === 'clear-checks') {
+    if (!confirm('清空全部核对结果？号码记录会保留，但需要重新核对才能看到中奖情况。')) return;
+    await repo.clearCollection('checks');
+    await refreshAll();
+    notify('已清空核对结果', 'ok');
+    return;
+  }
+  if (act === 'clear-candidates') {
+    if (!confirm('清空全部候选批次？已导入的号码草稿不受影响。')) return;
+    await repo.clearCollection('candidates');
+    if (state.candidates) {
+      state.candidates.batches = [];
+      state.candidates.last = null;
+      state.candidates.detail = null;
+    }
+    await refreshAll();
+    notify('已清空候选批次', 'ok');
+    return;
+  }
+
   if (act === 'export') {
     const data = await repo.exportAll();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -1339,8 +1550,16 @@ async function onFile(input) {
       const res = await repo.importDrawsJson(text);
       notify(`JSON 导入 ${res.saved} 条${res.errors.length ? `，跳过 ${res.errors.length} 条` : ''}`, res.saved ? 'ok' : 'bad');
     } else {
-      const counts = await repo.importAll(JSON.parse(text));
-      notify(`已恢复：号码 ${counts.tickets}、核对 ${counts.checks}、开奖 ${counts.draws}`, 'ok');
+      const payload = JSON.parse(text);
+      const preview = await repo.previewImport(payload);
+      if (!preview.ok) {
+        notify(preview.message, 'bad');
+        return;
+      }
+      state.restore = { payload, preview };
+      render();
+      notify('已读取备份，确认后才写入', 'ok');
+      return;
     }
     await refreshAll();
   } catch (err) {
@@ -1387,6 +1606,7 @@ async function boot() {
   }
 
 
+
   if (typeof location !== 'undefined' && location.search.indexOf('debug') >= 0) {
     document.title = JSON.stringify({
       draws: state.draws.length,
@@ -1421,6 +1641,7 @@ const { resolveRuleVersion } = require('../../shared/rules/registry');
 const { judgeTicket } = require('../../shared/rules/judge');
 const { resolveCandidateGate, COMPLIANCE_STATUS } = require('../../shared/security/access');
 const candidatesDomain = require('../../shared/domain/candidates');
+const analyticsDomain = require('../../shared/domain/analytics');
 const {
   buildTicketDraft,
   applyPatch,
@@ -1888,6 +2109,60 @@ function decorateNumbers(draw) {
   return formatDisplay(draw.game, draw.numbers);
 }
 
+/** 统计：开奖结构 + 个人命中分布（只读，纯函数在 shared/domain/analytics.js） */
+async function analytics(game, window) {
+  const [draws, checks] = await Promise.all([
+    store.getAll('draws'),
+    store.getAll('checks'),
+  ]);
+  return analyticsDomain.buildAnalytics(
+    game,
+    draws.filter((d) => d.game === game),
+    checks,
+    { window: window || 30 }
+  );
+}
+
+/** 恢复前预览：只读，不写库。告诉用户会新增多少、覆盖多少、保留多少 */
+async function previewImport(payload) {
+  if (!payload || (payload.schema !== 'jingcai-web@2' && payload.schema !== 'jingcai-web@1')) {
+    return { ok: false, code: 'BAD_SCHEMA', message: '备份文件格式不匹配（需要 jingcai-web@1 或 @2）' };
+  }
+  const plan = {};
+  for (const name of ['tickets', 'checks', 'draws', 'candidates', 'meta']) {
+    const rows = Array.isArray(payload[name]) ? payload[name] : [];
+    const key = name === 'meta' ? 'k' : 'id';
+    const existing = await store.getAll(name);
+    const existingIds = new Set(existing.map((r) => r[key]));
+    const incomingIds = new Set(rows.map((r) => r[key]));
+    const replaced = rows.filter((r) => existingIds.has(r[key])).length;
+    plan[name] = {
+      total: rows.length,
+      replaced,
+      inserted: rows.length - replaced,
+      kept: existing.filter((r) => !incomingIds.has(r[key])).length,
+    };
+  }
+  const gateRow = (Array.isArray(payload.meta) ? payload.meta : []).find((r) => r && r.k === 'gate');
+  return {
+    ok: true,
+    schema: payload.schema,
+    exportedAt: payload.exportedAt || null,
+    plan,
+    gate: gateRow ? gateRow.v : null,
+  };
+}
+
+/** 仅清空某一类数据，不动其他 */
+async function clearCollection(name) {
+  const allowed = ['tickets', 'checks', 'candidates'];
+  if (!allowed.includes(name)) {
+    return { ok: false, code: 'NOT_ALLOWED', message: '不支持清空该集合' };
+  }
+  await store.clear(name);
+  return { ok: true };
+}
+
 /** 全量导出（备份用） */
 async function exportAll() {
   const [tickets, checks, draws, candidates, meta] = await Promise.all([
@@ -1940,6 +2215,9 @@ module.exports = {
   deleteTicket,
   runChecks,
   latestChecks,
+  analytics,
+  previewImport,
+  clearCollection,
   getGateFlags,
   gateState,
   setCandidateGate,
@@ -4472,6 +4750,332 @@ module.exports = {
   hasArithmeticRun,
   sameTailPairs,
   acValue,
+};
+
+});
+
+/* ===== shared/domain/analytics.js ===== */
+__define("shared/domain/analytics.js", function(module, exports, require){
+/**
+ * 统计计算（纯函数，无副作用）。
+ *
+ * 这里只做**描述性统计**：出现了多少次、遗漏几期、和值落在哪、命中几个。
+ * 不产生任何"下期倾向"结论——历史分布不改变独立随机事件的概率。
+ *
+ * 与 analysis.js 的分工：
+ *   analytics.js = 看历史（开奖结构、个人表现）
+ *   analysis.js  = 选号码（拥挤度），明确不用于预测
+ */
+
+const { GAME, GAME_META } = require('../constants/games');
+
+const ANALYTICS_VERSION = 'analytics@1.0.0';
+const WINDOWS = [30, 50, 100];
+
+const NOTE =
+  '以上均为历史描述性统计：它说明过去发生了什么，不预示下一期。样本量越小，波动越大。';
+
+function isGame(game) {
+  return game === GAME.SSQ || game === GAME.KL8;
+}
+
+function sortedDraws(draws) {
+  return (draws || [])
+    .filter((d) => d && d.numbers)
+    .slice()
+    .sort((a, b) => Number(b.issue) - Number(a.issue));
+}
+
+function mainNumbers(game, draw) {
+  if (game === GAME.SSQ) return (draw.numbers && draw.numbers.red) || [];
+  return (draw.numbers && draw.numbers.kl8) || [];
+}
+
+function mean(list) {
+  if (!list.length) return 0;
+  return list.reduce((acc, n) => acc + n, 0) / list.length;
+}
+
+function median(list) {
+  if (!list.length) return 0;
+  const s = list.slice().sort((a, b) => a - b);
+  const mid = Math.floor(s.length / 2);
+  return s.length % 2 ? s[mid] : Math.round(((s[mid - 1] + s[mid]) / 2) * 10) / 10;
+}
+
+function percentile(list, p) {
+  if (!list.length) return 0;
+  const s = list.slice().sort((a, b) => a - b);
+  const idx = Math.min(s.length - 1, Math.max(0, Math.round((p / 100) * (s.length - 1))));
+  return s[idx];
+}
+
+/**
+ * 号码频次与当前遗漏。
+ * @param {'ssq'|'kl8'} game
+ * @param {Array} draws 开奖记录（任意顺序，内部按 issue 降序）
+ * @param {{window?: number}} [options]
+ */
+function numberFrequency(game, draws, options = {}) {
+  if (!isGame(game)) return { ok: false, code: 'BAD_GAME', message: '彩种不合法' };
+  const window = WINDOWS.includes(Number(options.window)) ? Number(options.window) : 30;
+  const list = sortedDraws(draws).slice(0, window);
+  if (!list.length) {
+    return {
+      ok: false,
+      code: 'NO_DRAWS',
+      message: '本地还没有已核验的开奖数据，先在「开奖」页同步',
+    };
+  }
+
+  const meta = GAME_META[game];
+  const max = game === GAME.SSQ ? meta.redMax : meta.max;
+  const rows = [];
+  for (let n = 1; n <= max; n += 1) rows.push({ number: n, count: 0, omission: list.length });
+
+  // list 已按最新在前，第一次遇到即为"当前遗漏"
+  list.forEach((d, idx) => {
+    for (const n of mainNumbers(game, d)) {
+      const row = rows[n - 1];
+      if (!row) continue;
+      row.count += 1;
+      if (row.omission === list.length) row.omission = idx;
+    }
+  });
+
+  for (const row of rows) row.rate = Math.round((row.count / list.length) * 1000) / 10;
+
+  const blue = [];
+  if (game === GAME.SSQ) {
+    for (let n = 1; n <= meta.blueMax; n += 1) blue.push({ number: n, count: 0, omission: list.length });
+    list.forEach((d, idx) => {
+      const b = d.numbers && d.numbers.blue;
+      if (b === null || b === undefined) return;
+      const row = blue[b - 1];
+      if (!row) return;
+      row.count += 1;
+      if (row.omission === list.length) row.omission = idx;
+    });
+    for (const row of blue) row.rate = Math.round((row.count / list.length) * 1000) / 10;
+  }
+
+  const byCount = rows.slice().sort((a, b) => b.count - a.count || a.number - b.number);
+  const byOmission = rows.slice().sort((a, b) => b.omission - a.omission || a.number - b.number);
+
+  return {
+    ok: true,
+    game,
+    window,
+    sampleSize: list.length,
+    requestedWindow: window,
+    issueRange: { from: list[list.length - 1].issue, to: list[0].issue },
+    rows,
+    blue: game === GAME.SSQ ? blue : undefined,
+    mostSeen: byCount.slice(0, 5),
+    leastSeen: byCount.slice(-5).reverse(),
+    longestOmission: byOmission.slice(0, 5),
+    note: list.length < window ? `请求 ${window} 期，本地只有 ${list.length} 期，样本偏小。` : NOTE,
+  };
+}
+
+/** 和值分布：分桶 + 分位 */
+function sumDistribution(game, draws, options = {}) {
+  if (!isGame(game)) return { ok: false, code: 'BAD_GAME', message: '彩种不合法' };
+  const window = WINDOWS.includes(Number(options.window)) ? Number(options.window) : 30;
+  const list = sortedDraws(draws).slice(0, window);
+  if (!list.length) return { ok: false, code: 'NO_DRAWS', message: '暂无开奖数据' };
+
+  const sums = list.map((d) => mainNumbers(game, d).reduce((acc, n) => acc + n, 0));
+  const min = Math.min(...sums);
+  const max = Math.max(...sums);
+  const bucketCount = 6;
+  const step = Math.max(1, Math.ceil((max - min + 1) / bucketCount));
+  const buckets = [];
+  for (let i = 0; i < bucketCount; i += 1) {
+    const from = min + i * step;
+    const to = from + step - 1;
+    buckets.push({ from, to, count: sums.filter((s) => s >= from && s <= to).length });
+  }
+
+  return {
+    ok: true,
+    game,
+    window,
+    sampleSize: list.length,
+    min,
+    max,
+    avg: Math.round(mean(sums) * 10) / 10,
+    median: median(sums),
+    p25: percentile(sums, 25),
+    p75: percentile(sums, 75),
+    buckets,
+    note: NOTE,
+  };
+}
+
+/** 奇偶分布：奇数个数 → 期数 */
+function parityDistribution(game, draws, options = {}) {
+  if (!isGame(game)) return { ok: false, code: 'BAD_GAME', message: '彩种不合法' };
+  const window = WINDOWS.includes(Number(options.window)) ? Number(options.window) : 30;
+  const list = sortedDraws(draws).slice(0, window);
+  if (!list.length) return { ok: false, code: 'NO_DRAWS', message: '暂无开奖数据' };
+
+  const count = game === GAME.SSQ ? GAME_META[GAME.SSQ].redCount : GAME_META[GAME.KL8].count;
+  const rows = [];
+  for (let i = 0; i <= count; i += 1) rows.push({ odd: i, even: count - i, count: 0 });
+  for (const d of list) {
+    const odd = mainNumbers(game, d).filter((n) => n % 2 === 1).length;
+    if (rows[odd]) rows[odd].count += 1;
+  }
+  return { ok: true, game, window, sampleSize: list.length, rows, note: NOTE };
+}
+
+/** 三区（双色球）/ 四区（快乐8）分布 */
+function zoneDistribution(game, draws, options = {}) {
+  if (!isGame(game)) return { ok: false, code: 'BAD_GAME', message: '彩种不合法' };
+  const window = WINDOWS.includes(Number(options.window)) ? Number(options.window) : 30;
+  const list = sortedDraws(draws).slice(0, window);
+  if (!list.length) return { ok: false, code: 'NO_DRAWS', message: '暂无开奖数据' };
+
+  const zones = game === GAME.SSQ
+    ? [
+        { label: '1–11', from: 1, to: 11 },
+        { label: '12–22', from: 12, to: 22 },
+        { label: '23–33', from: 23, to: 33 },
+      ]
+    : [
+        { label: '1–20', from: 1, to: 20 },
+        { label: '21–40', from: 21, to: 40 },
+        { label: '41–60', from: 41, to: 60 },
+        { label: '61–80', from: 61, to: 80 },
+      ];
+
+  const totals = zones.map(() => 0);
+  let brokenZoneIssues = 0;
+  for (const d of list) {
+    const nums = mainNumbers(game, d);
+    const counts = zones.map((z) => nums.filter((n) => n >= z.from && n <= z.to).length);
+    counts.forEach((c, i) => {
+      totals[i] += c;
+    });
+    if (counts.some((c) => c === 0)) brokenZoneIssues += 1;
+  }
+
+  const totalBalls = totals.reduce((acc, n) => acc + n, 0) || 1;
+  return {
+    ok: true,
+    game,
+    window,
+    sampleSize: list.length,
+    zones: zones.map((z, i) => ({
+      label: z.label,
+      count: totals[i],
+      share: Math.round((totals[i] / totalBalls) * 1000) / 10,
+      avgPerIssue: Math.round((totals[i] / list.length) * 100) / 100,
+    })),
+    brokenZoneIssues,
+    note: `${NOTE} 断区（某区一个号都没出）在 ${list.length} 期里出现 ${brokenZoneIssues} 次，属于正常波动，不是"该回补"的信号。`,
+  };
+}
+
+/** 连号出现情况 */
+function consecutiveDistribution(game, draws, options = {}) {
+  if (!isGame(game)) return { ok: false, code: 'BAD_GAME', message: '彩种不合法' };
+  const window = WINDOWS.includes(Number(options.window)) ? Number(options.window) : 30;
+  const list = sortedDraws(draws).slice(0, window);
+  if (!list.length) return { ok: false, code: 'NO_DRAWS', message: '暂无开奖数据' };
+
+  const rows = [];
+  for (const d of list) {
+    const nums = mainNumbers(game, d).slice().sort((a, b) => a - b);
+    let pairs = 0;
+    for (let i = 1; i < nums.length; i += 1) if (nums[i] - nums[i - 1] === 1) pairs += 1;
+    rows.push({ issue: d.issue, pairs });
+  }
+  const withConsecutive = rows.filter((r) => r.pairs > 0).length;
+  return {
+    ok: true,
+    game,
+    window,
+    sampleSize: list.length,
+    withConsecutive,
+    share: Math.round((withConsecutive / list.length) * 1000) / 10,
+    avgPairs: Math.round(mean(rows.map((r) => r.pairs)) * 100) / 100,
+    note: NOTE,
+  };
+}
+
+/**
+ * 个人命中分布：从核对结果统计"每注命中几个"。
+ * 双色球按红球命中数分桶，并单独统计蓝球；快乐8按命中个数分桶。
+ * 只统计有核对结果的记录（草稿不参与）。
+ */
+function hitDistribution(game, checks) {
+  if (!isGame(game)) return { ok: false, code: 'BAD_GAME', message: '彩种不合法' };
+  const list = (checks || []).filter((c) => c && c.game === game && c.hitDetails);
+  if (!list.length) {
+    return { ok: false, code: 'NO_CHECKS', message: '还没有核对结果，先到「我的号码」点一键核对' };
+  }
+
+  if (game === GAME.SSQ) {
+    const rows = [];
+    for (let i = 0; i <= 6; i += 1) rows.push({ hits: i, count: 0 });
+    let blueHits = 0;
+    for (const c of list) {
+      const red = Number(c.hitDetails.red) || 0;
+      if (rows[red]) rows[red].count += 1;
+      if (c.hitDetails.blue) blueHits += 1;
+    }
+    return {
+      ok: true,
+      game,
+      sampleSize: list.length,
+      rows,
+      blueHits,
+      note: '统计的是已核对过的记录（每注一条），同一注重算不会重复计数。',
+    };
+  }
+
+  const rows = [];
+  for (let i = 0; i <= 10; i += 1) rows.push({ hits: i, count: 0 });
+  for (const c of list) {
+    const hits = Number(c.hitDetails.count);
+    if (Number.isInteger(hits) && rows[hits]) rows[hits].count += 1;
+  }
+  return {
+    ok: true,
+    game,
+    sampleSize: list.length,
+    rows,
+    note: '统计的是已核对过的记录（每注一条），同一注重算不会重复计数。',
+  };
+}
+
+/** 汇总：一次算完统计页需要的所有块 */
+function buildAnalytics(game, draws, checks, options = {}) {
+  return {
+    version: ANALYTICS_VERSION,
+    game,
+    frequency: numberFrequency(game, draws, options),
+    sum: sumDistribution(game, draws, options),
+    parity: parityDistribution(game, draws, options),
+    zones: zoneDistribution(game, draws, options),
+    consecutive: consecutiveDistribution(game, draws, options),
+    hits: hitDistribution(game, checks),
+  };
+}
+
+module.exports = {
+  ANALYTICS_VERSION,
+  WINDOWS,
+  NOTE,
+  numberFrequency,
+  sumDistribution,
+  parityDistribution,
+  zoneDistribution,
+  consecutiveDistribution,
+  hitDistribution,
+  buildAnalytics,
 };
 
 });
