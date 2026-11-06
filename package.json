@@ -1,6 +1,6 @@
 {
   "name": "jingcai-assistant",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "竞彩助手 V1.0 — 双色球/快乐8选十 本地号码档案（静态站）",
   "scripts": {

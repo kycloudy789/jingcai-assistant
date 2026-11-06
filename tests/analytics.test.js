@@ -147,3 +147,18 @@ test('汇总：一次返回所有统计块并带版本号', () => {
   assert.equal(a.consecutive.ok, true);
   assert.equal(a.hits.ok, true);
 });
+
+test('奇偶：快乐8 按开奖的 20 个号分桶，不能丢期', () => {
+  const draws = [
+    { issue: '2026295', numbers: { red: [], blue: null, kl8: Array.from({ length: 20 }, (_, i) => i + 1) } },
+    { issue: '2026294', numbers: { red: [], blue: null, kl8: Array.from({ length: 20 }, (_, i) => (i + 1) * 2) } },
+  ];
+  const r = parityDistribution('kl8', draws, { window: 30 });
+  assert.equal(r.ballsPerDraw, 20);
+  assert.equal(r.rows.length, 21);
+  const total = r.rows.reduce((acc, x) => acc + x.count, 0);
+  assert.equal(total, r.sampleSize, '每期都必须被计入，不能被静默丢弃');
+  // 第一期 1–20 有 10 个奇数，第二期全是偶数
+  assert.equal(r.rows.find((x) => x.odd === 10).count, 1);
+  assert.equal(r.rows.find((x) => x.odd === 0).count, 1);
+});

@@ -113,6 +113,7 @@ const state = {
       avoidPatterns: true,
       avoidRepeat: true,
       includeCold: 0,
+      window: 30,
       sumMin: '',
       sumMax: '',
     },
@@ -514,6 +515,7 @@ function candForm() {
     avoidPatterns: true,
     avoidRepeat: true,
     includeCold: 0,
+    window: 30,
     sumMin: '',
     sumMax: '',
   };
@@ -539,6 +541,7 @@ function readCandForm() {
     avoidPatterns: bool('cand-avoid-patterns', f.avoidPatterns),
     avoidRepeat: bool('cand-avoid-repeat', f.avoidRepeat),
     includeCold: Number(val('cand-cold') || f.includeCold || 0),
+    window: Number(val('cand-window') || f.window || 30),
     sumMin: val('cand-sum-min').trim(),
     sumMax: val('cand-sum-max').trim(),
   };
@@ -550,6 +553,7 @@ function buildAnalysisInput(f) {
     avoidPatterns: f.avoidPatterns !== false,
     avoidRepeat: f.avoidRepeat !== false,
     includeCold: Number(f.includeCold) || 0,
+    window: Number(f.window) || 30,
   };
   if (f.sumMin !== '' && f.sumMax !== '') {
     input.sumRange = [Number(f.sumMin), Number(f.sumMax)];
@@ -602,6 +606,13 @@ function batchMetaLine(b) {
   return `${meta.label} · ${b.count} 注 · 种子 ${b.randomSeed}${b.seedGenerated ? '（自动）' : ''} · ${when}`;
 }
 
+function sampleHint(window) {
+  const available = state.draws.length;
+  const want = Number(window) || 30;
+  if (available >= want) return `本地已同步 ${available} 期，本次按近 ${want} 期统计。`;
+  return `本地只有 ${available} 期，不足 ${want} 期——本次按实际 ${available} 期统计，样本偏小。到「开奖」页同步或跑 npm run publish:data 可补足。`;
+}
+
 function analysisPanel(f) {
   return `
     <div class="analysis-panel">
@@ -609,11 +620,22 @@ function analysisPanel(f) {
       <label class="check-row"><input id="cand-avoid-patterns" type="checkbox" ${f.avoidPatterns ? 'checked' : ''} /> 避开连号、等差、同尾扎堆</label>
       <label class="check-row"><input id="cand-avoid-repeat" type="checkbox" ${f.avoidRepeat ? 'checked' : ''} /> 不含上一期开奖号码</label>
       <div class="form-inline">
+        <label>统计窗口
+          <select id="cand-window">
+            ${[30, 50, 100]
+              .map(
+                (w) =>
+                  `<option value="${w}" ${Number(f.window) === w ? 'selected' : ''}>近 ${w} 期</option>`
+              )
+              .join('')}
+          </select>
+        </label>
         <label>每注至少带几个冷号<input id="cand-cold" type="number" min="0" max="2" value="${f.includeCold}" /></label>
         <label>和值下限<input id="cand-sum-min" type="number" placeholder="默认 ${state.game === GAME.SSQ ? 75 : 300}" value="${esc(f.sumMin)}" /></label>
         <label>和值上限<input id="cand-sum-max" type="number" placeholder="默认 ${state.game === GAME.SSQ ? 130 : 500}" value="${esc(f.sumMax)}" /></label>
       </div>
-      <p class="muted small">冷号 = 近 30 期没出现的号码。这里只把它当"大众较少选"的号码用，不代表它"该开了"——这是两件事。</p>
+      <p class="muted small">${sampleHint(f.window)}</p>
+      <p class="muted small">冷号 = 所选窗口内没出现的号码。这里只把它当"大众较少选"的号码用，不代表它"该开了"——这是两件事。</p>
       <p class="muted small">生成时会采 600 组候选，丢掉不合格的，再按「拥挤度 + 和值偏离惩罚」取最优。</p>
     </div>`;
 }
@@ -703,6 +725,13 @@ function candidatesView() {
           }
           ${batchGroupsHtml(last)}
           ${tradeoffHtml(last.tradeoff)}
+          ${
+            last.analysis
+              ? `<p class="muted small">分析窗口：近 ${last.analysis.window} 期（实际用 ${last.analysis.sampleSize} 期）${
+                  last.analysis.dataSufficient ? '' : ' — 样本不足，冷号与重号判断会偏粗'
+                }</p>`
+              : ''
+          }
           <p class="muted small">导入后是草稿：需要在「我的号码」里逐注确认已购买，才会进入花费与中奖统计。</p>
           <p class="muted small">中奖概率与任何选号方式完全相同；上面这些分析只影响"万一中的是浮动奖，会不会被很多人平分"。</p>
         </section>`
@@ -1958,7 +1987,8 @@ async function generateCandidateBatch(input) {
   // 分析选号需要近期开奖（冷号、上期重号）；其余策略不读数据，保持零依赖
   let recentDraws = [];
   if ((input && input.strategy) === 'analyzed') {
-    recentDraws = await listDraws((input && input.game) || GAME.SSQ, 30);
+    // 多取一些：分析窗口可选 30/50/100，具体用多少期由 domain 按 window 截取
+    recentDraws = await listDraws((input && input.game) || GAME.SSQ, 100);
   }
 
   const res = candidatesDomain.generateCandidates({
@@ -3879,7 +3909,11 @@ const ANALYSIS_DEFAULTS = {
   avoidRepeat: true,
   includeCold: 0,
   maxCrowdIndex: 92,
+  window: 30,
 };
+
+/** 冷号统计窗口：只能从这几个值里选（与统计页保持一致） */
+const ANALYSIS_WINDOWS = [30, 50, 100];
 
 /** 每注采多少个候选再挑最优；越大越"冷门"，也越慢（本地毫秒级） */
 const ANALYSIS_SAMPLES = 600;
@@ -3913,6 +3947,11 @@ function normalizeAnalysisParams(game, raw) {
     return [Math.max(0, Math.trunc(a)), Math.min(max * count, Math.trunc(b))];
   };
 
+  let window = src.window === undefined || src.window === null ? ANALYSIS_DEFAULTS.window : Number(src.window);
+  if (!ANALYSIS_WINDOWS.includes(window)) {
+    return { ok: false, code: CODE.BAD_ANALYSIS, message: 'window 只能是 30 / 50 / 100' };
+  }
+
   const sumRange = rangeOr(src.sumRange, game === GAME.SSQ ? [75, 130] : [300, 500]);
   if (!sumRange) {
     return { ok: false, code: CODE.BAD_ANALYSIS, message: 'sumRange 需要 [最小, 最大] 且最小 ≤ 最大' };
@@ -3930,6 +3969,7 @@ function normalizeAnalysisParams(game, raw) {
       avoidRepeat: boolOr(src.avoidRepeat, ANALYSIS_DEFAULTS.avoidRepeat),
       includeCold,
       maxCrowdIndex: Math.round(maxCrowdIndex),
+      window,
       sumRange,
       oddRange,
     },
@@ -4111,10 +4151,16 @@ function generateCandidates(input) {
     if (!normalized.ok) return normalized;
     analysisParams = normalized.params;
 
-    const coldInfo = coldNumbers(game, src.recentDraws || [], 30);
+    const recent = src.recentDraws || [];
+    const coldInfo = coldNumbers(game, recent, analysisParams.window);
     if (!coldInfo.ok) return coldInfo;
     coldList = coldInfo.cold;
     coldSet = new Set(coldList);
+
+    // 样本量要如实记录：只有 10 期时说"近 30 期"就是不诚实
+    analysisParams.sampleSize = Math.min(recent.length, analysisParams.window);
+    analysisParams.availableDraws = recent.length;
+    analysisParams.dataSufficient = recent.length >= analysisParams.window;
 
     if (analysisParams.includeCold > coldList.length) {
       return {
@@ -4920,14 +4966,24 @@ function parityDistribution(game, draws, options = {}) {
   const list = sortedDraws(draws).slice(0, window);
   if (!list.length) return { ok: false, code: 'NO_DRAWS', message: '暂无开奖数据' };
 
-  const count = game === GAME.SSQ ? GAME_META[GAME.SSQ].redCount : GAME_META[GAME.KL8].count;
+  // 双色球统计 6 个红球；快乐8 开奖是 20 个号，不能按"选十"的 10 个分桶
+  // （早期版本按 10 分桶，奇数 >10 的期数会被静默丢弃——已修正）
+  const maxLen = Math.max(...list.map((d) => mainNumbers(game, d).length), 0);
   const rows = [];
-  for (let i = 0; i <= count; i += 1) rows.push({ odd: i, even: count - i, count: 0 });
+  for (let i = 0; i <= maxLen; i += 1) rows.push({ odd: i, even: maxLen - i, count: 0 });
   for (const d of list) {
     const odd = mainNumbers(game, d).filter((n) => n % 2 === 1).length;
     if (rows[odd]) rows[odd].count += 1;
   }
-  return { ok: true, game, window, sampleSize: list.length, rows, note: NOTE };
+  return {
+    ok: true,
+    game,
+    window,
+    sampleSize: list.length,
+    ballsPerDraw: maxLen,
+    rows,
+    note: NOTE,
+  };
 }
 
 /** 三区（双色球）/ 四区（快乐8）分布 */
@@ -6215,7 +6271,7 @@ __define("shared/ai/prompt.js", function(module, exports, require){
  * 原则：模型只是"解释器"，事实一律来自工具返回；不许编数据、不许宣称能提升中奖机会。
  */
 
-const SYSTEM_PROMPT_VERSION = 'ai_system@1.2.0';
+const SYSTEM_PROMPT_VERSION = 'ai_system@1.3.0';
 
 const RULES = [
   '你是「竞彩助手」的个人数据分析助手，不是彩票发行机构，也不是选号专家。',
@@ -6242,6 +6298,7 @@ const FUTURE_RULES = [
   '解释分析时，必须讲清它改变的是什么：双色球一/二等奖、快乐8选十中十是**浮动奖，按中奖注数均分**，避开大众号只影响"万一中了会不会被很多人分"；三等奖及以下是固定奖金，不受影响。',
   '拥挤度是基于公开研究（生日偏好、幸运号、连号/等差偏好）的**推定值**，不得说成"实测有多少人买了这组号"，也不得给出虚构的中奖人数或奖金。',
   '也不得说"更可能出""该补冷号""回补"；冷号只能被描述为"大众较少选的号"，不是"该开的号"。',
+  '提到历史统计或冷号时，必须说明用了多少期（工具返回的 sampleSize）；若 dataSufficient 为 false，必须明确指出"本地样本不足，判断会偏粗"，并建议先同步更多开奖数据。',
   '即使 get_number_stats 显示某些号码出现更多或更少，也不得说"这些号更可能出"，只能如实陈述统计与样本量。',
 ];
 
@@ -6517,6 +6574,11 @@ const TOOLS = {
               maximum: 100,
               description: '可接受的拥挤度上限（越低越冷门，默认 92）',
             },
+            window: {
+              type: 'integer',
+              enum: [30, 50, 100],
+              description: '统计窗口（期数），用于冷号与上期重号判定，默认 30',
+            },
             sumRange: {
               type: 'array',
               items: { type: 'integer' },
@@ -6618,6 +6680,13 @@ const TOOLS = {
             }
             clean[key] = n;
           }
+        }
+        if (a.window !== undefined) {
+          const w = Number(a.window);
+          if (![30, 50, 100].includes(w)) {
+            return { ok: false, code: CODE.BAD_ARGS, message: 'window 只能是 30 / 50 / 100' };
+          }
+          clean.window = w;
         }
         for (const key of ['sumRange', 'oddRange']) {
           if (a[key] !== undefined) {
@@ -7112,7 +7181,7 @@ function createExecutors({ db, openid, now = () => new Date(), gate = null, save
       // 但它只用于"降低拥挤度"，不用于推断下期号码。
       let drawList = [];
       if (args.strategy === 'analyzed') {
-        drawList = await recentDraws(args.game, 30);
+        drawList = await recentDraws(args.game, 100);
       }
 
       const res = generateCandidates({
@@ -7164,7 +7233,10 @@ function createExecutors({ db, openid, now = () => new Date(), gate = null, save
               sumRange: batch.analysis.sumRange,
               oddRange: batch.analysis.oddRange,
               includeCold: batch.analysis.includeCold,
+              window: batch.analysis.window,
               coldNumbers: batch.analysis.coldNumbers,
+              sampleSize: batch.analysis.sampleSize,
+              dataSufficient: batch.analysis.dataSufficient,
               avoidPatterns: batch.analysis.avoidPatterns,
               avoidRepeat: batch.analysis.avoidRepeat,
               crowdModelVersion: batch.analysis.crowdModelVersion,

@@ -340,7 +340,11 @@ const ANALYSIS_DEFAULTS = {
   avoidRepeat: true,
   includeCold: 0,
   maxCrowdIndex: 92,
+  window: 30,
 };
+
+/** 冷号统计窗口：只能从这几个值里选（与统计页保持一致） */
+const ANALYSIS_WINDOWS = [30, 50, 100];
 
 /** 每注采多少个候选再挑最优；越大越"冷门"，也越慢（本地毫秒级） */
 const ANALYSIS_SAMPLES = 600;
@@ -374,6 +378,11 @@ function normalizeAnalysisParams(game, raw) {
     return [Math.max(0, Math.trunc(a)), Math.min(max * count, Math.trunc(b))];
   };
 
+  let window = src.window === undefined || src.window === null ? ANALYSIS_DEFAULTS.window : Number(src.window);
+  if (!ANALYSIS_WINDOWS.includes(window)) {
+    return { ok: false, code: CODE.BAD_ANALYSIS, message: 'window 只能是 30 / 50 / 100' };
+  }
+
   const sumRange = rangeOr(src.sumRange, game === GAME.SSQ ? [75, 130] : [300, 500]);
   if (!sumRange) {
     return { ok: false, code: CODE.BAD_ANALYSIS, message: 'sumRange 需要 [最小, 最大] 且最小 ≤ 最大' };
@@ -391,6 +400,7 @@ function normalizeAnalysisParams(game, raw) {
       avoidRepeat: boolOr(src.avoidRepeat, ANALYSIS_DEFAULTS.avoidRepeat),
       includeCold,
       maxCrowdIndex: Math.round(maxCrowdIndex),
+      window,
       sumRange,
       oddRange,
     },
@@ -572,10 +582,16 @@ function generateCandidates(input) {
     if (!normalized.ok) return normalized;
     analysisParams = normalized.params;
 
-    const coldInfo = coldNumbers(game, src.recentDraws || [], 30);
+    const recent = src.recentDraws || [];
+    const coldInfo = coldNumbers(game, recent, analysisParams.window);
     if (!coldInfo.ok) return coldInfo;
     coldList = coldInfo.cold;
     coldSet = new Set(coldList);
+
+    // 样本量要如实记录：只有 10 期时说"近 30 期"就是不诚实
+    analysisParams.sampleSize = Math.min(recent.length, analysisParams.window);
+    analysisParams.availableDraws = recent.length;
+    analysisParams.dataSufficient = recent.length >= analysisParams.window;
 
     if (analysisParams.includeCold > coldList.length) {
       return {

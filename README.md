@@ -85,7 +85,7 @@ shared/                  唯一事实来源（前后端共用，纯函数）
 └── adapters/cwl.js      官方接口映射（含实测坑位说明）
 
 scripts/                 build-web / sync-to-json / serve-web / sync-shared / verify-judge ...
-tests/                   node:test（303 用例）
+tests/                   node:test（307 用例）
 docs/                    部署、数据源、决策、各阶段报告
 miniprogram/ cloudfunctions/   早期小程序版（保留备查）
 ```
@@ -114,7 +114,7 @@ miniprogram/ cloudfunctions/   早期小程序版（保留备查）
 | AI 费用 | 由你自己的 DeepSeek 账户承担；单次对话最多 3 轮工具调用、900 tokens |
 | 候选闸门 | 默认关闭，需在「选号」页本人确认开启；开启状态存在本机，**不是服务端强制**（D23） |
 | 拥挤度 | 基于公开研究推导的**推定值**：福彩不公布每注号码的投注分布。它只影响浮动奖均分，不改变中奖概率（见 `docs/analysis-model.md`） |
-| 统计样本 | 结构统计用本地已同步的开奖期数；只有 10 期时会明确标"样本偏小"，跑 `npm run publish:data` 可拉到 60 期 |
+| 统计样本 | 仓库当前各 100 期（官方接口单次上限）；结构统计与冷号判定都会显示"实际用了几期"，不足时明确标"样本偏小" |
 | 图表 | 纯 CSS 条形，没有交互缩放与导出图片（零依赖约束） |
 | 恢复语义 | 合并覆盖，不删除现有记录；想完全回到备份状态需先清空 |
 

@@ -1,13 +1,87 @@
 {
  "schema": "jingcai-draws@1",
  "game": "kl8",
- "generatedAt": "2026-11-05T06:44:23.693Z",
+ "generatedAt": "2026-11-06T03:06:46.028Z",
  "source": "https://www.cwl.gov.cn",
  "sourceApi": "https://www.cwl.gov.cn/cwl_admin/front/cwlkj/search/kjxx/findDrawNotice",
  "parserVersion": "cwl_api@1.0.0",
- "count": 10,
- "latestIssue": "2026294",
+ "count": 100,
+ "latestIssue": "2026295",
  "records": [
+  {
+   "game": "kl8",
+   "issue": "2026295",
+   "drawDate": "2026-11-05",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     5,
+     6,
+     7,
+     11,
+     12,
+     16,
+     18,
+     21,
+     24,
+     32,
+     33,
+     36,
+     38,
+     44,
+     47,
+     56,
+     57,
+     61,
+     75,
+     77
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 1,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 92,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1472,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 16220,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 110390,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 457804,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 291232,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/11/05/672297.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.012Z",
+   "salesAmount": 110152370,
+   "poolAmount": 68324570.68,
+   "fixedPoolAmount": 209894033.24,
+   "rawHash": "8d05628e0e0cfd946fe76ea705f79554cfcf6ef2a82a6f12ae3f4c490d19b525"
+  },
   {
    "game": "kl8",
    "issue": "2026294",
@@ -76,7 +150,7 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-05T06:44:23.690Z",
+   "verifiedAt": "2026-11-06T03:06:46.013Z",
    "salesAmount": 108481124,
    "poolAmount": 74325672,
    "fixedPoolAmount": 222724411.02,
@@ -150,7 +224,7 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-05T06:44:23.691Z",
+   "verifiedAt": "2026-11-06T03:06:46.013Z",
    "salesAmount": 107990136,
    "poolAmount": 68233260.86,
    "fixedPoolAmount": 212589899.98,
@@ -224,7 +298,7 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-05T06:44:23.691Z",
+   "verifiedAt": "2026-11-06T03:06:46.013Z",
    "salesAmount": 109572308,
    "poolAmount": 68726901.42,
    "fixedPoolAmount": 220539846.9,
@@ -298,7 +372,7 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-05T06:44:23.691Z",
+   "verifiedAt": "2026-11-06T03:06:46.013Z",
    "salesAmount": 108733750,
    "poolAmount": 68573187.86,
    "fixedPoolAmount": 223186671.4,
@@ -372,7 +446,7 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-05T06:44:23.691Z",
+   "verifiedAt": "2026-11-06T03:06:46.013Z",
    "salesAmount": 107994586,
    "poolAmount": 62888055.58,
    "fixedPoolAmount": 212615132.18,
@@ -446,7 +520,7 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-05T06:25:47.802Z",
+   "verifiedAt": "2026-11-06T03:06:46.013Z",
    "salesAmount": 118341384,
    "poolAmount": 68008104.06,
    "fixedPoolAmount": 232460475.68,
@@ -520,7 +594,7 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-05T06:25:47.802Z",
+   "verifiedAt": "2026-11-06T03:06:46.014Z",
    "salesAmount": 111369600,
    "poolAmount": 75200901.28,
    "fixedPoolAmount": 240243022.58,
@@ -594,7 +668,7 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-05T06:25:47.802Z",
+   "verifiedAt": "2026-11-06T03:06:46.014Z",
    "salesAmount": 109059854,
    "poolAmount": 68433154.68,
    "fixedPoolAmount": 221482990.18,
@@ -668,7 +742,7 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-05T06:25:47.802Z",
+   "verifiedAt": "2026-11-06T03:06:46.014Z",
    "salesAmount": 105990122,
    "poolAmount": 65639116.62,
    "fixedPoolAmount": 233113543.96,
@@ -742,11 +816,6597 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-05T06:25:47.803Z",
+   "verifiedAt": "2026-11-06T03:06:46.014Z",
    "salesAmount": 109728626,
    "poolAmount": 60442824.6,
    "fixedPoolAmount": 227057051.94,
    "rawHash": "5fa6227dc173f354673975b3b6901b89511caceda96b78d3d97f42d0ef5dd1ee"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026284",
+   "drawDate": "2026-10-25",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     5,
+     6,
+     7,
+     9,
+     11,
+     16,
+     18,
+     22,
+     29,
+     34,
+     36,
+     39,
+     41,
+     50,
+     52,
+     53,
+     58,
+     62,
+     69,
+     78
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 65,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1497,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 16046,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 107581,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 459950,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 251497,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/25/670922.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.014Z",
+   "salesAmount": 106911976,
+   "poolAmount": 106566783.28,
+   "fixedPoolAmount": 215965196.94,
+   "rawHash": "cfe7668059219e33ef61aae4c844d5e3547684cbc66e3359fb771ed5ec746b99"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026283",
+   "drawDate": "2026-10-24",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     1,
+     3,
+     7,
+     15,
+     16,
+     25,
+     28,
+     34,
+     41,
+     43,
+     44,
+     60,
+     61,
+     67,
+     70,
+     71,
+     72,
+     74,
+     75,
+     80
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 63,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1595,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 16734,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 103887,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 400192,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 319926,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/24/670916.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.014Z",
+   "salesAmount": 105709256,
+   "poolAmount": 106918388.8,
+   "fixedPoolAmount": 240289187.6,
+   "rawHash": "929ed091ebd44acf62dea23850431b6f13b0fa606b5681a9c9215d3aa350d8cd"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026282",
+   "drawDate": "2026-10-23",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     2,
+     8,
+     9,
+     13,
+     14,
+     23,
+     24,
+     32,
+     35,
+     36,
+     40,
+     41,
+     43,
+     44,
+     59,
+     61,
+     68,
+     73,
+     78,
+     80
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 39,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1394,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 15867,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 112331,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 498044,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 368799,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/23/670910.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.014Z",
+   "salesAmount": 115346128,
+   "poolAmount": 105900630.86,
+   "fixedPoolAmount": 284064584.62,
+   "rawHash": "9f5505b150361bf0926a9bfde96395a538a2799111ded4d66728062c8d77d3db"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026281",
+   "drawDate": "2026-10-22",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     1,
+     5,
+     8,
+     11,
+     13,
+     19,
+     22,
+     26,
+     34,
+     52,
+     53,
+     55,
+     56,
+     58,
+     63,
+     66,
+     69,
+     71,
+     72,
+     75
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 1,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 41,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1039,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 12152,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 85016,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 370425,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 329464,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/22/670802.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.014Z",
+   "salesAmount": 106980894,
+   "poolAmount": 100501938.14,
+   "fixedPoolAmount": 288328295.38,
+   "rawHash": "dcfdb165de2b86eecd220437f4f873b55ae7ccbcfbffc5335678370b37658878"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026280",
+   "drawDate": "2026-10-21",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     4,
+     5,
+     7,
+     9,
+     12,
+     17,
+     26,
+     27,
+     30,
+     34,
+     43,
+     53,
+     66,
+     69,
+     70,
+     71,
+     72,
+     74,
+     75,
+     80
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 5,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 152,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1901,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 17614,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 103033,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 391714,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 314818,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/21/670596.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.015Z",
+   "salesAmount": 114522338,
+   "poolAmount": 101277253.72,
+   "fixedPoolAmount": 281343732.22,
+   "rawHash": "65a19cdcfcd0fad7c823bb3106227b1a90ccb6cc07ce1569e7c7971ca5ec4a54"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026279",
+   "drawDate": "2026-10-20",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     1,
+     8,
+     9,
+     11,
+     15,
+     19,
+     23,
+     27,
+     30,
+     36,
+     38,
+     40,
+     43,
+     44,
+     52,
+     58,
+     59,
+     61,
+     70,
+     79
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 3,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 35,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 797,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 10161,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 76046,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 357383,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 317617,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/20/670489.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.015Z",
+   "salesAmount": 113587180,
+   "poolAmount": 126253866.94,
+   "fixedPoolAmount": 328774554.84,
+   "rawHash": "8227ece4635526ab0e3960ef964389f1868b538e682379264ac1ed2644c08705"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026278",
+   "drawDate": "2026-10-19",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     1,
+     6,
+     8,
+     15,
+     17,
+     21,
+     22,
+     24,
+     29,
+     31,
+     33,
+     39,
+     41,
+     47,
+     48,
+     49,
+     60,
+     71,
+     72,
+     76
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 39,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 904,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 10628,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 79525,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 363211,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 311624,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/19/670382.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.015Z",
+   "salesAmount": 112099454,
+   "poolAmount": 136143345.12,
+   "fixedPoolAmount": 315476477.06,
+   "rawHash": "db07db831ce0995ddb3c66a350e23b1c2702466a90af3159a41859566ce8b8a9"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026277",
+   "drawDate": "2026-10-18",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     1,
+     9,
+     11,
+     16,
+     17,
+     23,
+     25,
+     30,
+     32,
+     37,
+     39,
+     48,
+     49,
+     53,
+     55,
+     60,
+     66,
+     67,
+     70,
+     74
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 15,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 673,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 8925,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 67699,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 333042,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 320347,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/18/670175.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.015Z",
+   "salesAmount": 112126230,
+   "poolAmount": 131611893.42,
+   "fixedPoolAmount": 309641198.98,
+   "rawHash": "e1db1c6b3d0d4b094baa5d2abe2013ee13031f372bbaa0e00e8a5c4a0490bdac"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026276",
+   "drawDate": "2026-10-17",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     2,
+     6,
+     7,
+     11,
+     15,
+     18,
+     22,
+     27,
+     30,
+     32,
+     37,
+     38,
+     42,
+     45,
+     51,
+     62,
+     65,
+     66,
+     67,
+     73
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 43,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 948,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 10229,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 80373,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 365704,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 285780,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/17/670170.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.015Z",
+   "salesAmount": 113181620,
+   "poolAmount": 125103138.98,
+   "fixedPoolAmount": 293288583.82,
+   "rawHash": "0e25cb5ef6db635757ec147cd0b42c84be46c65ee5dda92c1b37480f167fc625"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026275",
+   "drawDate": "2026-10-16",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     11,
+     31,
+     32,
+     33,
+     37,
+     38,
+     39,
+     48,
+     51,
+     55,
+     56,
+     60,
+     63,
+     64,
+     65,
+     67,
+     68,
+     72,
+     73,
+     78
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 40,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1049,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 12611,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 90846,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 411821,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 566943,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/16/670165.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.015Z",
+   "salesAmount": 125037784,
+   "poolAmount": 120825898.64,
+   "fixedPoolAmount": 284302565.26,
+   "rawHash": "f90cbdb205abe771fb0521c3923d016b463d2547fa89724663ca5d327311b4d1"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026274",
+   "drawDate": "2026-10-15",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     8,
+     9,
+     15,
+     17,
+     27,
+     29,
+     35,
+     38,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48,
+     54,
+     56,
+     63,
+     64,
+     70,
+     78
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 58,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1095,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 12220,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 89908,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 385292,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 310709,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/15/670057.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.017Z",
+   "salesAmount": 113899448,
+   "poolAmount": 115958597.06,
+   "fixedPoolAmount": 279628360.96,
+   "rawHash": "c5580b3899010b44b4a56ffc8129e0ed8cbf09ec0936953256f9deabddd55684"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026273",
+   "drawDate": "2026-10-14",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     9,
+     10,
+     12,
+     14,
+     23,
+     24,
+     27,
+     31,
+     35,
+     38,
+     49,
+     51,
+     52,
+     54,
+     55,
+     58,
+     61,
+     63,
+     65,
+     76
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 40,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 862,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 12210,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 90000,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 401935,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 247209,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/14/669849.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.017Z",
+   "salesAmount": 110249980,
+   "poolAmount": 114874445.96,
+   "fixedPoolAmount": 297573171.2,
+   "rawHash": "6be45d7cb13c65c3a554aef96657a236ef90f617a6e018a71f33fe172d014287"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026272",
+   "drawDate": "2026-10-13",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     11,
+     14,
+     19,
+     20,
+     39,
+     40,
+     41,
+     43,
+     47,
+     51,
+     57,
+     62,
+     64,
+     66,
+     67,
+     68,
+     72,
+     76,
+     77,
+     80
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 38,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1035,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 11657,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 79295,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 341631,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 351393,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/13/669642.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.017Z",
+   "salesAmount": 107268090,
+   "poolAmount": 111319215.48,
+   "fixedPoolAmount": 316871801.58,
+   "rawHash": "98bd11cb99ce8efffb8ba5bf7d74febd0d9c9309f38e57a74f03c3df04c6ca70"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026271",
+   "drawDate": "2026-10-12",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     10,
+     17,
+     20,
+     22,
+     30,
+     31,
+     37,
+     40,
+     41,
+     43,
+     44,
+     45,
+     50,
+     52,
+     56,
+     58,
+     59,
+     63,
+     71,
+     76
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 24,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 673,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 8610,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 66063,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 315445,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 335170,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/12/669535.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.017Z",
+   "salesAmount": 108054766,
+   "poolAmount": 108287181.94,
+   "fixedPoolAmount": 324904727.82,
+   "rawHash": "3edc38c0aec2feafc8beaa6c58d09de4f859bf65a8803cc3aa02acf8c7197822"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026270",
+   "drawDate": "2026-10-11",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     3,
+     6,
+     7,
+     8,
+     9,
+     16,
+     21,
+     22,
+     23,
+     27,
+     39,
+     40,
+     41,
+     44,
+     48,
+     54,
+     60,
+     65,
+     68,
+     75
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 1,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 48,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 944,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 11108,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 80279,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 355812,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 304786,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/11/669428.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.017Z",
+   "salesAmount": 106948894,
+   "poolAmount": 103189399.4,
+   "fixedPoolAmount": 321962189.24,
+   "rawHash": "956c69a2fc1d98008fc622c9a075c9165fcdf052dc5ab0d31c022e432e6b1b8f"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026269",
+   "drawDate": "2026-10-10",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     1,
+     2,
+     3,
+     7,
+     11,
+     13,
+     15,
+     18,
+     25,
+     27,
+     30,
+     35,
+     44,
+     46,
+     55,
+     57,
+     60,
+     63,
+     70,
+     73
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 1,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 36,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 818,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 10753,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 82414,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 378767,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 263211,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/10/669422.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.017Z",
+   "salesAmount": 109023422,
+   "poolAmount": 103572907.96,
+   "fixedPoolAmount": 310542139.1,
+   "rawHash": "61f0b562ae4ca75101c64f20e41282377e7adb822d3ae7eb11c83e3bc5031259"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026268",
+   "drawDate": "2026-10-09",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     1,
+     2,
+     6,
+     7,
+     16,
+     19,
+     26,
+     31,
+     35,
+     40,
+     45,
+     46,
+     48,
+     49,
+     52,
+     59,
+     62,
+     68,
+     73,
+     79
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 1,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 20,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 814,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 10669,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 83127,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 407006,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 417906,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/09/669216.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.017Z",
+   "salesAmount": 118076396,
+   "poolAmount": 103895701.5,
+   "fixedPoolAmount": 310046843.02,
+   "rawHash": "c82658836631bf36edf351aeaafbf2bea7f0d68bc89f506bec56dc4fc53ad8a6"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026267",
+   "drawDate": "2026-10-08",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     3,
+     16,
+     20,
+     26,
+     29,
+     35,
+     41,
+     42,
+     43,
+     44,
+     45,
+     49,
+     50,
+     54,
+     59,
+     60,
+     61,
+     68,
+     74,
+     79
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 17,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 697,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 9101,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 65632,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 302895,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 408235,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/08/669109.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.018Z",
+   "salesAmount": 107251648,
+   "poolAmount": 101221974.96,
+   "fixedPoolAmount": 294708994.84,
+   "rawHash": "510a8f1c22d2871f19650e6bca44a13854abbe2ff762f835c07c86c67d637779"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026266",
+   "drawDate": "2026-10-07",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     2,
+     4,
+     8,
+     9,
+     14,
+     32,
+     36,
+     45,
+     48,
+     51,
+     52,
+     54,
+     56,
+     57,
+     64,
+     65,
+     66,
+     72,
+     73,
+     77
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 30,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 737,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 10221,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 72589,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 322729,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 312287,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/07/669002.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.018Z",
+   "salesAmount": 107686638,
+   "poolAmount": 95463184.6,
+   "fixedPoolAmount": 288970206.84,
+   "rawHash": "b9d93e2de5e6513035ff97c13db24e7ad0193a17c166a820b80da20e03e469a8"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026265",
+   "drawDate": "2026-10-06",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     2,
+     7,
+     9,
+     12,
+     13,
+     20,
+     23,
+     25,
+     31,
+     34,
+     35,
+     36,
+     39,
+     50,
+     51,
+     56,
+     59,
+     73,
+     77,
+     78
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 32,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 812,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 11957,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 85737,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 378113,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 256257,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/06/668995.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.018Z",
+   "salesAmount": 102747386,
+   "poolAmount": 90120077.28,
+   "fixedPoolAmount": 276460688.5,
+   "rawHash": "c692ef10c5358b8722b3732ce0cd7114c1d6f225fe3515faa890c4e280c9219d"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026264",
+   "drawDate": "2026-10-05",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     5,
+     15,
+     16,
+     21,
+     24,
+     30,
+     34,
+     37,
+     42,
+     47,
+     54,
+     60,
+     62,
+     63,
+     64,
+     66,
+     73,
+     77,
+     79,
+     80
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 17,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 519,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 7154,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 56042,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 279760,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 348337,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/10/05/668889.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.018Z",
+   "salesAmount": 119010888,
+   "poolAmount": 86189390.04,
+   "fixedPoolAmount": 284047086.72,
+   "rawHash": "861f77f4ec13d9f8e649f4f5e8bb59c360533827b8041d2d429c6b9b04680f3f"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026263",
+   "drawDate": "2026-09-30",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     7,
+     8,
+     9,
+     10,
+     11,
+     13,
+     22,
+     24,
+     25,
+     26,
+     31,
+     33,
+     37,
+     45,
+     50,
+     51,
+     62,
+     67,
+     70,
+     80
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 88,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1879,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 20698,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 133441,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 528880,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 248125,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/30/668783.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.018Z",
+   "salesAmount": 136356996,
+   "poolAmount": 80485097.34,
+   "fixedPoolAmount": 269309107.76,
+   "rawHash": "5d5f6884bde760f888d81a67cf0a52ad234ecd313c06cdbc82b1e2304fafab6d"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026262",
+   "drawDate": "2026-09-29",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     4,
+     6,
+     9,
+     12,
+     15,
+     17,
+     20,
+     33,
+     42,
+     44,
+     49,
+     54,
+     55,
+     59,
+     61,
+     65,
+     72,
+     73,
+     78,
+     80
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 21,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 707,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 8799,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 68612,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 332556,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 301370,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/29/668673.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.018Z",
+   "salesAmount": 128616270,
+   "poolAmount": 80656936.68,
+   "fixedPoolAmount": 329641885.2,
+   "rawHash": "17ab2f57c639c517d2fb7d831dfd37b803a09abfadcf4ccd9d1c2c7fb630d4a3"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026261",
+   "drawDate": "2026-09-28",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     1,
+     11,
+     17,
+     21,
+     23,
+     27,
+     28,
+     35,
+     37,
+     42,
+     45,
+     46,
+     48,
+     61,
+     72,
+     73,
+     75,
+     78,
+     79,
+     80
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 5,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 524,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 7508,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 55852,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 272930,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 382849,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/28/668569.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.018Z",
+   "salesAmount": 129635284,
+   "poolAmount": 75116421.14,
+   "fixedPoolAmount": 313999092.84,
+   "rawHash": "36cb8dbd50b5f8c40a3d11558f646fd265c5eccca5a07b9ef80e44d7d07f4521"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026260",
+   "drawDate": "2026-09-27",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     2,
+     7,
+     16,
+     19,
+     21,
+     25,
+     30,
+     31,
+     33,
+     35,
+     42,
+     45,
+     50,
+     52,
+     53,
+     55,
+     56,
+     60,
+     63,
+     72
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 75,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1081,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 13039,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 91367,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 385916,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 286523,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/27/668461.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.018Z",
+   "salesAmount": 129098322,
+   "poolAmount": 68482981.58,
+   "fixedPoolAmount": 297014404.02,
+   "rawHash": "ac7d63198d733b5fc0b0253c8c536e78bd407d0950e203f628d014f0474f30a3"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026259",
+   "drawDate": "2026-09-26",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     5,
+     6,
+     13,
+     26,
+     29,
+     30,
+     34,
+     36,
+     44,
+     50,
+     54,
+     56,
+     61,
+     62,
+     66,
+     73,
+     74,
+     76,
+     79,
+     80
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 2,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 42,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 837,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 9230,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 70078,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 324869,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 302438,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/26/668456.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.018Z",
+   "salesAmount": 125528722,
+   "poolAmount": 65264091,
+   "fixedPoolAmount": 314638604.56,
+   "rawHash": "9a324a587829f340808b4871afbfc773f29727e4686e5c844741f81edf0bbce5"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026258",
+   "drawDate": "2026-09-25",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     7,
+     13,
+     14,
+     15,
+     17,
+     19,
+     20,
+     24,
+     28,
+     30,
+     35,
+     44,
+     50,
+     51,
+     54,
+     57,
+     60,
+     64,
+     75,
+     78
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 46,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1041,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 13002,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 95203,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 426527,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 372746,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/25/668449.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.019Z",
+   "salesAmount": 133339938,
+   "poolAmount": 70836097.64,
+   "fixedPoolAmount": 319136348.88,
+   "rawHash": "dda7e30ea99ad4cb28b85a28d6ae028f24d8ced8dfda295666984734a1658a42"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026257",
+   "drawDate": "2026-09-24",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     1,
+     4,
+     7,
+     8,
+     10,
+     13,
+     23,
+     24,
+     31,
+     33,
+     39,
+     40,
+     47,
+     48,
+     58,
+     61,
+     65,
+     74,
+     76,
+     79
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 48,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1080,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 12332,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 89472,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 393597,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 266652,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/24/668440.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.019Z",
+   "salesAmount": 126146498,
+   "poolAmount": 66856469.86,
+   "fixedPoolAmount": 322751895,
+   "rawHash": "6a0ef89e7ae02cae18154321f2757dc3ae0e65bddda7ecf40431245865acd869"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026256",
+   "drawDate": "2026-09-23",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     1,
+     2,
+     6,
+     11,
+     12,
+     14,
+     15,
+     22,
+     24,
+     32,
+     33,
+     35,
+     38,
+     46,
+     67,
+     68,
+     71,
+     73,
+     74,
+     76
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 2,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 107,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1523,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 14902,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 97161,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 405925,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 286496,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/23/668334.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.019Z",
+   "salesAmount": 128809766,
+   "poolAmount": 63538326.3,
+   "fixedPoolAmount": 339171511.7,
+   "rawHash": "1703c2c3821d7ca60860394c1e396e5acf772044a7cad99204025f5d7364e0f3"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026255",
+   "drawDate": "2026-09-22",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     2,
+     9,
+     12,
+     16,
+     18,
+     23,
+     26,
+     31,
+     36,
+     44,
+     47,
+     52,
+     54,
+     55,
+     59,
+     60,
+     61,
+     66,
+     72,
+     77
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 35,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 847,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 9756,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 70512,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 326150,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 283479,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/22/668229.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.019Z",
+   "salesAmount": 128257538,
+   "poolAmount": 72814579.3,
+   "fixedPoolAmount": 358568133.08,
+   "rawHash": "d170c60ba7211826d6fa955b1d8afe7db2b837f84026262041d3df5133552ef9"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026254",
+   "drawDate": "2026-09-21",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     2,
+     4,
+     10,
+     13,
+     18,
+     20,
+     21,
+     26,
+     32,
+     37,
+     43,
+     49,
+     50,
+     57,
+     62,
+     66,
+     69,
+     73,
+     78,
+     80
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 1,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 27,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 673,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 8766,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 65602,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 316710,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 294406,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/21/668119.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.019Z",
+   "salesAmount": 129459790,
+   "poolAmount": 67855385.14,
+   "fixedPoolAmount": 346830009.08,
+   "rawHash": "5aaeed64dec468c8ef0ef82e7822a5c928048eac45b9fe0d7163a466d7b64cce"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026253",
+   "drawDate": "2026-09-20",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     1,
+     2,
+     8,
+     17,
+     23,
+     24,
+     29,
+     31,
+     40,
+     41,
+     46,
+     47,
+     51,
+     54,
+     59,
+     62,
+     65,
+     72,
+     74,
+     79
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 30,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 549,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 6372,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 51228,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 256103,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 400603,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/20/668014.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.019Z",
+   "salesAmount": 135058376,
+   "poolAmount": 67324560.22,
+   "fixedPoolAmount": 338781793.7,
+   "rawHash": "18ff6ec2f095e7e281be61c9da9d1ca74059e01964a89e8d0ae3d701c1bc234f"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026252",
+   "drawDate": "2026-09-19",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     2,
+     3,
+     4,
+     8,
+     36,
+     38,
+     40,
+     41,
+     46,
+     49,
+     50,
+     52,
+     53,
+     56,
+     57,
+     62,
+     63,
+     65,
+     68,
+     72
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 3,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 57,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 791,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 8592,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 61920,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 290330,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 348293,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/19/667907.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.019Z",
+   "salesAmount": 134419642,
+   "poolAmount": 60291333.22,
+   "fixedPoolAmount": 312410673.38,
+   "rawHash": "8038e0be6987e3dcddd4a1bbe27e90c59b3bdb5b91c0cf6446828ead329311c0"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026251",
+   "drawDate": "2026-09-18",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     1,
+     4,
+     8,
+     9,
+     10,
+     11,
+     18,
+     26,
+     28,
+     29,
+     43,
+     49,
+     51,
+     52,
+     53,
+     54,
+     62,
+     66,
+     70,
+     76
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 48,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1337,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 16612,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 111935,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 470985,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 398675,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/18/667900.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.019Z",
+   "salesAmount": 146286126,
+   "poolAmount": 70590457.9,
+   "fixedPoolAmount": 305643059.76,
+   "rawHash": "9417ef4d6e8ae6b981647fc9dc3c525e25541c87ab5542487d7f30f45ead0ce7"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026250",
+   "drawDate": "2026-09-17",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     4,
+     5,
+     6,
+     8,
+     17,
+     22,
+     23,
+     31,
+     35,
+     47,
+     49,
+     51,
+     59,
+     60,
+     62,
+     65,
+     67,
+     68,
+     76,
+     78
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 1,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 12,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 709,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 8496,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 63504,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 315899,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 293350,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/17/667794.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.019Z",
+   "salesAmount": 144780332,
+   "poolAmount": 66263128.16,
+   "fixedPoolAmount": 320152715.68,
+   "rawHash": "2b78fb45145fe1423ff70ae92873c2099a63a7372662d3ecf28bc9681d82721c"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026249",
+   "drawDate": "2026-09-16",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     4,
+     8,
+     10,
+     11,
+     13,
+     26,
+     29,
+     34,
+     41,
+     50,
+     51,
+     52,
+     53,
+     57,
+     59,
+     65,
+     66,
+     73,
+     74,
+     77
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 1,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 26,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 621,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 8479,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 66353,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 314376,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 276445,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/16/667588.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.020Z",
+   "salesAmount": 144728354,
+   "poolAmount": 65218767.28,
+   "fixedPoolAmount": 321831975.82,
+   "rawHash": "80e74ef3645bf1dc522d393d005c470937a8c66d20f0f84cfe0ed8432884d301"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026248",
+   "drawDate": "2026-09-15",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     3,
+     5,
+     9,
+     15,
+     23,
+     28,
+     31,
+     33,
+     34,
+     35,
+     39,
+     42,
+     48,
+     50,
+     53,
+     70,
+     73,
+     74,
+     76,
+     78
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 1,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 17,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 587,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 7723,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 60382,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 295650,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 337474,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/15/666980.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.020Z",
+   "salesAmount": 141145028,
+   "poolAmount": 65460529.54,
+   "fixedPoolAmount": 308954898.78,
+   "rawHash": "4fdd10170babedbf3b77d921a92ec39a7bc2071bf56e716b9b14196dd845da0a"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026247",
+   "drawDate": "2026-09-14",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     5,
+     7,
+     19,
+     22,
+     28,
+     29,
+     38,
+     39,
+     41,
+     42,
+     43,
+     44,
+     55,
+     58,
+     61,
+     65,
+     66,
+     71,
+     72,
+     73
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 37,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 914,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 10573,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 76873,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 341610,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 279681,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/14/666872.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.020Z",
+   "salesAmount": 140835136,
+   "poolAmount": 63780335.2,
+   "fixedPoolAmount": 278271793.66,
+   "rawHash": "d041d103fc55777064e423b91ff8e57871a8f3cbbf33d2d8f6272d886c8a4ff9"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026246",
+   "drawDate": "2026-09-13",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     3,
+     8,
+     10,
+     16,
+     18,
+     20,
+     23,
+     29,
+     31,
+     35,
+     51,
+     53,
+     54,
+     56,
+     58,
+     69,
+     70,
+     75,
+     78,
+     80
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 1,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 41,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 722,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 9776,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 76358,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 351089,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 271878,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/13/666665.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.020Z",
+   "salesAmount": 139177362,
+   "poolAmount": 59700784.68,
+   "fixedPoolAmount": 277269766.16,
+   "rawHash": "b757521bda5f2d3c00e7df353aeb875896ac84ccb833fa1b4f3cb84733cf2fd6"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026245",
+   "drawDate": "2026-09-12",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     5,
+     6,
+     9,
+     15,
+     18,
+     25,
+     26,
+     27,
+     30,
+     31,
+     34,
+     36,
+     39,
+     43,
+     44,
+     48,
+     54,
+     63,
+     65,
+     77
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 34,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1077,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 12657,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 84861,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 361185,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 258273,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/12/666660.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.020Z",
+   "salesAmount": 137278086,
+   "poolAmount": 60869228.02,
+   "fixedPoolAmount": 267769052.98,
+   "rawHash": "7dc91a413eb7c35191b58876a708c753f6af52e0204644881793fd453b7fe7be"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026244",
+   "drawDate": "2026-09-11",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     1,
+     4,
+     7,
+     8,
+     10,
+     12,
+     34,
+     46,
+     47,
+     53,
+     55,
+     56,
+     59,
+     61,
+     63,
+     65,
+     71,
+     73,
+     78,
+     79
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 1,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 61,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 993,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 10307,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 80922,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 389575,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 432812,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/11/666653.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.020Z",
+   "salesAmount": 147771044,
+   "poolAmount": 58016484.1,
+   "fixedPoolAmount": 264190063.38,
+   "rawHash": "810774a968317839d69f7e2eecaa068f92f0325006c23f9f1f37a2d594871131"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026243",
+   "drawDate": "2026-09-10",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     1,
+     2,
+     3,
+     9,
+     21,
+     29,
+     31,
+     36,
+     37,
+     41,
+     43,
+     46,
+     50,
+     55,
+     64,
+     67,
+     68,
+     70,
+     74,
+     76
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 4,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 70,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 662,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 7856,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 65568,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 321380,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 294367,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/10/666547.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.020Z",
+   "salesAmount": 135993210,
+   "poolAmount": 56766615.72,
+   "fixedPoolAmount": 246115109.18,
+   "rawHash": "a30833b87d365236ec910a008ba8b698289d16cf624bea5278f66e6e3f5c36c7"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026242",
+   "drawDate": "2026-09-09",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     4,
+     20,
+     28,
+     32,
+     35,
+     37,
+     39,
+     44,
+     48,
+     50,
+     52,
+     53,
+     55,
+     56,
+     57,
+     63,
+     71,
+     72,
+     76,
+     77
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 16,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 516,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 6795,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 52106,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 247725,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 392477,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/09/666441.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.020Z",
+   "salesAmount": 136047160,
+   "poolAmount": 72474531.5,
+   "fixedPoolAmount": 249398767.2,
+   "rawHash": "bac5d3337c3af5b3f8844c220ce0a4b513ed5e6e7dec7120ea096f4d3b16c988"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026241",
+   "drawDate": "2026-09-08",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     7,
+     9,
+     15,
+     16,
+     18,
+     19,
+     32,
+     33,
+     36,
+     37,
+     40,
+     52,
+     53,
+     60,
+     62,
+     63,
+     66,
+     68,
+     69,
+     73
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 25,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 793,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 10302,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 75660,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 346976,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 272560,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/08/666334.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.021Z",
+   "salesAmount": 135139282,
+   "poolAmount": 66400540.68,
+   "fixedPoolAmount": 226178727.32,
+   "rawHash": "423615478063b56852a12fdb50414143fc09f3313131c9ccb433457ecb52523a"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026240",
+   "drawDate": "2026-09-07",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     2,
+     6,
+     9,
+     10,
+     16,
+     21,
+     27,
+     28,
+     32,
+     33,
+     38,
+     39,
+     55,
+     63,
+     64,
+     66,
+     67,
+     70,
+     75,
+     78
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 2,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 94,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1230,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 11600,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 83135,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 375483,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 236732,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/07/666225.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.021Z",
+   "salesAmount": 133619224,
+   "poolAmount": 62437861.34,
+   "fixedPoolAmount": 222570023.92,
+   "rawHash": "b20c8c2693cf193482db05836c35ae12d84aa9bacf019cd3c15e58a8a27d6b94"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026239",
+   "drawDate": "2026-09-06",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     14,
+     17,
+     20,
+     21,
+     26,
+     27,
+     29,
+     30,
+     37,
+     44,
+     45,
+     47,
+     54,
+     55,
+     61,
+     65,
+     68,
+     69,
+     77,
+     79
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 16,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 570,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 7705,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 59018,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 279833,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 378092,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/06/666120.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.021Z",
+   "salesAmount": 135223474,
+   "poolAmount": 72163384.38,
+   "fixedPoolAmount": 230911980.2,
+   "rawHash": "cff5083d77bcdb59f3c2f78b1d37a02383d74612d936c4a975b064af5f475af5"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026238",
+   "drawDate": "2026-09-05",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     1,
+     4,
+     6,
+     11,
+     12,
+     16,
+     17,
+     20,
+     22,
+     32,
+     41,
+     47,
+     51,
+     52,
+     62,
+     63,
+     64,
+     68,
+     72,
+     75
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 15,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 958,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 11270,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 78387,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 351517,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 268505,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/05/666114.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.021Z",
+   "salesAmount": 133980926,
+   "poolAmount": 66148397.52,
+   "fixedPoolAmount": 215761610.88,
+   "rawHash": "3f313aeb0bab9626ff21cb03cb4a62caa64390c07ef8b92e3895db942748436c"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026237",
+   "drawDate": "2026-09-04",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     2,
+     6,
+     9,
+     13,
+     15,
+     17,
+     18,
+     20,
+     21,
+     30,
+     37,
+     43,
+     48,
+     51,
+     53,
+     55,
+     58,
+     68,
+     74,
+     77
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 43,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1073,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 13848,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 104670,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 471769,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 313836,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/04/666006.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.021Z",
+   "salesAmount": 145211430,
+   "poolAmount": 62802092.38,
+   "fixedPoolAmount": 229239047.7,
+   "rawHash": "7f6f35f2c409a9a289f2035e6f1e30f501384924a77ac7bbf585c999572436aa"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026236",
+   "drawDate": "2026-09-03",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     15,
+     19,
+     24,
+     25,
+     28,
+     29,
+     31,
+     37,
+     45,
+     50,
+     55,
+     56,
+     61,
+     62,
+     64,
+     65,
+     70,
+     75,
+     76,
+     80
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 1,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 15,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 499,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 6639,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 53216,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 266401,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 385462,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/03/665902.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.021Z",
+   "salesAmount": 142678480,
+   "poolAmount": 57428587.86,
+   "fixedPoolAmount": 232620717.12,
+   "rawHash": "12d5fc780583b2ff6ba408cb7f030b9d3f2e3edfd3dfa1a3dc291dc3dfb33a55"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026235",
+   "drawDate": "2026-09-02",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     2,
+     11,
+     14,
+     19,
+     21,
+     23,
+     36,
+     48,
+     50,
+     51,
+     53,
+     60,
+     62,
+     64,
+     66,
+     72,
+     73,
+     75,
+     78,
+     80
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 11,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 554,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 7563,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 57086,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 276839,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 325371,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/02/665793.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.021Z",
+   "salesAmount": 143564468,
+   "poolAmount": 56250485.34,
+   "fixedPoolAmount": 218611269.54,
+   "rawHash": "a4bccf1dd3261fdc46d2119eac8b800df4b1f938c8059f0014af3303f341437b"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026234",
+   "drawDate": "2026-09-01",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     3,
+     8,
+     15,
+     21,
+     36,
+     37,
+     42,
+     44,
+     46,
+     50,
+     52,
+     55,
+     56,
+     57,
+     60,
+     61,
+     68,
+     72,
+     75,
+     79
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 2,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 28,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 643,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 7898,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 55877,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 261076,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 393632,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/09/01/665686.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.021Z",
+   "salesAmount": 145878540,
+   "poolAmount": 50089233.2,
+   "fixedPoolAmount": 200400024.42,
+   "rawHash": "bcabbcdcc6f7dce14677f938e59a24d8ccd1538555a5ab8eb2bac3052602b37f"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026233",
+   "drawDate": "2026-08-31",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     3,
+     5,
+     7,
+     17,
+     19,
+     24,
+     26,
+     30,
+     31,
+     34,
+     35,
+     36,
+     42,
+     44,
+     52,
+     53,
+     55,
+     63,
+     65,
+     66
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 1,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 41,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 811,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 10546,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 77034,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 352195,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 284672,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/31/665578.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.022Z",
+   "salesAmount": 148646776,
+   "poolAmount": 53904572.18,
+   "fixedPoolAmount": 174117127.14,
+   "rawHash": "08066241032f96681fabf78223ed2725b0c5e8ec9096ce246e1f54726a0a8214"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026232",
+   "drawDate": "2026-08-30",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     1,
+     5,
+     9,
+     11,
+     14,
+     27,
+     29,
+     32,
+     36,
+     41,
+     54,
+     55,
+     57,
+     61,
+     63,
+     67,
+     69,
+     71,
+     73,
+     79
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 1,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 40,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1141,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 13821,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 91550,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 381796,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 280583,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/30/665472.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.022Z",
+   "salesAmount": 146311956,
+   "poolAmount": 56972354.96,
+   "fixedPoolAmount": 166620337.04,
+   "rawHash": "5bf8d0f0d316e84faba9a6f3ac1696e07536bcc6f816736cba66144c3448d455"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026231",
+   "drawDate": "2026-08-29",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     12,
+     17,
+     26,
+     28,
+     31,
+     34,
+     37,
+     42,
+     44,
+     51,
+     52,
+     55,
+     59,
+     60,
+     61,
+     62,
+     68,
+     74,
+     75,
+     79
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 32,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 742,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 8909,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 68495,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 306573,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 347957,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/29/665464.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.023Z",
+   "salesAmount": 148191292,
+   "poolAmount": 60531511.22,
+   "fixedPoolAmount": 184834122.36,
+   "rawHash": "a22a41b52eb5ae9d2afba4aef114f14cd68186df7b60a4e9f0794080dcdd6a91"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026230",
+   "drawDate": "2026-08-28",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     3,
+     7,
+     8,
+     13,
+     14,
+     21,
+     24,
+     28,
+     33,
+     35,
+     38,
+     44,
+     50,
+     51,
+     54,
+     59,
+     69,
+     74,
+     77,
+     78
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 1,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 50,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1085,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 13518,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 98941,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 452440,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 344454,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/28/665461.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.023Z",
+   "salesAmount": 159317042,
+   "poolAmount": 55871201.48,
+   "fixedPoolAmount": 185658884.66,
+   "rawHash": "f9f5520885d8ca30ceec780985104499d054451e665388920a23287d3d718ecb"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026229",
+   "drawDate": "2026-08-27",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     14,
+     26,
+     33,
+     39,
+     41,
+     47,
+     48,
+     56,
+     59,
+     61,
+     64,
+     65,
+     66,
+     68,
+     71,
+     72,
+     76,
+     77,
+     78,
+     80
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 20,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 835,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 9683,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 64789,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 286478,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 557648,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/27/665352.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.023Z",
+   "salesAmount": 106566594,
+   "poolAmount": 55326985.28,
+   "fixedPoolAmount": 177485764.42,
+   "rawHash": "670492b4a18f7454bbb1c8a21a1c8136592bf4b220cc8e8e3d656a2ca33085e5"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026228",
+   "drawDate": "2026-08-26",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     8,
+     13,
+     15,
+     17,
+     19,
+     23,
+     24,
+     27,
+     28,
+     35,
+     40,
+     41,
+     42,
+     45,
+     46,
+     47,
+     52,
+     56,
+     67,
+     80
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 1,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 48,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1172,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 15367,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 104606,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 433846,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 242820,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/26/665245.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.023Z",
+   "salesAmount": 106704992,
+   "poolAmount": 50383501.58,
+   "fixedPoolAmount": 167206765.04,
+   "rawHash": "62abc681655a34d91a9772942e48151001e88c918cdf56f83acda69ca4d6ec4f"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026227",
+   "drawDate": "2026-08-25",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     4,
+     9,
+     10,
+     12,
+     17,
+     18,
+     22,
+     28,
+     33,
+     38,
+     42,
+     44,
+     47,
+     48,
+     61,
+     63,
+     64,
+     67,
+     73,
+     74
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 2,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 69,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1378,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 13492,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 92590,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 402474,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 248491,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/25/665138.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.023Z",
+   "salesAmount": 101355274,
+   "poolAmount": 54172107,
+   "fixedPoolAmount": 200593601.18,
+   "rawHash": "bd7fdee6d9008276120c10228492d5c194683061e714e753f444bd476199615d"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026226",
+   "drawDate": "2026-08-24",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     8,
+     9,
+     10,
+     15,
+     16,
+     20,
+     30,
+     34,
+     36,
+     37,
+     43,
+     45,
+     46,
+     47,
+     48,
+     50,
+     53,
+     62,
+     65,
+     66
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 11,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 26,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 912,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 11613,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 81036,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 346345,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 324092,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/24/665031.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.024Z",
+   "salesAmount": 106674918,
+   "poolAmount": 61187846.4,
+   "fixedPoolAmount": 212187112.6,
+   "rawHash": "77016f20fb44cbd8c3cd1a4121b867bf544a4f1c11dc508878eaf1805dd8ff2f"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026225",
+   "drawDate": "2026-08-23",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     3,
+     4,
+     7,
+     12,
+     13,
+     16,
+     20,
+     21,
+     25,
+     26,
+     32,
+     41,
+     43,
+     44,
+     47,
+     53,
+     60,
+     68,
+     73,
+     76
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 38,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1377,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 16057,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 106236,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 436642,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 253168,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/23/664926.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.024Z",
+   "salesAmount": 103576900,
+   "poolAmount": 112013226.54,
+   "fixedPoolAmount": 206263995.2,
+   "rawHash": "dfa3171637a9cea7c92979a8ce64d81c8be241345cf21e5e99e54d1cbdf3d6b2"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026224",
+   "drawDate": "2026-08-22",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     3,
+     6,
+     15,
+     19,
+     20,
+     22,
+     23,
+     24,
+     27,
+     29,
+     36,
+     42,
+     45,
+     46,
+     49,
+     55,
+     56,
+     75,
+     76,
+     78
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 39,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1360,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 16143,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 107228,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 428569,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 248466,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/22/664920.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.024Z",
+   "salesAmount": 101852542,
+   "poolAmount": 111758676.84,
+   "fixedPoolAmount": 227545404.4,
+   "rawHash": "ec661a5498a93900e7f3d1e5178687cad7ffc346342dcdef666673796aa90c62"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026223",
+   "drawDate": "2026-08-21",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     3,
+     19,
+     22,
+     27,
+     28,
+     33,
+     34,
+     35,
+     36,
+     40,
+     50,
+     51,
+     54,
+     57,
+     64,
+     67,
+     68,
+     69,
+     75,
+     79
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 20,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 726,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 10524,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 79611,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 386987,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 432328,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/21/664812.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.024Z",
+   "salesAmount": 113303098,
+   "poolAmount": 111345614.34,
+   "fixedPoolAmount": 254229874.46,
+   "rawHash": "3e1de7a1ecedec318bec16cd879a3dbccbf024a808213c087c622d616f47fb14"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026222",
+   "drawDate": "2026-08-20",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     2,
+     5,
+     7,
+     9,
+     17,
+     18,
+     21,
+     25,
+     28,
+     31,
+     32,
+     33,
+     34,
+     35,
+     38,
+     51,
+     57,
+     58,
+     61,
+     65
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 63,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1419,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 16081,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 97223,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 391350,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 308649,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/20/664705.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.024Z",
+   "salesAmount": 104632948,
+   "poolAmount": 106877677.76,
+   "fixedPoolAmount": 246222245.18,
+   "rawHash": "d80ef2d5e44502a70ec56eeb0642fd7cc7ba7c2532a52de7774e32a453c1dab5"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026221",
+   "drawDate": "2026-08-19",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     1,
+     2,
+     3,
+     5,
+     10,
+     18,
+     21,
+     25,
+     28,
+     34,
+     35,
+     41,
+     48,
+     51,
+     54,
+     58,
+     59,
+     60,
+     77,
+     79
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 21,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 637,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 8245,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 63578,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 299306,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 333879,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/19/664598.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.024Z",
+   "salesAmount": 105691336,
+   "poolAmount": 105307910,
+   "fixedPoolAmount": 247416155.58,
+   "rawHash": "2ef2c51610e21beb0805e6f61aab578087d365b987c482fb4562846392b10c92"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026220",
+   "drawDate": "2026-08-18",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     5,
+     6,
+     10,
+     12,
+     17,
+     20,
+     21,
+     23,
+     24,
+     25,
+     33,
+     35,
+     38,
+     39,
+     40,
+     41,
+     43,
+     49,
+     67,
+     71
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 1,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 62,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1167,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 13123,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 90755,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 388135,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 288778,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/18/664491.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.024Z",
+   "salesAmount": 105460632,
+   "poolAmount": 102060417.48,
+   "fixedPoolAmount": 234615664.58,
+   "rawHash": "ea1ff941b3f36b23c5291aa25ec10e238c31e09e45de12afacea3730d9bc789d"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026219",
+   "drawDate": "2026-08-17",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     2,
+     3,
+     5,
+     6,
+     13,
+     15,
+     20,
+     35,
+     36,
+     39,
+     47,
+     48,
+     51,
+     58,
+     65,
+     67,
+     72,
+     73,
+     79,
+     80
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 29,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 836,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 10007,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 76307,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 353418,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 277172,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/17/664384.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.024Z",
+   "salesAmount": 104841550,
+   "poolAmount": 104435654.44,
+   "fixedPoolAmount": 235816584.38,
+   "rawHash": "ea010c35de4b91ba6a57a751293b83502172fa9b3d7d9d558e9bd41d843c24cb"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026218",
+   "drawDate": "2026-08-16",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     3,
+     5,
+     7,
+     11,
+     15,
+     17,
+     18,
+     19,
+     22,
+     24,
+     29,
+     41,
+     43,
+     47,
+     49,
+     50,
+     59,
+     62,
+     78,
+     80
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 40,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1114,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 12315,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 87389,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 385795,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 281536,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/16/664277.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.024Z",
+   "salesAmount": 103612990,
+   "poolAmount": 99914138.74,
+   "fixedPoolAmount": 237846082.08,
+   "rawHash": "9b7104ab4bb97a1730c5ee5b733d242cd757d8e03dabf2441a27102d5b13c66d"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026217",
+   "drawDate": "2026-08-15",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     7,
+     8,
+     10,
+     11,
+     14,
+     18,
+     20,
+     21,
+     24,
+     28,
+     29,
+     33,
+     41,
+     46,
+     67,
+     68,
+     74,
+     76,
+     77,
+     78
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 56,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1166,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 15226,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 103864,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 429400,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 239200,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/15/664271.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.024Z",
+   "salesAmount": 103612004,
+   "poolAmount": 96021062.9,
+   "fixedPoolAmount": 239579796.12,
+   "rawHash": "3406ad90f6b82da9720490f4d926b03ec020d291c9e1da464b430a5ed3083482"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026216",
+   "drawDate": "2026-08-14",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     2,
+     3,
+     13,
+     19,
+     22,
+     24,
+     25,
+     28,
+     29,
+     42,
+     43,
+     45,
+     49,
+     62,
+     63,
+     69,
+     70,
+     72,
+     76,
+     80
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 2,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 57,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1090,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 14145,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 102475,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 470665,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 349823,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/14/664265.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.024Z",
+   "salesAmount": 113338676,
+   "poolAmount": 94794489.62,
+   "fixedPoolAmount": 245988941.12,
+   "rawHash": "813be71ee09143eb25e318c3384ea7cdbaa9ecf04f8ffebb6e68c420b485901f"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026215",
+   "drawDate": "2026-08-13",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     1,
+     9,
+     14,
+     19,
+     21,
+     22,
+     24,
+     27,
+     36,
+     41,
+     44,
+     51,
+     55,
+     60,
+     61,
+     69,
+     71,
+     76,
+     78,
+     80
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 25,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 663,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 8425,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 65163,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 317813,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 302825,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/13/664158.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.024Z",
+   "salesAmount": 105909340,
+   "poolAmount": 100119115.9,
+   "fixedPoolAmount": 248514430.52,
+   "rawHash": "2687a73d2b49bc74872bf6f47dcc977900a61b8fa816771d495795cf3230882a"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026214",
+   "drawDate": "2026-08-12",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     2,
+     7,
+     12,
+     18,
+     20,
+     21,
+     23,
+     25,
+     32,
+     34,
+     35,
+     37,
+     40,
+     45,
+     47,
+     51,
+     55,
+     59,
+     61,
+     71
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 27,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 948,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 11471,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 82599,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 366433,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 266937,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/12/664051.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.025Z",
+   "salesAmount": 103802230,
+   "poolAmount": 94623916.32,
+   "fixedPoolAmount": 243799964.8,
+   "rawHash": "c97a5f13cfc6e711f719fa5a92fed3b7b0e857c33a4ed18d75220a3f60b4cdae"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026213",
+   "drawDate": "2026-08-11",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     6,
+     7,
+     8,
+     11,
+     12,
+     13,
+     18,
+     21,
+     33,
+     36,
+     37,
+     42,
+     44,
+     56,
+     57,
+     58,
+     60,
+     66,
+     71,
+     80
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 37,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 960,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 12210,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 89077,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 382455,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 282948,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/11/663944.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.025Z",
+   "salesAmount": 104375956,
+   "poolAmount": 90994126.3,
+   "fixedPoolAmount": 252166429.72,
+   "rawHash": "dd68f9d352ed0128b6b2021290c262c4c0481df5f9a1ba51d365b2ad6654302d"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026212",
+   "drawDate": "2026-08-10",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     1,
+     8,
+     10,
+     12,
+     14,
+     15,
+     26,
+     31,
+     37,
+     42,
+     45,
+     48,
+     58,
+     61,
+     66,
+     71,
+     72,
+     74,
+     77,
+     79
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 1,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 23,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 587,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 8896,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 69714,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 328750,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 271244,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/10/663837.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.025Z",
+   "salesAmount": 103276378,
+   "poolAmount": 87783233.02,
+   "fixedPoolAmount": 248079265.58,
+   "rawHash": "b43ff0a0622de552cd2c9f458cf17778946bc521fd633f7976d267fd27dc34c0"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026211",
+   "drawDate": "2026-08-09",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     4,
+     5,
+     8,
+     12,
+     14,
+     20,
+     23,
+     24,
+     25,
+     30,
+     35,
+     37,
+     46,
+     51,
+     53,
+     60,
+     74,
+     75,
+     77,
+     78
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 1,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 38,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 948,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 11667,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 82731,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 362571,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 291023,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/09/663730.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.025Z",
+   "salesAmount": 101454310,
+   "poolAmount": 87107772.7,
+   "fixedPoolAmount": 239797372.94,
+   "rawHash": "45720c5b090443f6ebcb85f04fc9b49b3fc6c6087b94082ef66ff3dafc2f45e3"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026210",
+   "drawDate": "2026-08-08",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     3,
+     4,
+     7,
+     12,
+     14,
+     15,
+     17,
+     21,
+     22,
+     24,
+     27,
+     29,
+     45,
+     47,
+     56,
+     60,
+     72,
+     74,
+     78,
+     80
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 2,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 92,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1453,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 14788,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 97053,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 415870,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 247055,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/08/663726.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.025Z",
+   "salesAmount": 102691396,
+   "poolAmount": 88151560.5,
+   "fixedPoolAmount": 236858446.94,
+   "rawHash": "bb40043ea887dce3a5879276bcbd6fa2b301bf6f756ab5233fb3e29260febdd5"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026209",
+   "drawDate": "2026-08-07",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     2,
+     4,
+     10,
+     11,
+     14,
+     16,
+     18,
+     23,
+     32,
+     35,
+     37,
+     45,
+     47,
+     51,
+     52,
+     53,
+     59,
+     67,
+     75,
+     80
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 35,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1434,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 16105,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 118264,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 506829,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 329393,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/07/663718.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.025Z",
+   "salesAmount": 109519038,
+   "poolAmount": 96389540.42,
+   "fixedPoolAmount": 245180831.8,
+   "rawHash": "a912042a43cd703fae54b03de43064b463c49813589c8d2a78053eae9b1aa656"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026208",
+   "drawDate": "2026-08-06",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     8,
+     11,
+     12,
+     13,
+     14,
+     15,
+     16,
+     23,
+     25,
+     28,
+     34,
+     37,
+     38,
+     43,
+     45,
+     48,
+     58,
+     70,
+     73,
+     77
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 10,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 313,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 4182,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 28153,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 138573,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 467527,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 237713,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/06/663513.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.025Z",
+   "salesAmount": 103120406,
+   "poolAmount": 92075342.8,
+   "fixedPoolAmount": 257760287.76,
+   "rawHash": "77875fc96afd48c678491db08d6b1a462de0237ecb7fa85b42ee821b314ebfa0"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026207",
+   "drawDate": "2026-08-05",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     2,
+     10,
+     16,
+     18,
+     19,
+     20,
+     28,
+     33,
+     39,
+     41,
+     46,
+     49,
+     51,
+     57,
+     60,
+     63,
+     64,
+     65,
+     71,
+     76
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 19,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 564,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 7187,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 56159,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 275943,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 311302,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/05/663304.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.025Z",
+   "salesAmount": 103359202,
+   "poolAmount": 150325342.8,
+   "fixedPoolAmount": 345620623.28,
+   "rawHash": "95e476f5c510f017d6f1f49367ba20cefda6019d09edba5f1b35161cb409c2c0"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026206",
+   "drawDate": "2026-08-04",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     1,
+     6,
+     7,
+     16,
+     17,
+     21,
+     27,
+     32,
+     33,
+     36,
+     44,
+     47,
+     50,
+     51,
+     55,
+     62,
+     64,
+     76,
+     78,
+     79
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 3,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 54,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 801,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 8538,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 63129,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 301946,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 316483,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/04/663097.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.025Z",
+   "salesAmount": 101550202,
+   "poolAmount": 144896464.1,
+   "fixedPoolAmount": 329388058.84,
+   "rawHash": "73b861d69b6b9bfcf0ff5cfb8f7a1a4e25093c089fa1b8e7496e2931d97b2f58"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026205",
+   "drawDate": "2026-08-03",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     4,
+     5,
+     9,
+     10,
+     11,
+     19,
+     28,
+     31,
+     32,
+     35,
+     36,
+     39,
+     43,
+     47,
+     53,
+     56,
+     59,
+     70,
+     77,
+     79
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 1,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 38,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 683,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 9690,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 73393,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 343069,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 250575,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/03/662990.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.025Z",
+   "salesAmount": 101697320,
+   "poolAmount": 155294348.7,
+   "fixedPoolAmount": 314826645.1,
+   "rawHash": "ee9d0b480d2f2d0ef490ae1215a9e2c5223b791dac3cd52e063d685b292914cf"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026204",
+   "drawDate": "2026-08-02",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     3,
+     10,
+     13,
+     21,
+     22,
+     24,
+     28,
+     37,
+     38,
+     46,
+     51,
+     52,
+     54,
+     56,
+     59,
+     60,
+     65,
+     66,
+     70,
+     73
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 25,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 689,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 9405,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 66639,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 301111,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 336536,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/02/662883.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.025Z",
+   "salesAmount": 100353828,
+   "poolAmount": 155569070.34,
+   "fixedPoolAmount": 305644547.56,
+   "rawHash": "b27e85847a5059c73977ca489c0855d85cb3dcfbd4e29a9eef1395057ea0a468"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026203",
+   "drawDate": "2026-08-01",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     2,
+     9,
+     10,
+     21,
+     22,
+     24,
+     29,
+     32,
+     38,
+     40,
+     42,
+     50,
+     51,
+     53,
+     58,
+     60,
+     63,
+     67,
+     70,
+     74
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 23,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 602,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 6405,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 52177,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 259890,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 378995,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/08/01/662878.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.025Z",
+   "salesAmount": 103624474,
+   "poolAmount": 150986865.38,
+   "fixedPoolAmount": 299297784.56,
+   "rawHash": "52186d9ea52f74b850336a122d978470e662a1087a55b79a562202cddd7f5977"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026202",
+   "drawDate": "2026-07-31",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     1,
+     4,
+     7,
+     10,
+     12,
+     15,
+     16,
+     17,
+     26,
+     29,
+     32,
+     40,
+     42,
+     44,
+     49,
+     65,
+     68,
+     73,
+     77,
+     78
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 38,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1407,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 16038,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 118120,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 508639,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 325839,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/07/31/662871.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.025Z",
+   "salesAmount": 111230444,
+   "poolAmount": 145501101.58,
+   "fixedPoolAmount": 280510381.68,
+   "rawHash": "4074d46b0f982b9890b2aabec5c5630e7eaab54105e53cd4fa46f4fc993d8b59"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026201",
+   "drawDate": "2026-07-30",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     2,
+     3,
+     12,
+     13,
+     17,
+     20,
+     24,
+     27,
+     31,
+     32,
+     40,
+     45,
+     50,
+     52,
+     61,
+     67,
+     71,
+     76,
+     79,
+     80
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 23,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 553,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 8132,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 65900,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 328771,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 303349,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/07/30/662664.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.026Z",
+   "salesAmount": 102277084,
+   "poolAmount": 141446196.84,
+   "fixedPoolAmount": 290904725.84,
+   "rawHash": "79727150263dfbcdc941445a46721414727fed0c50066c9ef8f01c2fd15bfd53"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026200",
+   "drawDate": "2026-07-29",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     2,
+     4,
+     17,
+     25,
+     29,
+     31,
+     32,
+     33,
+     35,
+     37,
+     42,
+     44,
+     45,
+     51,
+     56,
+     57,
+     59,
+     60,
+     64,
+     66
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 21,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 756,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 9392,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 69887,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 316430,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 320161,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/07/29/662557.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.026Z",
+   "salesAmount": 102143236,
+   "poolAmount": 135435102.26,
+   "fixedPoolAmount": 280846723.54,
+   "rawHash": "b72197172584e0a48761e53adf02d5769ddf7231353a99cbc53c05301d4b1bac"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026199",
+   "drawDate": "2026-07-28",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     4,
+     14,
+     17,
+     18,
+     20,
+     21,
+     26,
+     27,
+     29,
+     34,
+     44,
+     48,
+     50,
+     53,
+     55,
+     59,
+     62,
+     67,
+     76,
+     79
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 32,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 565,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 8179,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 63652,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 316723,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 302262,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/07/28/662352.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.026Z",
+   "salesAmount": 106406958,
+   "poolAmount": 130476211.02,
+   "fixedPoolAmount": 280581520.26,
+   "rawHash": "714e879736d4c7ce6c515490123d82724122b5d40e23cb73c0ee1ebd6e28a9da"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026198",
+   "drawDate": "2026-07-27",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     5,
+     9,
+     18,
+     19,
+     24,
+     26,
+     30,
+     34,
+     42,
+     46,
+     47,
+     49,
+     51,
+     54,
+     55,
+     56,
+     62,
+     73,
+     74,
+     75
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 42,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1045,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 10514,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 76307,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 346114,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 280168,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/07/27/662243.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.026Z",
+   "salesAmount": 105642388,
+   "poolAmount": 124710343.12,
+   "fixedPoolAmount": 278825833.1,
+   "rawHash": "607f1167ca3fdcd11fa84f190f6b197ac999911699dbf2ca0de5cf605029114f"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026197",
+   "drawDate": "2026-07-26",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     2,
+     6,
+     11,
+     12,
+     13,
+     17,
+     19,
+     27,
+     35,
+     39,
+     42,
+     44,
+     45,
+     53,
+     58,
+     64,
+     71,
+     72,
+     74,
+     75
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 37,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 847,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 11031,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 80471,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 366500,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 264477,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/07/26/662036.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.026Z",
+   "salesAmount": 102596560,
+   "poolAmount": 120580930.46,
+   "fixedPoolAmount": 278257319.1,
+   "rawHash": "385ec1d9766010b36a157711338ff97e29e29fd8184c09ab1a541b847d8e414e"
+  },
+  {
+   "game": "kl8",
+   "issue": "2026196",
+   "drawDate": "2026-07-25",
+   "numbers": {
+    "red": [],
+    "blue": null,
+    "kl8": [
+     4,
+     6,
+     14,
+     29,
+     32,
+     36,
+     39,
+     40,
+     42,
+     43,
+     44,
+     53,
+     56,
+     61,
+     67,
+     68,
+     69,
+     70,
+     73,
+     79
+    ]
+   },
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 1,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 29,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 692,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 8666,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 61835,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 287525,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 401555,
+      "amount": 2
+     }
+    }
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/07/25/662030.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-06T03:06:46.026Z",
+   "salesAmount": 102251202,
+   "poolAmount": 116599598.94,
+   "fixedPoolAmount": 283382495.42,
+   "rawHash": "af85f1c147a83a20801f06511a75b51fd5341cf0b92b24d3826bd68f12502595"
   }
  ]
 }

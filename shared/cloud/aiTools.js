@@ -276,7 +276,7 @@ function createExecutors({ db, openid, now = () => new Date(), gate = null, save
       // 但它只用于"降低拥挤度"，不用于推断下期号码。
       let drawList = [];
       if (args.strategy === 'analyzed') {
-        drawList = await recentDraws(args.game, 30);
+        drawList = await recentDraws(args.game, 100);
       }
 
       const res = generateCandidates({
@@ -328,7 +328,10 @@ function createExecutors({ db, openid, now = () => new Date(), gate = null, save
               sumRange: batch.analysis.sumRange,
               oddRange: batch.analysis.oddRange,
               includeCold: batch.analysis.includeCold,
+              window: batch.analysis.window,
               coldNumbers: batch.analysis.coldNumbers,
+              sampleSize: batch.analysis.sampleSize,
+              dataSufficient: batch.analysis.dataSufficient,
               avoidPatterns: batch.analysis.avoidPatterns,
               avoidRepeat: batch.analysis.avoidRepeat,
               crowdModelVersion: batch.analysis.crowdModelVersion,

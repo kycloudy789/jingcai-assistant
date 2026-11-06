@@ -336,3 +336,73 @@ test('分析选号：快乐8 同样支持，批次带分析快照', () => {
   assert.equal(r.batch.groups[0].numbers.kl8.length, 10);
   assert.ok(r.batch.crowdSummary.length === 2);
 });
+
+test('分析选号：统计窗口可配，并如实记录实际用了几期', () => {
+  const draws = makeDraws(40);
+  const r30 = generateCandidates({
+    game: 'ssq',
+    strategy: STRATEGY.ANALYZED,
+    count: 1,
+    seed: 'win30',
+    recentDraws: draws,
+    analysis: { window: 30 },
+  });
+  assert.equal(r30.ok, true);
+  assert.equal(r30.batch.analysis.window, 30);
+  assert.equal(r30.batch.analysis.sampleSize, 30);
+  assert.equal(r30.batch.analysis.dataSufficient, true);
+
+  const r100 = generateCandidates({
+    game: 'ssq',
+    strategy: STRATEGY.ANALYZED,
+    count: 1,
+    seed: 'win100',
+    recentDraws: draws,
+    analysis: { window: 100 },
+  });
+  assert.equal(r100.ok, true);
+  assert.equal(r100.batch.analysis.window, 100);
+  assert.equal(r100.batch.analysis.sampleSize, 40, '实际只有 40 期就记 40');
+  assert.equal(r100.batch.analysis.dataSufficient, false);
+});
+
+test('分析选号：窗口只能是 30/50/100', () => {
+  for (const w of [10, 35, 120, 'abc']) {
+    const r = generateCandidates({
+      game: 'ssq',
+      strategy: STRATEGY.ANALYZED,
+      seed: 'badwin',
+      recentDraws: makeDraws(10),
+      analysis: { window: w },
+    });
+    assert.equal(r.ok, false, `window=${w} 应被拒绝`);
+    assert.equal(r.code, CODE.BAD_ANALYSIS);
+  }
+});
+
+test('分析选号：窗口越大，冷号判定越宽（同一批数据）', () => {
+  const draws = makeDraws(60);
+  const short = generateCandidates({
+    game: 'ssq',
+    strategy: STRATEGY.ANALYZED,
+    count: 1,
+    seed: 'cmp-win',
+    recentDraws: draws,
+    analysis: { window: 30, includeCold: 0 },
+  });
+  const long = generateCandidates({
+    game: 'ssq',
+    strategy: STRATEGY.ANALYZED,
+    count: 1,
+    seed: 'cmp-win',
+    recentDraws: draws,
+    analysis: { window: 100, includeCold: 0 },
+  });
+  assert.equal(short.ok, true);
+  assert.equal(long.ok, true);
+  // 100 期窗口覆盖更多历史 → 冷号只会更少或相等
+  assert.ok(
+    long.batch.analysis.coldNumbers.length <= short.batch.analysis.coldNumbers.length,
+    `长窗口冷号 ${long.batch.analysis.coldNumbers.length} 应 ≤ 短窗口 ${short.batch.analysis.coldNumbers.length}`
+  );
+});

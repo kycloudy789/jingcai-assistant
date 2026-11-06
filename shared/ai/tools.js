@@ -239,6 +239,11 @@ const TOOLS = {
               maximum: 100,
               description: '可接受的拥挤度上限（越低越冷门，默认 92）',
             },
+            window: {
+              type: 'integer',
+              enum: [30, 50, 100],
+              description: '统计窗口（期数），用于冷号与上期重号判定，默认 30',
+            },
             sumRange: {
               type: 'array',
               items: { type: 'integer' },
@@ -340,6 +345,13 @@ const TOOLS = {
             }
             clean[key] = n;
           }
+        }
+        if (a.window !== undefined) {
+          const w = Number(a.window);
+          if (![30, 50, 100].includes(w)) {
+            return { ok: false, code: CODE.BAD_ARGS, message: 'window 只能是 30 / 50 / 100' };
+          }
+          clean.window = w;
         }
         for (const key of ['sumRange', 'oddRange']) {
           if (a[key] !== undefined) {

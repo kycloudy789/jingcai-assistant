@@ -80,6 +80,7 @@ const state = {
       avoidPatterns: true,
       avoidRepeat: true,
       includeCold: 0,
+      window: 30,
       sumMin: '',
       sumMax: '',
     },
@@ -481,6 +482,7 @@ function candForm() {
     avoidPatterns: true,
     avoidRepeat: true,
     includeCold: 0,
+    window: 30,
     sumMin: '',
     sumMax: '',
   };
@@ -506,6 +508,7 @@ function readCandForm() {
     avoidPatterns: bool('cand-avoid-patterns', f.avoidPatterns),
     avoidRepeat: bool('cand-avoid-repeat', f.avoidRepeat),
     includeCold: Number(val('cand-cold') || f.includeCold || 0),
+    window: Number(val('cand-window') || f.window || 30),
     sumMin: val('cand-sum-min').trim(),
     sumMax: val('cand-sum-max').trim(),
   };
@@ -517,6 +520,7 @@ function buildAnalysisInput(f) {
     avoidPatterns: f.avoidPatterns !== false,
     avoidRepeat: f.avoidRepeat !== false,
     includeCold: Number(f.includeCold) || 0,
+    window: Number(f.window) || 30,
   };
   if (f.sumMin !== '' && f.sumMax !== '') {
     input.sumRange = [Number(f.sumMin), Number(f.sumMax)];
@@ -569,6 +573,13 @@ function batchMetaLine(b) {
   return `${meta.label} · ${b.count} 注 · 种子 ${b.randomSeed}${b.seedGenerated ? '（自动）' : ''} · ${when}`;
 }
 
+function sampleHint(window) {
+  const available = state.draws.length;
+  const want = Number(window) || 30;
+  if (available >= want) return `本地已同步 ${available} 期，本次按近 ${want} 期统计。`;
+  return `本地只有 ${available} 期，不足 ${want} 期——本次按实际 ${available} 期统计，样本偏小。到「开奖」页同步或跑 npm run publish:data 可补足。`;
+}
+
 function analysisPanel(f) {
   return `
     <div class="analysis-panel">
@@ -576,11 +587,22 @@ function analysisPanel(f) {
       <label class="check-row"><input id="cand-avoid-patterns" type="checkbox" ${f.avoidPatterns ? 'checked' : ''} /> 避开连号、等差、同尾扎堆</label>
       <label class="check-row"><input id="cand-avoid-repeat" type="checkbox" ${f.avoidRepeat ? 'checked' : ''} /> 不含上一期开奖号码</label>
       <div class="form-inline">
+        <label>统计窗口
+          <select id="cand-window">
+            ${[30, 50, 100]
+              .map(
+                (w) =>
+                  `<option value="${w}" ${Number(f.window) === w ? 'selected' : ''}>近 ${w} 期</option>`
+              )
+              .join('')}
+          </select>
+        </label>
         <label>每注至少带几个冷号<input id="cand-cold" type="number" min="0" max="2" value="${f.includeCold}" /></label>
         <label>和值下限<input id="cand-sum-min" type="number" placeholder="默认 ${state.game === GAME.SSQ ? 75 : 300}" value="${esc(f.sumMin)}" /></label>
         <label>和值上限<input id="cand-sum-max" type="number" placeholder="默认 ${state.game === GAME.SSQ ? 130 : 500}" value="${esc(f.sumMax)}" /></label>
       </div>
-      <p class="muted small">冷号 = 近 30 期没出现的号码。这里只把它当"大众较少选"的号码用，不代表它"该开了"——这是两件事。</p>
+      <p class="muted small">${sampleHint(f.window)}</p>
+      <p class="muted small">冷号 = 所选窗口内没出现的号码。这里只把它当"大众较少选"的号码用，不代表它"该开了"——这是两件事。</p>
       <p class="muted small">生成时会采 600 组候选，丢掉不合格的，再按「拥挤度 + 和值偏离惩罚」取最优。</p>
     </div>`;
 }
@@ -670,6 +692,13 @@ function candidatesView() {
           }
           ${batchGroupsHtml(last)}
           ${tradeoffHtml(last.tradeoff)}
+          ${
+            last.analysis
+              ? `<p class="muted small">分析窗口：近 ${last.analysis.window} 期（实际用 ${last.analysis.sampleSize} 期）${
+                  last.analysis.dataSufficient ? '' : ' — 样本不足，冷号与重号判断会偏粗'
+                }</p>`
+              : ''
+          }
           <p class="muted small">导入后是草稿：需要在「我的号码」里逐注确认已购买，才会进入花费与中奖统计。</p>
           <p class="muted small">中奖概率与任何选号方式完全相同；上面这些分析只影响"万一中的是浮动奖，会不会被很多人平分"。</p>
         </section>`

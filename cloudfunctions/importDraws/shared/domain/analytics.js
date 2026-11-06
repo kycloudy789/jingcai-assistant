@@ -162,14 +162,24 @@ function parityDistribution(game, draws, options = {}) {
   const list = sortedDraws(draws).slice(0, window);
   if (!list.length) return { ok: false, code: 'NO_DRAWS', message: '暂无开奖数据' };
 
-  const count = game === GAME.SSQ ? GAME_META[GAME.SSQ].redCount : GAME_META[GAME.KL8].count;
+  // 双色球统计 6 个红球；快乐8 开奖是 20 个号，不能按"选十"的 10 个分桶
+  // （早期版本按 10 分桶，奇数 >10 的期数会被静默丢弃——已修正）
+  const maxLen = Math.max(...list.map((d) => mainNumbers(game, d).length), 0);
   const rows = [];
-  for (let i = 0; i <= count; i += 1) rows.push({ odd: i, even: count - i, count: 0 });
+  for (let i = 0; i <= maxLen; i += 1) rows.push({ odd: i, even: maxLen - i, count: 0 });
   for (const d of list) {
     const odd = mainNumbers(game, d).filter((n) => n % 2 === 1).length;
     if (rows[odd]) rows[odd].count += 1;
   }
-  return { ok: true, game, window, sampleSize: list.length, rows, note: NOTE };
+  return {
+    ok: true,
+    game,
+    window,
+    sampleSize: list.length,
+    ballsPerDraw: maxLen,
+    rows,
+    note: NOTE,
+  };
 }
 
 /** 三区（双色球）/ 四区（快乐8）分布 */
