@@ -164,7 +164,7 @@ const TOOLS = {
       if (raw.window !== undefined) {
         const w = Number(raw.window);
         if (!WINDOWS.includes(w)) {
-          return { ok: false, code: CODE.BAD_ARGS, message: 'window 只能是 30 / 50 / 100' };
+          return { ok: false, code: CODE.BAD_ARGS, message: 'window 只能是 30 / 50 / 100 / 200 / 300' };
         }
         window = w;
       }
@@ -200,9 +200,9 @@ const TOOLS = {
         game: { type: 'string', enum: GAMES },
         strategy: {
           type: 'string',
-          enum: [STRATEGY.RANDOM, STRATEGY.BALANCED, STRATEGY.PREFERENCE, STRATEGY.ANALYZED],
+          enum: [STRATEGY.RANDOM, STRATEGY.PREFERENCE, STRATEGY.ANALYZED],
           description:
-            'random=随机；balanced=分区均衡；preference=偏好约束；analyzed=分析选号（结构合格前提下挑拥挤度最低）',
+            'random=随机；preference=偏好约束；analyzed=分析选号（结构合格前提下挑拥挤度最低）',
         },
         count: { type: 'integer', minimum: 1, maximum: 5, description: '注数，默认 3' },
         targetIssue: { type: 'string', description: '目标期号（7 位），可留空' },
@@ -241,7 +241,7 @@ const TOOLS = {
             },
             window: {
               type: 'integer',
-              enum: [30, 50, 100],
+              enum: [30, 50, 100, 200, 300],
               description: '统计窗口（期数），用于冷号与上期重号判定，默认 30',
             },
             sumRange: {
@@ -271,11 +271,12 @@ const TOOLS = {
       if (!g.ok) return { ok: false, code: CODE.BAD_ARGS, message: g.message };
 
       const strategy = src.strategy || STRATEGY.RANDOM;
-      if (![STRATEGY.RANDOM, STRATEGY.BALANCED, STRATEGY.PREFERENCE, STRATEGY.ANALYZED].includes(strategy)) {
+      // balanced 已停用（D28）：界面不给、AI 也不给，只有历史批次还能显示
+      if (![STRATEGY.RANDOM, STRATEGY.PREFERENCE, STRATEGY.ANALYZED].includes(strategy)) {
         return {
           ok: false,
           code: CODE.BAD_ARGS,
-          message: 'strategy 只能是 random / balanced / preference / analyzed',
+          message: 'strategy 只能是 random / preference / analyzed',
         };
       }
 
@@ -348,8 +349,8 @@ const TOOLS = {
         }
         if (a.window !== undefined) {
           const w = Number(a.window);
-          if (![30, 50, 100].includes(w)) {
-            return { ok: false, code: CODE.BAD_ARGS, message: 'window 只能是 30 / 50 / 100' };
+          if (![30, 50, 100, 200, 300].includes(w)) {
+            return { ok: false, code: CODE.BAD_ARGS, message: 'window 只能是 30 / 50 / 100 / 200 / 300' };
           }
           clean.window = w;
         }

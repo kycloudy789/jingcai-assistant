@@ -844,3 +844,21 @@ input[type="date"] {
   background: #f7f8fa;
   border-radius: 12px;
 }
+
+/* 我的号码：彩种分组 */
+.game-filter {
+  margin: 0 0 12px;
+}
+.game-group {
+  margin-bottom: 18px;
+}
+.group-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 2px 8px;
+  font-size: 13.5px;
+}
+.group-head strong {
+  font-weight: 500;
+}

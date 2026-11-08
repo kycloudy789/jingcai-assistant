@@ -406,3 +406,20 @@ test('分析选号：窗口越大，冷号判定越宽（同一批数据）', ()
     `长窗口冷号 ${long.batch.analysis.coldNumbers.length} 应 ≤ 短窗口 ${short.batch.analysis.coldNumbers.length}`
   );
 });
+
+test('分析选号：窗口支持 200 / 300（需要更多历史）', () => {
+  const draws = makeDraws(320);
+  for (const w of [200, 300]) {
+    const r = generateCandidates({
+      game: 'ssq',
+      strategy: STRATEGY.ANALYZED,
+      count: 1,
+      seed: `win-${w}`,
+      recentDraws: draws,
+      analysis: { window: w },
+    });
+    assert.equal(r.ok, true, `window=${w} 应可用`);
+    assert.equal(r.batch.analysis.window, w);
+    assert.equal(r.batch.analysis.sampleSize, w);
+  }
+});

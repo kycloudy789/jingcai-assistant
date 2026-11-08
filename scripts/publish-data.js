@@ -10,6 +10,9 @@
  *   node scripts/publish-data.js                 # 抓 60 期并推送
  *   node scripts/publish-data.js --count 20      # 只抓 20 期
  *   node scripts/publish-data.js --dry-run       # 只抓不改仓库
+ *   node scripts/publish-data.js --backfill 300  # 顺便把历史补到 300 期
+ *
+ * 行为：数据没有实际变化时**不会产生空提交**（每天定时跑也不会刷屏）。
  *
  * 前置：本机已 `gh auth login`（用 GitHub API，不依赖 github.com:443 的 git 通道）。
  */
@@ -22,6 +25,10 @@ const args = process.argv.slice(2);
 const dryRun = args.includes('--dry-run');
 const countIdx = args.indexOf('--count');
 const count = countIdx >= 0 ? Number(args[countIdx + 1]) || 60 : 60;
+const backfillIdx = args.indexOf('--backfill');
+const backfill = backfillIdx >= 0 ? Number(args[backfillIdx + 1]) || 0 : 0;
+const keepIdx = args.indexOf('--keep');
+const keep = keepIdx >= 0 ? Number(args[keepIdx + 1]) || 300 : 300;
 
 const PUSH_PATHS = ['web/data/draws', 'web/data/samples'];
 
@@ -67,7 +74,9 @@ function listFiles() {
 
 (async () => {
   console.log(`[1/3] 抓取官方开奖（${count} 期）…`);
-  run(`node scripts/sync-to-json.js --count ${count} --keep 300`, { stdio: 'inherit' });
+  run(`node scripts/sync-to-json.js --count ${count} --backfill ${backfill} --keep ${keep}`, {
+    stdio: 'inherit',
+  });
 
   if (dryRun) {
     console.log('[dry-run] 已跳过推送。');
@@ -84,17 +93,38 @@ function listFiles() {
   const parentCommit = await api(base, `/git/commits/${parentSha}`, null, token);
 
   const files = listFiles();
-  const blobs = [];
+
+  // 先比对：本地文件与远端同一路径的 blob sha 完全一致时，说明数据没变，直接跳过
+  const treeRes = await api(base, `/git/trees/${parentCommit.tree.sha}?recursive=1`, null, token);
+  const remoteSha = new Map((treeRes.tree || []).map((e) => [e.path, e.sha]));
+
+  const crypto = require('crypto');
+  const blobSha = (buf) =>
+    crypto.createHash('sha1').update(`blob ${buf.length}\0`).update(buf).digest('hex');
+
+  const pending = [];
   for (const file of files) {
-    const content = fs.readFileSync(path.join(ROOT, file)).toString('base64');
+    const buf = fs.readFileSync(path.join(ROOT, file));
+    const local = blobSha(buf);
+    if (remoteSha.get(file) === local) continue;
+    pending.push({ file, buf });
+  }
+
+  if (!pending.length) {
+    console.log('[2/3] 数据无变化，跳过提交（不产生空 commit）。');
+    return;
+  }
+
+  const blobs = [];
+  for (const { file, buf } of pending) {
     const blob = await api(base, '/git/blobs', {
       method: 'POST',
-      body: JSON.stringify({ content, encoding: 'base64' }),
+      body: JSON.stringify({ content: buf.toString('base64'), encoding: 'base64' }),
     }, token);
     blobs.push({ path: file, mode: '100644', type: 'blob', sha: blob.sha });
     process.stdout.write('.');
   }
-  console.log(`\n  上传 ${blobs.length} 个文件`);
+  console.log(`\n  上传 ${blobs.length} 个文件（共 ${files.length} 个，其余未变）`);
 
   // 基于现有树，只覆盖数据目录，避免影响其它文件
   const tree = await api(base, '/git/trees', {

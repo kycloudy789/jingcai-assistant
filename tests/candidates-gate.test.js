@@ -87,7 +87,7 @@ test('闸门开启：schema 多出 generate_candidates，且参数有 enum 约�
   const tool = schemas.find((t) => t.function.name === 'generate_candidates');
   assert.ok(tool, '应包含生成工具');
   assert.deepEqual(tool.function.parameters.properties.game.enum, ['ssq', 'kl8']);
-  assert.deepEqual(tool.function.parameters.properties.strategy.enum, ['random', 'balanced', 'preference', 'analyzed']);
+  assert.deepEqual(tool.function.parameters.properties.strategy.enum, ['random', 'preference', 'analyzed']);
   assert.equal(tool.function.parameters.properties.count.maximum, 5);
   assert.equal(tool.function.parameters.additionalProperties, false);
 });

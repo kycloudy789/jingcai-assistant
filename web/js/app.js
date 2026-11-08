@@ -62,6 +62,7 @@ const state = {
   ai: { messages: [], busy: false, error: '', keyDraft: '', notice: '' },
   analytics: null,
   window: 30,
+  ticketGame: 'all',
   restore: null,
   candidates: {
     gate: null,
@@ -324,6 +325,18 @@ function ticketDetail(t, check) {
   return `<div class="detail"><div class="actions"><button class="btn danger-outline" data-act="delete" data-id="${t.id}">永久删除</button></div></div>`;
 }
 
+function purchaseDateText(t) {
+  if (t.purchaseStatus !== PURCHASE_STATUS.CONFIRMED) {
+    return t.purchaseStatus === PURCHASE_STATUS.VOID ? '已作废' : '未确认购买';
+  }
+  if (!t.purchaseAt) return '购买日期未记录';
+  const d = new Date(t.purchaseAt);
+  if (Number.isNaN(d.getTime())) return '购买日期未记录';
+  return `购买于 ${String(d.getFullYear())}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
+    d.getDate()
+  ).padStart(2, '0')}`;
+}
+
 function ticketCard(t) {
   const c = state.checks.get(t.id);
   let badge = '';
@@ -347,7 +360,7 @@ function ticketCard(t) {
       <div class="row-foot">
         <span class="muted">${t.multiple} 倍 · ${
           t.actualCost === null || t.actualCost === undefined ? '金额待补录' : `${t.actualCost} 元`
-        }</span>
+        } · ${purchaseDateText(t)}</span>
         <span class="link">${open ? '收起' : '详情'}</span>
       </div>
       ${open ? ticketDetail(t, c) : ''}
@@ -449,6 +462,32 @@ function ticketForm() {
 
 function ticketsView() {
   const counts = state.stats ? state.stats.counts : { draft: 0, confirmed: 0, void: 0 };
+  const filter = state.ticketGame || 'all';
+  const visible = state.tickets.filter((t) => filter === 'all' || t.game === filter);
+
+  const groupOf = (game) => visible.filter((t) => t.game === game);
+  const ssq = groupOf(GAME.SSQ);
+  const kl8 = groupOf(GAME.KL8);
+
+  const section = (game, items) =>
+    items.length
+      ? `<div class="game-group">
+          <div class="group-head">
+            <strong>${GAME_META[game].shortName}</strong>
+            <span class="muted">${items.length} 注</span>
+          </div>
+          <div class="list">${items.map(ticketCard).join('')}</div>
+        </div>`
+      : '';
+
+  const empty =
+    visible.length === 0 && !state.form
+      ? emptyBlock(
+          filter === 'all' ? '还没有号码记录' : `还没有${GAME_META[filter].shortName}的记录`,
+          '点「新增号码」手动录入或随机生成。候选/随机号码也只生成草稿，必须你确认购买后才计入统计与判奖。'
+        )
+      : '';
+
   return `
     <div class="toolbar">
       <span class="muted">草稿 ${counts.draft || 0} · 已购买 ${counts.confirmed || 0} · 已作废 ${counts.void || 0}</span>
@@ -457,19 +496,29 @@ function ticketsView() {
         <button class="btn primary" data-act="new-ticket">新增号码</button>
       </div>
     </div>
+    <div class="segmented game-filter">
+      ${[
+        { key: 'all', label: `全部 ${state.tickets.length}` },
+        { key: GAME.SSQ, label: `${GAME_META[GAME.SSQ].shortName} ${state.tickets.filter((t) => t.game === GAME.SSQ).length}` },
+        { key: GAME.KL8, label: `${GAME_META[GAME.KL8].shortName} ${state.tickets.filter((t) => t.game === GAME.KL8).length}` },
+      ]
+        .map(
+          (o) =>
+            `<button class="seg ${filter === o.key ? 'on' : ''}" data-act="ticket-game" data-game="${o.key}">${o.label}</button>`
+        )
+        .join('')}
+    </div>
     ${state.form ? ticketForm() : ''}
-    ${
-      state.tickets.length === 0 && !state.form
-        ? emptyBlock('还没有号码记录', '点「新增号码」手动录入或随机生成。候选/随机号码也只生成草稿，必须你确认购买后才计入统计与判奖。')
-        : ''
-    }
-    <div class="list">${state.tickets.map(ticketCard).join('')}</div>`;
+    ${empty}
+    ${section(GAME.SSQ, ssq)}
+    ${section(GAME.KL8, kl8)}`;
 }
 
 /* ---------------- 选号：候选组合（阶段 6） ---------------- */
 
-const STRATEGY_ORDER = ['random', 'balanced', 'preference', 'analyzed'];
-const ANALYTICS_WINDOWS = [30, 50, 100];
+// balanced 已从界面移除（历史批次仍可展示，故 STRATEGY_META 保留它）
+const STRATEGY_ORDER = ['random', 'preference', 'analyzed'];
+const ANALYTICS_WINDOWS = [30, 50, 100, 200, 300];
 
 function candForm() {
   return {
@@ -589,12 +638,10 @@ function analysisPanel(f) {
       <div class="form-inline">
         <label>统计窗口
           <select id="cand-window">
-            ${[30, 50, 100]
-              .map(
+            ${ANALYTICS_WINDOWS.map(
                 (w) =>
                   `<option value="${w}" ${Number(f.window) === w ? 'selected' : ''}>近 ${w} 期</option>`
-              )
-              .join('')}
+              ).join('')}
           </select>
         </label>
         <label>每注至少带几个冷号<input id="cand-cold" type="number" min="0" max="2" value="${f.includeCold}" /></label>
@@ -1199,6 +1246,12 @@ async function onAction(act, el) {
     render();
     return;
   }
+  if (act === 'ticket-game') {
+    state.ticketGame = el.dataset.game;
+    state.detail = null;
+    render();
+    return;
+  }
   if (act === 'draw-toggle' || act === 'ticket-toggle') {
     state.detail = state.detail === id ? null : id;
     render();
@@ -1600,6 +1653,7 @@ async function boot() {
   if (!state.draws.length) {
     await syncDraws();
   }
+
 
 
 

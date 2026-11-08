@@ -3,7 +3,14 @@
  * 抓取官方开奖 → 生成静态站可用的 JSON（web/data/draws/{ssq,kl8}.json）。
  * 供 GitHub Actions 定时执行；也可本地手动跑。
  *
- * 用法：node scripts/sync-to-json.js [--count 60] [--keep 300]
+ * 用法：
+ *   node scripts/sync-to-json.js                  # 抓最新 60 期，合并后保留 300 期
+ *   node scripts/sync-to-json.js --count 100 --keep 300
+ *   node scripts/sync-to-json.js --backfill 300   # 额外回溯历史，把库补到 300 期
+ *
+ * 回溯实现（实测）：
+ *   双色球 —— 支持 pageNo 翻页（pageSize 100 生效），逐页往前。
+ *   快乐8 —— 忽略 pageNo，必须用 issueStart/issueEnd 区间，按 100 期一段往前切。
  */
 const fs = require('fs');
 const path = require('path');
@@ -25,6 +32,7 @@ const readNum = (flag, fallback) => {
 };
 const COUNT = readNum('--count', 60);
 const KEEP = readNum('--keep', 300);
+const BACKFILL = readNum('--backfill', 0);
 
 const KEEP_FIELDS = [
   'game',
@@ -110,16 +118,83 @@ const { sha256Raw } = (() => {
   };
 })();
 
-async function syncGame(game) {
-  const url = buildQueryUrl({ game, mode: 'incremental', issueCount: Math.min(COUNT, 100) });
-  const payload = await fetchJson(url);
+function assertPayload(payload, label) {
   if (!payload || Number(payload.state) !== 0 || !Array.isArray(payload.result)) {
-    throw new Error(`官方返回异常: state=${payload && payload.state}`);
+    throw new Error(`${label} 官方返回异常: state=${payload && payload.state}`);
+  }
+  return payload.result;
+}
+
+/** 抓最新 N 期 */
+async function fetchLatest(game, count) {
+  const url = buildQueryUrl({ game, mode: 'incremental', issueCount: Math.min(count, 100) });
+  const payload = await fetchJson(url);
+  return { raws: assertPayload(payload, 'latest'), requests: 1 };
+}
+
+/**
+ * 回溯历史。
+ * 双色球：pageNo 翻页，每页 100。
+ * 快乐8：issue 区间，每段 100 期，跨年时回到上一年 999。
+ */
+async function fetchBackfill(game, want, latestIssue) {
+  const raws = [];
+  let requests = 0;
+
+  if (game === 'ssq') {
+    const pages = Math.ceil(want / 100);
+    for (let p = 1; p <= pages; p += 1) {
+      const url = buildQueryUrl({ game, mode: 'page', pageNo: p });
+      const payload = await fetchJson(url);
+      requests += 1;
+      const list = assertPayload(payload, `page${p}`);
+      raws.push(...list);
+      if (list.length < 100) break;
+    }
+    return { raws, requests };
   }
 
+  // 快乐8 忽略 pageNo，只能用 issue 区间。策略：
+  //   1. 从锚点期号往前切 100 期一段；
+  //   2. 切到本年 001 后，下一年先用 001-999 探测（接口会返回该年最新的 100 期）；
+  //   3. 用实际返回的最小期号继续往前，而不是靠"999 减 100"凭空猜。
+  let year = Number(String(latestIssue).slice(0, 4));
+  let end = Number(String(latestIssue).slice(4));
+  let remaining = want;
+
+  while (remaining > 0 && year >= 2021) {
+    const size = Math.min(100, remaining);
+    const start = end >= 999 ? 1 : Math.max(1, end - size + 1);
+    const issueStart = `${year}${String(start).padStart(3, '0')}`;
+    const issueEnd = `${year}${String(end).padStart(3, '0')}`;
+    const url = buildQueryUrl({ game, mode: 'issue', issueStart, issueEnd });
+    const payload = await fetchJson(url);
+    requests += 1;
+
+    const list = payload && Number(payload.state) === 0 && Array.isArray(payload.result) ? payload.result : [];
+    if (list.length) {
+      raws.push(...list);
+      const minIssue = list.reduce((acc, r) => Math.min(acc, Number(r.code)), Number(list[0].code));
+      remaining -= list.length;
+      end = Number(String(minIssue).slice(4)) - 1;
+      if (end < 1) {
+        year -= 1;
+        end = 999;
+      }
+    } else {
+      // 这一段确实没有数据（例如某年没有这么多期），退到上一年重试
+      year -= 1;
+      end = 999;
+    }
+  }
+
+  return { raws, requests };
+}
+
+async function syncGame(game, rawList, requestCount, apiUrl) {
   const fresh = [];
   const errors = [];
-  for (const raw of payload.result) {
+  for (const raw of rawList) {
     const mapped = mapRecord(game, raw, { fetchedAt: new Date().toISOString() });
     if (!mapped.ok) {
       errors.push({ issue: raw && raw.code, message: mapped.message });
@@ -164,7 +239,7 @@ async function syncGame(game) {
         game,
         generatedAt: new Date().toISOString(),
         source: 'https://www.cwl.gov.cn',
-        sourceApi: url.split('?')[0],
+        sourceApi: apiUrl,
         parserVersion: PARSER_VERSION,
         count: records.length,
         latestIssue: records.length ? records[0].issue : null,
@@ -175,7 +250,7 @@ async function syncGame(game) {
     )
   );
 
-  return { game, fetched: payload.result.length, kept: records.length, added, updated, errors };
+  return { game, fetched: rawList.length, requests: requestCount, kept: records.length, added, updated, errors };
 }
 
 async function main() {
@@ -184,10 +259,31 @@ async function main() {
 
   for (const game of ['ssq', 'kl8']) {
     try {
-      const r = await syncGame(game);
+      const latest = await fetchLatest(game, COUNT);
+      let raws = latest.raws;
+      let requests = latest.requests;
+
+      if (BACKFILL > 0) {
+        const anchor = raws.length ? raws[0].code : null;
+        if (anchor) {
+          // 回溯请求数按总量算，重叠部分交给后面的去重（少算会差一整页）
+          const more = await fetchBackfill(game, BACKFILL, anchor);
+          raws = raws.concat(more.raws);
+          requests += more.requests;
+        }
+      }
+
+      // 去重（同一期可能被最新与回溯都抓到）
+      const byIssue = new Map();
+      for (const raw of raws) {
+        if (raw && raw.code) byIssue.set(String(raw.code), raw);
+      }
+
+      const apiUrl = buildQueryUrl({ game, mode: 'incremental', issueCount: 1 }).split('?')[0];
+      const r = await syncGame(game, Array.from(byIssue.values()), requests, apiUrl);
       results.push(r);
       console.log(
-        `✓ ${game}: 抓取 ${r.fetched} 期，新增 ${r.added}，更新 ${r.updated}，库内 ${r.kept} 期` +
+        `✓ ${game}: 请求 ${r.requests} 次，抓取 ${r.fetched} 期，新增 ${r.added}，更新 ${r.updated}，库内 ${r.kept} 期` +
           (r.errors.length ? `，跳过 ${r.errors.length} 条` : '')
       );
     } catch (err) {

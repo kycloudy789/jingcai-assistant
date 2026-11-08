@@ -84,18 +84,22 @@ GitHub 托管的 Runner 访问中国福彩网，会被**网宿云安全平台按
 - **推荐做法：本机一条命令发布**（本机能正常访问福彩网）：
 
 ```bash
-npm run publish:data                 # 抓 60 期 + 通过 GitHub API 推送到仓库
-npm run publish:data -- --count 20   # 只抓 20 期
+npm run publish:data                 # 抓最新 100 期 + 通过 GitHub API 推送（无变化不提交）
+npm run sync:history                 # 补历史：各彩种补到 300 期（双色球翻页 / 快乐8 区间）
 npm run publish:data -- --dry-run    # 只抓不推
+npm run task:install                 # 装成 Windows 计划任务：每天 21:35 / 22:20 自动跑
+npm run task:remove                  # 卸载计划任务
 ```
+
+计划任务跑的是同一个 `publish-data.js`；数据没变化时不会产生空提交，所以每天跑两次也不会刷屏。
 
 它会：本地抓取 → 校验 → 写入 `web/data/draws/*.json` → 用 `gh` 凭据通过 **GitHub API** 提交 → Pages 1–2 分钟内自动重建。
 
 > 为什么走 API 而不是 `git push`：本机实测 `github.com:443` 连接被重置，
 > 但 `api.github.com` 正常。脚本因此绕开 git 通道。
 
-想全自动：Windows「任务计划程序」→ 新建任务 → 操作选「启动程序」，
-程序填 `npm`，参数填 `run publish:data`，起始位置填项目目录。电脑开机时每天跑一次即可。
+> 全自动已经内置：`npm run task:install` 会注册名为 `JingcaiDailyDrawSync` 的计划任务
+> （每天 21:35 与 22:20，错过会尽快补跑）。前提是这台电脑开着且已登录。
 
 ## 3.6 AI 助手怎么开
 
@@ -113,9 +117,9 @@ npm run publish:data -- --dry-run    # 只抓不推
 
 1. 顶部「选号」页 → 阅读说明 → 勾选（可选：同时允许 AI 调用）→ 点「我已了解，开启」
 2. 选彩种、策略、注数，填目标期号 → 点「生成」。策略选「分析选号」时会多出一栏分析权重：
+   - 统计窗口（近 30 / 50 / 100 / 200 / 300 期，默认 30）
    - 避开连号、等差、同尾扎堆
    - 不含上一期开奖号码
-   - 统计窗口（近 30 / 50 / 100 期，默认 30）
    - 每注至少带几个冷号（0–2）
    - 和值上下限（留空用默认：双色球 75–130，快乐8 300–500）
 3. 看结果 → 点「导入为草稿」→ 到「我的号码」逐注确认已购买

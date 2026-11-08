@@ -220,7 +220,9 @@ function buildQueryUrl(params) {
 
   const query = { name, pageNo: pageNo || 1, pageSize: 100, systemType: 'PC' };
 
-  if (mode === 'incremental') {
+  if (mode === 'page') {
+    // 纯分页：不传 issueCount，靠 pageNo 往前翻（双色球支持，每页 100）
+  } else if (mode === 'incremental') {
     const count = Math.min(Math.max(Number(issueCount) || 30, 1), MAX_ISSUE_COUNT);
     query.issueCount = count;
   } else if (mode === 'issue') {

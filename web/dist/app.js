@@ -95,6 +95,7 @@ const state = {
   ai: { messages: [], busy: false, error: '', keyDraft: '', notice: '' },
   analytics: null,
   window: 30,
+  ticketGame: 'all',
   restore: null,
   candidates: {
     gate: null,
@@ -357,6 +358,18 @@ function ticketDetail(t, check) {
   return `<div class="detail"><div class="actions"><button class="btn danger-outline" data-act="delete" data-id="${t.id}">永久删除</button></div></div>`;
 }
 
+function purchaseDateText(t) {
+  if (t.purchaseStatus !== PURCHASE_STATUS.CONFIRMED) {
+    return t.purchaseStatus === PURCHASE_STATUS.VOID ? '已作废' : '未确认购买';
+  }
+  if (!t.purchaseAt) return '购买日期未记录';
+  const d = new Date(t.purchaseAt);
+  if (Number.isNaN(d.getTime())) return '购买日期未记录';
+  return `购买于 ${String(d.getFullYear())}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
+    d.getDate()
+  ).padStart(2, '0')}`;
+}
+
 function ticketCard(t) {
   const c = state.checks.get(t.id);
   let badge = '';
@@ -380,7 +393,7 @@ function ticketCard(t) {
       <div class="row-foot">
         <span class="muted">${t.multiple} 倍 · ${
           t.actualCost === null || t.actualCost === undefined ? '金额待补录' : `${t.actualCost} 元`
-        }</span>
+        } · ${purchaseDateText(t)}</span>
         <span class="link">${open ? '收起' : '详情'}</span>
       </div>
       ${open ? ticketDetail(t, c) : ''}
@@ -482,6 +495,32 @@ function ticketForm() {
 
 function ticketsView() {
   const counts = state.stats ? state.stats.counts : { draft: 0, confirmed: 0, void: 0 };
+  const filter = state.ticketGame || 'all';
+  const visible = state.tickets.filter((t) => filter === 'all' || t.game === filter);
+
+  const groupOf = (game) => visible.filter((t) => t.game === game);
+  const ssq = groupOf(GAME.SSQ);
+  const kl8 = groupOf(GAME.KL8);
+
+  const section = (game, items) =>
+    items.length
+      ? `<div class="game-group">
+          <div class="group-head">
+            <strong>${GAME_META[game].shortName}</strong>
+            <span class="muted">${items.length} 注</span>
+          </div>
+          <div class="list">${items.map(ticketCard).join('')}</div>
+        </div>`
+      : '';
+
+  const empty =
+    visible.length === 0 && !state.form
+      ? emptyBlock(
+          filter === 'all' ? '还没有号码记录' : `还没有${GAME_META[filter].shortName}的记录`,
+          '点「新增号码」手动录入或随机生成。候选/随机号码也只生成草稿，必须你确认购买后才计入统计与判奖。'
+        )
+      : '';
+
   return `
     <div class="toolbar">
       <span class="muted">草稿 ${counts.draft || 0} · 已购买 ${counts.confirmed || 0} · 已作废 ${counts.void || 0}</span>
@@ -490,19 +529,29 @@ function ticketsView() {
         <button class="btn primary" data-act="new-ticket">新增号码</button>
       </div>
     </div>
+    <div class="segmented game-filter">
+      ${[
+        { key: 'all', label: `全部 ${state.tickets.length}` },
+        { key: GAME.SSQ, label: `${GAME_META[GAME.SSQ].shortName} ${state.tickets.filter((t) => t.game === GAME.SSQ).length}` },
+        { key: GAME.KL8, label: `${GAME_META[GAME.KL8].shortName} ${state.tickets.filter((t) => t.game === GAME.KL8).length}` },
+      ]
+        .map(
+          (o) =>
+            `<button class="seg ${filter === o.key ? 'on' : ''}" data-act="ticket-game" data-game="${o.key}">${o.label}</button>`
+        )
+        .join('')}
+    </div>
     ${state.form ? ticketForm() : ''}
-    ${
-      state.tickets.length === 0 && !state.form
-        ? emptyBlock('还没有号码记录', '点「新增号码」手动录入或随机生成。候选/随机号码也只生成草稿，必须你确认购买后才计入统计与判奖。')
-        : ''
-    }
-    <div class="list">${state.tickets.map(ticketCard).join('')}</div>`;
+    ${empty}
+    ${section(GAME.SSQ, ssq)}
+    ${section(GAME.KL8, kl8)}`;
 }
 
 /* ---------------- 选号：候选组合（阶段 6） ---------------- */
 
-const STRATEGY_ORDER = ['random', 'balanced', 'preference', 'analyzed'];
-const ANALYTICS_WINDOWS = [30, 50, 100];
+// balanced 已从界面移除（历史批次仍可展示，故 STRATEGY_META 保留它）
+const STRATEGY_ORDER = ['random', 'preference', 'analyzed'];
+const ANALYTICS_WINDOWS = [30, 50, 100, 200, 300];
 
 function candForm() {
   return {
@@ -622,12 +671,10 @@ function analysisPanel(f) {
       <div class="form-inline">
         <label>统计窗口
           <select id="cand-window">
-            ${[30, 50, 100]
-              .map(
+            ${ANALYTICS_WINDOWS.map(
                 (w) =>
                   `<option value="${w}" ${Number(f.window) === w ? 'selected' : ''}>近 ${w} 期</option>`
-              )
-              .join('')}
+              ).join('')}
           </select>
         </label>
         <label>每注至少带几个冷号<input id="cand-cold" type="number" min="0" max="2" value="${f.includeCold}" /></label>
@@ -1232,6 +1279,12 @@ async function onAction(act, el) {
     render();
     return;
   }
+  if (act === 'ticket-game') {
+    state.ticketGame = el.dataset.game;
+    state.detail = null;
+    render();
+    return;
+  }
   if (act === 'draw-toggle' || act === 'ticket-toggle') {
     state.detail = state.detail === id ? null : id;
     render();
@@ -1633,6 +1686,7 @@ async function boot() {
   if (!state.draws.length) {
     await syncDraws();
   }
+
 
 
 
@@ -3913,7 +3967,7 @@ const ANALYSIS_DEFAULTS = {
 };
 
 /** 冷号统计窗口：只能从这几个值里选（与统计页保持一致） */
-const ANALYSIS_WINDOWS = [30, 50, 100];
+const ANALYSIS_WINDOWS = [30, 50, 100, 200, 300];
 
 /** 每注采多少个候选再挑最优；越大越"冷门"，也越慢（本地毫秒级） */
 const ANALYSIS_SAMPLES = 600;
@@ -3949,7 +4003,7 @@ function normalizeAnalysisParams(game, raw) {
 
   let window = src.window === undefined || src.window === null ? ANALYSIS_DEFAULTS.window : Number(src.window);
   if (!ANALYSIS_WINDOWS.includes(window)) {
-    return { ok: false, code: CODE.BAD_ANALYSIS, message: 'window 只能是 30 / 50 / 100' };
+    return { ok: false, code: CODE.BAD_ANALYSIS, message: 'window 只能是 30 / 50 / 100 / 200 / 300' };
   }
 
   const sumRange = rangeOr(src.sumRange, game === GAME.SSQ ? [75, 130] : [300, 500]);
@@ -4816,7 +4870,7 @@ __define("shared/domain/analytics.js", function(module, exports, require){
 const { GAME, GAME_META } = require('../constants/games');
 
 const ANALYTICS_VERSION = 'analytics@1.0.0';
-const WINDOWS = [30, 50, 100];
+const WINDOWS = [30, 50, 100, 200, 300];
 
 const NOTE =
   '以上均为历史描述性统计：它说明过去发生了什么，不预示下一期。样本量越小，波动越大。';
@@ -5962,7 +6016,9 @@ function buildQueryUrl(params) {
 
   const query = { name, pageNo: pageNo || 1, pageSize: 100, systemType: 'PC' };
 
-  if (mode === 'incremental') {
+  if (mode === 'page') {
+    // 纯分页：不传 issueCount，靠 pageNo 往前翻（双色球支持，每页 100）
+  } else if (mode === 'incremental') {
     const count = Math.min(Math.max(Number(issueCount) || 30, 1), MAX_ISSUE_COUNT);
     query.issueCount = count;
   } else if (mode === 'issue') {
@@ -6499,7 +6555,7 @@ const TOOLS = {
       if (raw.window !== undefined) {
         const w = Number(raw.window);
         if (!WINDOWS.includes(w)) {
-          return { ok: false, code: CODE.BAD_ARGS, message: 'window 只能是 30 / 50 / 100' };
+          return { ok: false, code: CODE.BAD_ARGS, message: 'window 只能是 30 / 50 / 100 / 200 / 300' };
         }
         window = w;
       }
@@ -6535,9 +6591,9 @@ const TOOLS = {
         game: { type: 'string', enum: GAMES },
         strategy: {
           type: 'string',
-          enum: [STRATEGY.RANDOM, STRATEGY.BALANCED, STRATEGY.PREFERENCE, STRATEGY.ANALYZED],
+          enum: [STRATEGY.RANDOM, STRATEGY.PREFERENCE, STRATEGY.ANALYZED],
           description:
-            'random=随机；balanced=分区均衡；preference=偏好约束；analyzed=分析选号（结构合格前提下挑拥挤度最低）',
+            'random=随机；preference=偏好约束；analyzed=分析选号（结构合格前提下挑拥挤度最低）',
         },
         count: { type: 'integer', minimum: 1, maximum: 5, description: '注数，默认 3' },
         targetIssue: { type: 'string', description: '目标期号（7 位），可留空' },
@@ -6576,7 +6632,7 @@ const TOOLS = {
             },
             window: {
               type: 'integer',
-              enum: [30, 50, 100],
+              enum: [30, 50, 100, 200, 300],
               description: '统计窗口（期数），用于冷号与上期重号判定，默认 30',
             },
             sumRange: {
@@ -6606,11 +6662,12 @@ const TOOLS = {
       if (!g.ok) return { ok: false, code: CODE.BAD_ARGS, message: g.message };
 
       const strategy = src.strategy || STRATEGY.RANDOM;
-      if (![STRATEGY.RANDOM, STRATEGY.BALANCED, STRATEGY.PREFERENCE, STRATEGY.ANALYZED].includes(strategy)) {
+      // balanced 已停用（D28）：界面不给、AI 也不给，只有历史批次还能显示
+      if (![STRATEGY.RANDOM, STRATEGY.PREFERENCE, STRATEGY.ANALYZED].includes(strategy)) {
         return {
           ok: false,
           code: CODE.BAD_ARGS,
-          message: 'strategy 只能是 random / balanced / preference / analyzed',
+          message: 'strategy 只能是 random / preference / analyzed',
         };
       }
 
@@ -6683,8 +6740,8 @@ const TOOLS = {
         }
         if (a.window !== undefined) {
           const w = Number(a.window);
-          if (![30, 50, 100].includes(w)) {
-            return { ok: false, code: CODE.BAD_ARGS, message: 'window 只能是 30 / 50 / 100' };
+          if (![30, 50, 100, 200, 300].includes(w)) {
+            return { ok: false, code: CODE.BAD_ARGS, message: 'window 只能是 30 / 50 / 100 / 200 / 300' };
           }
           clean.window = w;
         }

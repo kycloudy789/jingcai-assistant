@@ -158,3 +158,23 @@ node scripts/import-draws.js my-draws.csv --out data/import/draws.ndjson
 - 不绕过验证码/登录；不伪造 Referer 规避风控。
 - 存 `sourceUrl` 与 `rawHash`，可回溯到官方页面。
 - 接口为官方站点自用接口，**无稳定性承诺**；这也是保留 CSV 兜底的根本原因。
+
+
+---
+
+## 补历史：分页与区间（2026-11-06 实测）
+
+| 彩种 | pageNo 翻页 | 说明 |
+|---|---|---|
+| 双色球 | ✅ 支持 | `pageNo=2&pageSize=100` 返回下一批 100 期（实测 2026027→2025079） |
+| 快乐8 | ❌ 忽略 | 传 `pageNo=2` 仍返回同一页，`total` 恒为 100 |
+
+快乐8 必须用期号区间：`issueStart=2025251&issueEnd=2025350` 正常返回。
+跨年时用 `issueStart=2025001&issueEnd=2025999`，接口会返回该年**最新 100 期**，
+再用返回的最小期号继续往前——不要用"999 减 100"凭空猜，会撞到不存在的期号（`state=1`）。
+
+实现见 `scripts/sync-to-json.js` 的 `fetchBackfill()`；命令：
+
+```bash
+npm run sync:history      # 各彩种补到 300 期
+```

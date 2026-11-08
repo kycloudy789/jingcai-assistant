@@ -12,7 +12,7 @@
 const { GAME, GAME_META } = require('../constants/games');
 
 const ANALYTICS_VERSION = 'analytics@1.0.0';
-const WINDOWS = [30, 50, 100];
+const WINDOWS = [30, 50, 100, 200, 300];
 
 const NOTE =
   '以上均为历史描述性统计：它说明过去发生了什么，不预示下一期。样本量越小，波动越大。';
