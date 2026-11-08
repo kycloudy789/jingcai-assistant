@@ -1,13 +1,52 @@
 {
  "schema": "jingcai-draws@1",
  "game": "ssq",
- "generatedAt": "2026-11-08T08:48:13.731Z",
+ "generatedAt": "2026-11-08T18:32:07.833Z",
  "source": "https://www.500.com（第三方兜底；官方数据优先）",
  "sourceType": "third_party:500.com",
  "parserVersion": "thirdparty500@1.0.0",
- "count": 2085,
- "latestIssue": "2026127",
+ "count": 2086,
+ "latestIssue": "2026128",
  "records": [
+  {
+   "game": "ssq",
+   "issue": "2026128",
+   "drawDate": "2026-11-08",
+   "numbers": {
+    "red": [
+     5,
+     6,
+     10,
+     25,
+     27,
+     30
+    ],
+    "blue": 11,
+    "kl8": []
+   },
+   "prizeInfo": {
+    "first": {
+     "count": 4,
+     "amount": 10000000
+    },
+    "second": {
+     "count": 161,
+     "amount": 175266
+    },
+    "fuyun": null
+   },
+   "specialRuleStatus": "unknown",
+   "ruleVersion": "ssq_2026_02_01",
+   "sourceUrl": "https://datachart.500.com/ssq/history/newinc/history.php?start=26117&end=26128",
+   "sourceType": "third_party:500.com",
+   "parserVersion": "thirdparty500@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-08T18:32:07.829Z",
+   "verifiedBy": "third_party:500.com",
+   "salesAmount": 442016354,
+   "poolAmount": 1174385127,
+   "rawHash": null
+  },
   {
    "game": "ssq",
    "issue": "2026127",
