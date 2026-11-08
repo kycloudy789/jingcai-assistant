@@ -211,6 +211,10 @@ function prizeRows(draw) {
     .join('');
 }
 
+function isThirdParty(d) {
+  return /^third_party/.test(String((d && d.sourceType) || ''));
+}
+
 function drawsView() {
   const sync = state.syncInfo || {};
   return `
@@ -237,7 +241,7 @@ function drawsView() {
               <strong>${d.issue}</strong>
               <span class="muted">${d.drawDate}</span>
             </div>
-            <span class="badge ok">已核验</span>
+            <span class="badge ${isThirdParty(d) ? 'warn' : 'ok'}">${isThirdParty(d) ? '第三方同步' : '已核验'}</span>
           </div>
           ${balls(d.numbers, d.game)}
           <div class="row-foot">
@@ -253,8 +257,17 @@ function drawsView() {
               <tbody>${prizeRows(d)}</tbody>
             </table>
             <p class="muted small">来源：${
-              d.sourceUrl ? `<a href="${esc(d.sourceUrl)}" target="_blank" rel="noreferrer">中国福彩网公告</a>` : '未知'
+              d.sourceUrl
+                ? `<a href="${esc(d.sourceUrl)}" target="_blank" rel="noreferrer">${
+                    isThirdParty(d) ? '500.com（第三方）' : '中国福彩网公告'
+                  }</a>`
+                : '未知'
             } · 解析器 ${esc(d.parserVersion || '—')} · 核验 ${esc((d.verifiedAt || '').slice(0, 10))}</p>
+            ${
+              isThirdParty(d)
+                ? '<p class="muted small">这条开奖由第三方站点同步（官方接口在云端被拦）。号码结构已校验；如需彻底确认，本机跑一次 npm run publish:data 会用官方数据覆盖并升级来源。</p>'
+                : ''
+            }
             <p class="muted small">浮动奖金额取自当期公告；当期无人中或未公布时显示为待公告，不做估算。</p>
           </div>`
               : ''
