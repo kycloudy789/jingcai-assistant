@@ -297,12 +297,15 @@ function ticketDetail(t, check) {
   if (t.purchaseStatus === PURCHASE_STATUS.DRAFT) {
     return `<div class="detail">
       <div class="form-inline">
-        <label>实际金额（元）<input id="cost-${t.id}" type="number" min="0" step="1" placeholder="如 ${
-          suggestCost(t.game, t.multiple || 1).value || ''
-        }" value="${t.actualCost === null ? '' : t.actualCost}" /></label>
+        <label>实际金额（元）<input id="cost-${t.id}" type="number" min="0" step="1" value="${
+          t.actualCost === null || t.actualCost === undefined
+            ? (suggestCost(t.game, t.multiple || 1).value || '')
+            : t.actualCost
+        }" /></label>
         <label>倍数<input id="mult-${t.id}" type="number" min="1" max="99" value="${t.multiple}" /></label>
         <label>购买日期<input id="date-${t.id}" type="date" value="${new Date().toISOString().slice(0, 10)}" /></label>
       </div>
+      <p class="muted small">金额已按 ${t.multiple || 1} 倍 × 2 元/注预填，按实际支付改即可（赠票填 0）。</p>
       <div class="actions">
         <button class="btn primary" data-act="confirm" data-id="${t.id}">确认已购买（冻结号码）</button>
         <button class="btn danger-outline" data-act="void" data-id="${t.id}">作废</button>
@@ -518,7 +521,7 @@ function ticketsView() {
 
 // balanced 已从界面移除（历史批次仍可展示，故 STRATEGY_META 保留它）
 const STRATEGY_ORDER = ['random', 'preference', 'analyzed'];
-const ANALYTICS_WINDOWS = [30, 50, 100, 200, 300];
+const ANALYTICS_WINDOWS = [30, 50, 100, 200, 300, 1000, 3000];
 
 function candForm() {
   return {
@@ -1343,13 +1346,17 @@ async function onAction(act, el) {
     const costEl = document.getElementById(`cost-${id}`);
     const multEl = document.getElementById(`mult-${id}`);
     const dateEl = document.getElementById(`date-${id}`);
-    const cost = costEl ? Number(costEl.value) : NaN;
-    if (!Number.isFinite(cost) || cost < 0 || costEl.value === '') {
-      return notify('请填写实际支付金额（赠票填 0）', 'bad');
+    const multiple = Number(multEl && multEl.value) || 1;
+    const suggestion = suggestCost(state.tickets.find((x) => x.id === id)?.game || state.game, multiple);
+    const rawCost = costEl ? String(costEl.value).trim() : '';
+    // 留空时按"倍数 × 单价"预填（单价已确认：两个彩种都是 2 元/注），不再强制手输
+    const cost = rawCost === '' ? Number(suggestion.value) : Number(rawCost);
+    if (!Number.isFinite(cost) || cost < 0) {
+      return notify('金额不合法：请输入 0 或正数', 'bad');
     }
     const res = await repo.confirmTicket(id, {
       actualCost: cost,
-      multiple: Number(multEl && multEl.value) || 1,
+      multiple,
       purchaseAt: dateEl && dateEl.value ? `${dateEl.value}T12:00:00+08:00` : undefined,
     });
     if (!res.ok) return notify(res.message, 'bad');

@@ -28,7 +28,7 @@ const count = countIdx >= 0 ? Number(args[countIdx + 1]) || 60 : 60;
 const backfillIdx = args.indexOf('--backfill');
 const backfill = backfillIdx >= 0 ? Number(args[backfillIdx + 1]) || 0 : 0;
 const keepIdx = args.indexOf('--keep');
-const keep = keepIdx >= 0 ? Number(args[keepIdx + 1]) || 300 : 300;
+const keep = keepIdx >= 0 ? Number(args[keepIdx + 1]) || 3000 : 3000;
 
 const PUSH_PATHS = ['web/data/draws', 'web/data/samples'];
 

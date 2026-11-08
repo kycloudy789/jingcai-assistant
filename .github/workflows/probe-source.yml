@@ -1,0 +1,30 @@
+name: probe-source
+
+# 临时探测：从 GitHub Runner 能否取到开奖数据（官方被 WAF 拦，需要确认第三方是否可用）
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe endpoints
+        run: |
+          set +e
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+          probes=(
+            "https://www.cwl.gov.cn/cwl_admin/front/cwlkj/search/kjxx/findDrawNotice?name=ssq&issueCount=2&pageNo=1&pageSize=30&systemType=PC"
+            "http://www.cwl.gov.cn/cwl_admin/front/cwlkj/search/kjxx/findDrawNotice?name=ssq&issueCount=2&pageNo=1&pageSize=30&systemType=PC"
+            "https://cwl.gov.cn/cwl_admin/front/cwlkj/search/kjxx/findDrawNotice?name=ssq&issueCount=2&pageNo=1&pageSize=30&systemType=PC"
+            "https://datachart.500.com/ssq/history/newinc/history.php?start=26001&end=26030"
+            "https://datachart.500.com/kl8/history/newinc/history.php?start=26200&end=26297"
+            "https://api.vvhan.com/api/lottery?type=ssq"
+          )
+          for url in "${probes[@]}"; do
+            code=$(curl -sS -o /tmp/out -w "%{http_code}" -m 25 -A "$UA" -H "Referer: https://www.cwl.gov.cn/" "$url" 2>/dev/null || echo ERR)
+            size=$(wc -c < /tmp/out 2>/dev/null || echo 0)
+            echo "== $code  ${size}B  $url"
+            head -c 160 /tmp/out 2>/dev/null | tr '\n' ' '
+            echo ""
+            echo "---"
+          done

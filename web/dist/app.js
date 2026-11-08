@@ -330,12 +330,15 @@ function ticketDetail(t, check) {
   if (t.purchaseStatus === PURCHASE_STATUS.DRAFT) {
     return `<div class="detail">
       <div class="form-inline">
-        <label>实际金额（元）<input id="cost-${t.id}" type="number" min="0" step="1" placeholder="如 ${
-          suggestCost(t.game, t.multiple || 1).value || ''
-        }" value="${t.actualCost === null ? '' : t.actualCost}" /></label>
+        <label>实际金额（元）<input id="cost-${t.id}" type="number" min="0" step="1" value="${
+          t.actualCost === null || t.actualCost === undefined
+            ? (suggestCost(t.game, t.multiple || 1).value || '')
+            : t.actualCost
+        }" /></label>
         <label>倍数<input id="mult-${t.id}" type="number" min="1" max="99" value="${t.multiple}" /></label>
         <label>购买日期<input id="date-${t.id}" type="date" value="${new Date().toISOString().slice(0, 10)}" /></label>
       </div>
+      <p class="muted small">金额已按 ${t.multiple || 1} 倍 × 2 元/注预填，按实际支付改即可（赠票填 0）。</p>
       <div class="actions">
         <button class="btn primary" data-act="confirm" data-id="${t.id}">确认已购买（冻结号码）</button>
         <button class="btn danger-outline" data-act="void" data-id="${t.id}">作废</button>
@@ -551,7 +554,7 @@ function ticketsView() {
 
 // balanced 已从界面移除（历史批次仍可展示，故 STRATEGY_META 保留它）
 const STRATEGY_ORDER = ['random', 'preference', 'analyzed'];
-const ANALYTICS_WINDOWS = [30, 50, 100, 200, 300];
+const ANALYTICS_WINDOWS = [30, 50, 100, 200, 300, 1000, 3000];
 
 function candForm() {
   return {
@@ -1376,13 +1379,17 @@ async function onAction(act, el) {
     const costEl = document.getElementById(`cost-${id}`);
     const multEl = document.getElementById(`mult-${id}`);
     const dateEl = document.getElementById(`date-${id}`);
-    const cost = costEl ? Number(costEl.value) : NaN;
-    if (!Number.isFinite(cost) || cost < 0 || costEl.value === '') {
-      return notify('请填写实际支付金额（赠票填 0）', 'bad');
+    const multiple = Number(multEl && multEl.value) || 1;
+    const suggestion = suggestCost(state.tickets.find((x) => x.id === id)?.game || state.game, multiple);
+    const rawCost = costEl ? String(costEl.value).trim() : '';
+    // 留空时按"倍数 × 单价"预填（单价已确认：两个彩种都是 2 元/注），不再强制手输
+    const cost = rawCost === '' ? Number(suggestion.value) : Number(rawCost);
+    if (!Number.isFinite(cost) || cost < 0) {
+      return notify('金额不合法：请输入 0 或正数', 'bad');
     }
     const res = await repo.confirmTicket(id, {
       actualCost: cost,
-      multiple: Number(multEl && multEl.value) || 1,
+      multiple,
       purchaseAt: dateEl && dateEl.value ? `${dateEl.value}T12:00:00+08:00` : undefined,
     });
     if (!res.ok) return notify(res.message, 'bad');
@@ -3967,7 +3974,7 @@ const ANALYSIS_DEFAULTS = {
 };
 
 /** 冷号统计窗口：只能从这几个值里选（与统计页保持一致） */
-const ANALYSIS_WINDOWS = [30, 50, 100, 200, 300];
+const ANALYSIS_WINDOWS = [30, 50, 100, 200, 300, 1000, 3000];
 
 /** 每注采多少个候选再挑最优；越大越"冷门"，也越慢（本地毫秒级） */
 const ANALYSIS_SAMPLES = 600;
@@ -4003,7 +4010,7 @@ function normalizeAnalysisParams(game, raw) {
 
   let window = src.window === undefined || src.window === null ? ANALYSIS_DEFAULTS.window : Number(src.window);
   if (!ANALYSIS_WINDOWS.includes(window)) {
-    return { ok: false, code: CODE.BAD_ANALYSIS, message: 'window 只能是 30 / 50 / 100 / 200 / 300' };
+    return { ok: false, code: CODE.BAD_ANALYSIS, message: 'window 只能是 30 / 50 / 100 / 200 / 300 / 1000 / 3000' };
   }
 
   const sumRange = rangeOr(src.sumRange, game === GAME.SSQ ? [75, 130] : [300, 500]);
@@ -4870,7 +4877,7 @@ __define("shared/domain/analytics.js", function(module, exports, require){
 const { GAME, GAME_META } = require('../constants/games');
 
 const ANALYTICS_VERSION = 'analytics@1.0.0';
-const WINDOWS = [30, 50, 100, 200, 300];
+const WINDOWS = [30, 50, 100, 200, 300, 1000, 3000];
 
 const NOTE =
   '以上均为历史描述性统计：它说明过去发生了什么，不预示下一期。样本量越小，波动越大。';
@@ -6555,7 +6562,7 @@ const TOOLS = {
       if (raw.window !== undefined) {
         const w = Number(raw.window);
         if (!WINDOWS.includes(w)) {
-          return { ok: false, code: CODE.BAD_ARGS, message: 'window 只能是 30 / 50 / 100 / 200 / 300' };
+          return { ok: false, code: CODE.BAD_ARGS, message: 'window 只能是 30 / 50 / 100 / 200 / 300 / 1000 / 3000' };
         }
         window = w;
       }
@@ -6632,7 +6639,7 @@ const TOOLS = {
             },
             window: {
               type: 'integer',
-              enum: [30, 50, 100, 200, 300],
+              enum: [30, 50, 100, 200, 300, 1000, 3000],
               description: '统计窗口（期数），用于冷号与上期重号判定，默认 30',
             },
             sumRange: {
@@ -6740,8 +6747,8 @@ const TOOLS = {
         }
         if (a.window !== undefined) {
           const w = Number(a.window);
-          if (![30, 50, 100, 200, 300].includes(w)) {
-            return { ok: false, code: CODE.BAD_ARGS, message: 'window 只能是 30 / 50 / 100 / 200 / 300' };
+          if (![30, 50, 100, 200, 300, 1000, 3000].includes(w)) {
+            return { ok: false, code: CODE.BAD_ARGS, message: 'window 只能是 30 / 50 / 100 / 200 / 300 / 1000 / 3000' };
           }
           clean.window = w;
         }

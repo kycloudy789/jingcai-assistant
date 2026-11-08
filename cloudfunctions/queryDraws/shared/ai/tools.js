@@ -164,7 +164,7 @@ const TOOLS = {
       if (raw.window !== undefined) {
         const w = Number(raw.window);
         if (!WINDOWS.includes(w)) {
-          return { ok: false, code: CODE.BAD_ARGS, message: 'window 只能是 30 / 50 / 100 / 200 / 300' };
+          return { ok: false, code: CODE.BAD_ARGS, message: 'window 只能是 30 / 50 / 100 / 200 / 300 / 1000 / 3000' };
         }
         window = w;
       }
@@ -241,7 +241,7 @@ const TOOLS = {
             },
             window: {
               type: 'integer',
-              enum: [30, 50, 100, 200, 300],
+              enum: [30, 50, 100, 200, 300, 1000, 3000],
               description: '统计窗口（期数），用于冷号与上期重号判定，默认 30',
             },
             sumRange: {
@@ -349,8 +349,8 @@ const TOOLS = {
         }
         if (a.window !== undefined) {
           const w = Number(a.window);
-          if (![30, 50, 100, 200, 300].includes(w)) {
-            return { ok: false, code: CODE.BAD_ARGS, message: 'window 只能是 30 / 50 / 100 / 200 / 300' };
+          if (![30, 50, 100, 200, 300, 1000, 3000].includes(w)) {
+            return { ok: false, code: CODE.BAD_ARGS, message: 'window 只能是 30 / 50 / 100 / 200 / 300 / 1000 / 3000' };
           }
           clean.window = w;
         }

@@ -162,7 +162,7 @@ async function fetchBackfill(game, want, latestIssue) {
   let end = Number(String(latestIssue).slice(4));
   let remaining = want;
 
-  while (remaining > 0 && year >= 2021) {
+  while (remaining > 0 && year >= 2020) {
     const size = Math.min(100, remaining);
     const start = end >= 999 ? 1 : Math.max(1, end - size + 1);
     const issueStart = `${year}${String(start).padStart(3, '0')}`;
