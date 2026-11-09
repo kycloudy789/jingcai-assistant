@@ -252,6 +252,7 @@ async function deleteTicket(id) {
       checkStatus: result.checkStatus,
       pendingReason: result.pendingReason,
       isWinner: result.isWinner,
+      promo: result.promo || null,
       idempotencyKey,
       checkedAt: new Date().toISOString(),
     });

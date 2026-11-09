@@ -2,9 +2,10 @@ name: sync-draws
 
 on:
   schedule:
-    # UTC 13:50 = 北京时间 21:50
-    # 双色球 21:15 开奖、快乐8 21:30 开奖，21:50 两彩种公告都已出
-    - cron: '50 13 * * *'
+    # 每小时 :50 尝试一次（UTC）。13:50 UTC = 北京 21:50，是目标时间；
+    # 其余 23 次是兜底：GitHub 的免费定时器实测会把任务延迟 4.5–18 小时，
+    # 只排一次的话经常整天不跑。脚本幂等，没新数据不会产生提交。
+    - cron: '50 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -36,6 +37,19 @@ jobs:
         run: |
           # 官方拿不到时用 500.com 兜底；已存在的官方记录不会被覆盖
           node scripts/sync-thirdparty.js --keep 3000
+
+      - name: Enrich (福运奖状态 / 派奖金额)
+        run: |
+          # 福运奖启停按规则第十八条用奖池推导；派奖金额只存在于公告页 HTML
+          node scripts/enrich-draws.js
+
+      - name: Report latest issue
+        run: |
+          node -e "
+          for (const g of ['ssq','kl8']) {
+            const p = require('./web/data/draws/'+g+'.json');
+            console.log(g, p.records.length + ' 期，最新 ' + (p.records[0] ? p.records[0].issue : '—'));
+          }"
 
       - name: Commit if changed
         run: |

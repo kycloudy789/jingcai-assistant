@@ -862,3 +862,8 @@ input[type="date"] {
 .group-head strong {
   font-weight: 500;
 }
+
+/* 派奖金额（不抢主金额的视觉） */
+.promo {
+  color: #0f6e56;
+}

@@ -169,6 +169,9 @@ function merge(game, raws, sourceUrl, dir = OUT_DIR) {
     }
     map.set(raw.issue, {
       ...prepared.record,
+      // 补全字段（派奖 / 福运奖推导）不从开奖号码来，第三方写入时也要保留
+      ...(prev && prev.promo !== undefined ? { promo: prev.promo } : {}),
+      ...(prev && prev.enrichSignature !== undefined ? { enrichSignature: prev.enrichSignature } : {}),
       sourceType: SOURCE,
       sourceUrl,
       parserVersion: PARSER_VERSION,

@@ -41,6 +41,10 @@ const KEEP_FIELDS = [
   'numbers',
   'prizeInfo',
   'specialRuleStatus',
+  'specialRuleSource',
+  'specialRuleReason',
+  'promo',
+  'enrichSignature',
   'ruleVersion',
   'sourceUrl',
   'sourceType',
@@ -214,11 +218,18 @@ async function syncGame(game, rawList, requestCount, apiUrl) {
   for (const row of existing) map.set(row.issue, row);
   let added = 0;
   let updated = 0;
+  // 补全字段（派奖、福运奖推导）不由官方接口产生，重新抓到时必须从旧记录带过来，
+  // 否则每次同步都会把 promo 抹掉，判奖又退回到少算派奖。
+  const CARRY = ['promo', 'enrichSignature', 'specialRuleSource', 'specialRuleReason'];
   for (const row of fresh) {
     const prev = map.get(row.issue);
     if (!prev) added += 1;
     else if (JSON.stringify(prev.numbers) !== JSON.stringify(row.numbers)) updated += 1;
-    map.set(row.issue, row);
+    const merged = { ...row };
+    for (const key of CARRY) {
+      if (prev && prev[key] !== undefined) merged[key] = prev[key];
+    }
+    map.set(row.issue, merged);
   }
 
   const records = Array.from(map.values())

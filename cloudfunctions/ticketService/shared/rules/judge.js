@@ -74,6 +74,7 @@ function baseResult(ticket, draw, extra) {
     checkStatus: CHECK_STATUS.PENDING,
     isWinner: false,
     pendingReason: null,
+    promo: null,
     ...extra,
   };
 }
@@ -86,8 +87,39 @@ function pending(ticket, draw, reason, extra = {}) {
   });
 }
 
-/**
- * 双色球判奖
+/** 票面金额：只有用户录过 actualCost 才知道"单票金额" */
+function ticketAmount(ticket) {
+  const v = Number(ticket && ticket.actualCost);
+  return Number.isFinite(v) && v > 0 ? v : null;
+}
+
+/** 判断这张票是否达到派奖门槛，并算出单注派奖额 */
+function resolvePromo(ticket, draw, level) {
+  const promo = draw && draw.promo;
+  if (!promo) return null;
+  const bonus = level === '2' ? promo.secondBonus : level === '6' ? promo.sixthBonus : null;
+  if (!bonus || typeof bonus.amount !== 'number' || bonus.amount <= 0) return null;
+
+  const threshold = typeof promo.perTicketAmount === 'number' ? promo.perTicketAmount : null;
+  const amount = ticketAmount(ticket);
+  const applied = amount !== null && threshold !== null && amount >= threshold;
+  return {
+    program: promo.program || null,
+    label: level === '2' ? '二等奖特别奖' : '六等奖翻番奖',
+    threshold,
+    extraPerBet: bonus.amount,
+    ticketAmount: amount,
+    applied,
+    reason: applied ? 'APPLIED' : amount === null ? 'TICKET_AMOUNT_UNKNOWN' : 'BELOW_THRESHOLD',
+    note: applied
+      ? ''
+      : amount === null
+      ? '未录入票面金额，无法判断是否达到派奖门槛（单票满 20 元才有派奖）'
+      : `票面金额 ${amount} 元，未达派奖门槛（单票满 ${threshold} 元）`,
+  };
+}
+
+/** 双色球判奖
  * @param {object} ticket 号码记录
  * @param {object} draw 开奖记录（已核验）
  * @param {object} rule 规则版本对象
@@ -175,13 +207,16 @@ function judgeSsq(ticket, draw, rule, checkedAt) {
       });
     }
     const quantity = quantityOf(ticket);
+    const promo = level === '2' ? resolvePromo(ticket, draw, level) : null;
+    const unit = grade.amount + (promo && promo.applied ? promo.extraPerBet : 0);
     return baseResult(ticket, draw, {
       ruleVersion: rule.ruleVersion,
       hit,
       prizeLevel: level,
-      unitPrize: grade.amount,
+      unitPrize: unit,
       quantity,
-      totalPrize: grade.amount * quantity,
+      totalPrize: unit * quantity,
+      promo,
       checkStatus: CHECK_STATUS.CHECKED,
       isWinner: true,
       checkedAt,
@@ -197,13 +232,16 @@ function judgeSsq(ticket, draw, rule, checkedAt) {
     });
   }
   const quantity = quantityOf(ticket);
+  const promo = resolvePromo(ticket, draw, level);
+  const unit = fixed.value + (promo && promo.applied ? promo.extraPerBet : 0);
   return baseResult(ticket, draw, {
     ruleVersion: rule.ruleVersion,
     hit,
     prizeLevel: level,
-    unitPrize: fixed.value,
+    unitPrize: unit,
     quantity,
-    totalPrize: fixed.value * quantity,
+    totalPrize: unit * quantity,
+    promo,
     checkStatus: CHECK_STATUS.CHECKED,
     isWinner: true,
     checkedAt,
@@ -327,6 +365,7 @@ function checkIdempotencyKey(ticket, draw, ruleVersion) {
 
 module.exports = {
   CHECK_STATUS,
+  resolvePromo,
   PENDING_REASON,
   judgeTicket,
   judgeMany,

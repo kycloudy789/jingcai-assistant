@@ -181,6 +181,12 @@ function prizeRows(draw) {
       ['六等奖', '1 蓝', info.sixth],
     ];
     if (info.fuyun) rows.push(['福运奖', '命中 3 红', info.fuyun]);
+    if (draw.promo && draw.promo.secondBonus) {
+      rows.push(['二等奖特别奖', '单票 ≥ 20 元', draw.promo.secondBonus]);
+    }
+    if (draw.promo && draw.promo.sixthBonus) {
+      rows.push(['六等奖翻番奖', '单票 ≥ 20 元', draw.promo.sixthBonus]);
+    }
     return rows
       .map(
         ([name, cond, g]) => `
@@ -215,14 +221,43 @@ function isThirdParty(d) {
   return /^third_party/.test(String((d && d.sourceType) || ''));
 }
 
+function bjTime(iso) {
+  if (!iso) return '';
+  const dt = new Date(iso);
+  if (Number.isNaN(dt.getTime())) return '';
+  const bj = new Date(dt.getTime() + 8 * 3600 * 1000);
+  const p = (n) => String(n).padStart(2, '0');
+  return `${bj.getUTCFullYear()}-${p(bj.getUTCMonth() + 1)}-${p(bj.getUTCDate())} ${p(bj.getUTCHours())}:${p(
+    bj.getUTCMinutes()
+  )}`;
+}
+
+/**
+ * 数据新鲜度：说清"最新一期是哪期、数据是什么时候生成的、多久没更新"。
+ * 云端定时会被 GitHub 延迟数小时，这里如实展示，不假装是准点的。
+ */
+function freshnessText() {
+  const sync = state.syncInfo || {};
+  const latest = state.draws[0];
+  if (!latest) return '共 0 期';
+  const stamp = sync.fetchedAt || sync.generatedAt;
+  const parts = [`最新 ${latest.issue}（${latest.drawDate}）`, `共 ${state.draws.length} 期`];
+  if (stamp) {
+    const hours = (Date.now() - new Date(stamp).getTime()) / 3600000;
+    parts.push(`数据更新于 ${bjTime(stamp)}（北京时间）`);
+    if (Number.isFinite(hours) && hours > 36) {
+      parts.push(`已 ${Math.floor(hours)} 小时未更新，请检查云端定时`);
+    }
+  }
+  return parts.join(' · ');
+}
+
 function drawsView() {
   const sync = state.syncInfo || {};
   return `
     ${gameSwitch()}
     <div class="toolbar">
-      <span class="muted">数据生成：${
-        sync.generatedAt ? esc(sync.generatedAt.slice(0, 16).replace('T', ' ')) : '未知'
-      } · 共 ${state.draws.length} 期</span>
+      <span class="muted">${freshnessText()}</span>
       <div class="toolbar-actions">
         <button class="btn" data-act="sync" ${state.busy ? 'disabled' : ''}>${
           state.busy ? '同步中…' : '重新加载开奖'
@@ -278,20 +313,50 @@ function drawsView() {
     </div>`;
 }
 
+/** 快乐8 选十的奖级表（与 shared/rules/registry.js 一致），用于解释"为什么没中奖" */
+const KL8_TIER_HITS = [10, 9, 8, 7, 6, 5, 0];
+
+function promoLine(p) {
+  if (!p) return '';
+  if (p.applied) {
+    return `<p class="small promo">含${esc(p.label)} +${yuan(p.extraPerBet)}/注（票面 ${p.ticketAmount} 元 ≥ ${p.threshold} 元门槛）</p>`;
+  }
+  return `<p class="small muted">${esc(p.label)}未计入：${esc(p.note || '')}</p>`;
+}
+
 function renderCheck(c) {
   if (c.checkStatus === 'pending_manual_review') {
+    const extra =
+      c.pendingReason === 'FUYUN_STATUS_UNKNOWN'
+        ? `<p class="small">恰好 3 红、无蓝：若该期执行福运奖，应中 5 元。本期公告未给出福运奖数据，需要你对照公告确认。</p>`
+        : '';
     return `<div><strong>待人工核验</strong><p class="small">${
       PENDING_TEXT[c.pendingReason] || '存在需要人工确认的情况。'
-    }</p></div>`;
+    }</p>${extra}</div>`;
   }
+
   if (c.checkStatus === 'not_winner') {
     const hit = c.hit || {};
-    const text =
-      c.game === GAME.SSQ
-        ? `命中 ${hit.red === undefined ? '-' : hit.red} 个红球${hit.blue ? ' + 蓝球' : ''}`
-        : `命中 ${hit.count === undefined ? '-' : hit.count} 个号码`;
-    return `<div><strong>未中奖</strong><p class="small">${text}</p></div>`;
+    if (c.game === GAME.KL8) {
+      const n = hit.count;
+      const gap = n >= 0 && n < 5 ? 5 - n : null;
+      return `<div>
+        <strong>未中奖</strong>
+        <p class="small">命中 ${n === undefined ? '-' : n} 个号码${gap ? `（再中 ${gap} 个就是五等奖 3 元）` : ''}</p>
+        <p class="small muted">快乐8 选十只有中 ${KL8_TIER_HITS.join(' / ')} 个才有奖，中 ${
+        n === undefined ? '-' : n
+      } 个不在奖级内。</p>
+        <p class="small muted">命中号码：${((hit.numbers || []).map(pad2).join(' ') || '—')}</p>
+      </div>`;
+    }
+    const red = hit.red === undefined ? '-' : hit.red;
+    return `<div>
+      <strong>未中奖</strong>
+      <p class="small">命中 ${red} 个红球${hit.blue ? ' + 蓝球' : ''}</p>
+      <p class="small muted">双色球最低奖级是六等奖（中蓝球 5 元）；红球需中 3 个且蓝球不中时，才可能触发福运奖。</p>
+    </div>`;
   }
+
   const label = c.game === GAME.SSQ ? SSQ_LEVEL[c.prizeLevel] || `${c.prizeLevel} 等奖` : `选十中 ${c.prizeLevel}`;
   return `<div>
     <strong>中奖：${label}</strong>
@@ -300,9 +365,12 @@ function renderCheck(c) {
         ? `单注${yuan(c.unitPrize)}（待公告）`
         : yuan(c.totalPrize)
     }${c.quantity > 1 ? ` · ${c.quantity} 注` : ''}</p>
-    <p class="small muted">命中号码：${((c.hit && c.hit.numbers) || []).map(pad2).join(' ') || '—'} · 规则 ${esc(
-      c.ruleVersion || '—'
-    )}</p>
+    ${promoLine(c.promo)}
+    <p class="small muted">命中${
+      c.game === GAME.SSQ ? '红球' : '号码'
+    }：${((c.hit && c.hit.numbers) || []).map(pad2).join(' ') || '—'}${
+      c.game === GAME.SSQ && c.hit && c.hit.blueNumber ? ` · 蓝球 ${pad2(c.hit.blueNumber)}` : ''
+    } · 规则 ${esc(c.ruleVersion || '—')}</p>
   </div>`;
 }
 
@@ -1118,6 +1186,15 @@ function render() {
 async function refreshAll() {
   state.draws = await repo.listDraws(state.game, 100);
   state.tickets = await repo.listTickets();
+
+  // 每次刷新都静默重算一遍核对：开奖数据补全/更正后（哈希变化）会自动产生新结果，
+  // 不依赖用户想起来点「核对」，避免"明明中了却一直显示旧结论"。
+  try {
+    await repo.runChecks();
+  } catch (err) {
+    // 判奖失败不能影响页面加载，但要留痕
+    state.lastError = `自动核对失败：${err.message}`;
+  }
   state.checks = await repo.latestChecks();
   state.stats = await repo.stats();
   state.syncInfo = await store.getMeta(`sync:${state.game}`);
@@ -1126,9 +1203,10 @@ async function refreshAll() {
   state.analytics = await repo.analytics(state.game, state.window);
 }
 
-async function syncDraws() {
+async function syncDraws(options = {}) {
+  const silent = options.silent === true;
   state.busy = true;
-  render();
+  if (!silent) render();
   try {
     const results = [];
     for (const g of [GAME.SSQ, GAME.KL8]) {
@@ -1136,14 +1214,26 @@ async function syncDraws() {
       results.push(`${GAME_META[g].shortName} ${r.saved} 期`);
     }
     await refreshAll();
-    notify(`已加载：${results.join('，')}`, 'ok');
+    if (!silent) notify(`已加载：${results.join('，')}`, 'ok');
+    return true;
   } catch (err) {
     state.lastError = err.message;
-    notify(`加载失败：${err.message}`, 'bad');
+    if (!silent) notify(`加载失败：${err.message}`, 'bad');
+    return false;
   } finally {
     state.busy = false;
     render();
   }
+}
+
+/** 自动同步节流：6 小时内不重复拉取整包数据 */
+async function autoSyncIfStale() {
+  const last = await store.getMeta('autoSync');
+  const at = last && last.at ? new Date(last.at).getTime() : 0;
+  const fresh = Number.isFinite(at) && Date.now() - at < 6 * 3600 * 1000;
+  if (state.draws.length && fresh) return;
+  const ok = await syncDraws({ silent: true });
+  if (ok) await store.setMeta('autoSync', { at: new Date().toISOString() });
 }
 
 function newForm() {
@@ -1670,9 +1760,15 @@ async function boot() {
   }
   render();
 
-  if (!state.draws.length) {
-    await syncDraws();
+  // 每次启动自动拉一次（6 小时内不重复）：判奖依赖的派奖/福运奖字段会随数据更新，
+  // 只靠用户点「重新加载开奖」会让核对结果停在旧数据上。
+  try {
+    await autoSyncIfStale();
+  } catch (err) {
+    // 网络/存储不可用时不能把整个页面拖垮（无痕模式、离线打开都会走到这里）
+    state.lastError = `自动同步失败：${err.message}`;
   }
+
 
 
 

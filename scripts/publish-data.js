@@ -78,6 +78,10 @@ function listFiles() {
     stdio: 'inherit',
   });
 
+  // 官方接口给不了的：福运奖启停（按规则第十八条算）+ 派奖金额（只在公告页里）
+  console.log('[1.5/3] 补全福运奖状态与派奖…');
+  run('node scripts/enrich-draws.js', { stdio: 'inherit' });
+
   if (dryRun) {
     console.log('[dry-run] 已跳过推送。');
     return;

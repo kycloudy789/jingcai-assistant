@@ -92,10 +92,16 @@ GET https://www.cwl.gov.cn/cwl_admin/front/cwlkj/search/kjxx/findDrawNotice
 
 | 条件 | 结果 |
 |---|---|
-| 该期 `fyjMoney > 0` | `active` |
+| 该期 `fyjMoney > 0` | `active`（公告为准，并把状态置为执行中） |
 | 期号 < 2026014 | `not_applicable` |
-| 其余（含字段为空） | `unknown`（默认，转人工） |
-| 其余 + 配置 `fuyunEmptyMeansInactive=true` | `inactive` |
+| 上一期开奖后奖池 ≥ 15 亿 | `active` |
+| 上一期开奖后奖池 < 3 亿 | `not_applicable`（停止，直到奖池重回 15 亿） |
+| 介于两者之间 | 沿用上一期状态 |
+| 缺奖池数据、无法推导 | `unknown`（转人工） |
+
+> 2026-11-09 更新（D32）：原表"字段为空一律 unknown"会把 2026076 之后的 53 期全卡成待人工核验。
+> 现按《双色球游戏规则》第十八条推导 —— 当期是否执行由**上一期开奖后的奖池**决定，
+> 这是规则明文，不是估值。实现见 `shared/rules/special-rule.js`，补全脚本 `npm run enrich:draws`。
 
 默认选 `unknown` 的理由：奖池曾达 15 亿后回落到 10 亿时，特别规定**仍在执行**，仅凭奖池金额无法反推是否执行；空字段也可能因公告延迟而缺失。宁可转人工，不可错判。
 
