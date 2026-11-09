@@ -32,7 +32,7 @@ const UA =
 const SOURCE = 'third_party:500.com';
 const PARSER_VERSION = 'thirdparty500@1.0.0';
 
-function fetchGbk(url) {
+function fetchOnce(url) {
   return new Promise((resolve, reject) => {
     const req = https.get(
       url,
@@ -66,6 +66,23 @@ function fetchGbk(url) {
     });
     req.on('error', reject);
   });
+}
+
+/**
+ * 带重试的抓取。500.com 在 GitHub Runner 上偶发超时（实测一次 25s 全超），
+ * 一次失败就把整条同步链判死太脆，所以重试 3 次。
+ */
+async function fetchGbk(url, attempts = 3) {
+  let lastErr = null;
+  for (let i = 0; i < attempts; i += 1) {
+    try {
+      return await fetchOnce(url);
+    } catch (err) {
+      lastErr = err;
+      if (i < attempts - 1) await new Promise((r) => setTimeout(r, 1500 * (i + 1)));
+    }
+  }
+  throw lastErr || new Error('请求失败');
 }
 
 const num = (text) => Number(String(text || '').replace(/[^\d.-]/g, '')) || 0;

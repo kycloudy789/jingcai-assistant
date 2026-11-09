@@ -34,6 +34,8 @@ jobs:
           node scripts/sync-to-json.js --count 60 --backfill 0 --keep 3000
 
       - name: Fetch third-party fallback (500.com)
+        # 第三方源偶发超时/封IP，失败不能阻断后面的补全与提交（已有数据仍可用）
+        continue-on-error: true
         run: |
           # 官方拿不到时用 500.com 兜底；已存在的官方记录不会被覆盖
           node scripts/sync-thirdparty.js --keep 3000
