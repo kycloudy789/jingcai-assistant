@@ -137,3 +137,43 @@ test('isOfficial：认 verifiedBy 与 sourceType 两种写法', () => {
   assert.equal(isOfficial({ sourceType: SOURCE }), false);
   assert.equal(isOfficial(null), false);
 });
+
+/* ---------------- 补全字段必须穿过第三方写盘 ---------------- */
+
+test('第三方写盘不能抹掉 promo / enrichSignature', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jc-keep-'));
+  const file = path.join(dir, 'ssq.json');
+  const record = {
+    game: 'ssq',
+    issue: '2026128',
+    drawDate: '2026-11-08',
+    numbers: { red: [1, 2, 3, 4, 5, 6], blue: 7, kl8: [] },
+    prizeInfo: { first: { count: 4, amount: 10000000 } },
+    specialRuleStatus: 'not_applicable',
+    specialRuleSource: 'rule_18_pool',
+    specialRuleReason: 'RULE_18_POOL_STOP',
+    promo: {
+      program: 'ssq_2026_promo_12yi',
+      perTicketAmount: 20,
+      secondBonus: { count: 88, amount: 227272 },
+      sixthBonus: { count: 7182590, amount: 5 },
+    },
+    enrichSignature: 'srs:not_applicable|promo:xxx',
+    sourceType: 'official_web',
+    drawStatus: 'verified',
+    rawHash: 'abc',
+  };
+  fs.writeFileSync(file, JSON.stringify({ schema: 'jingcai-draws@1', game: 'ssq', records: [record] }, null, 1));
+
+  // 没有任何新数据，merge 仍会重写整份文件（这正是上次抹掉 promo 的路径）
+  merge('ssq', [], 'https://example.com', dir);
+
+  const out = JSON.parse(fs.readFileSync(file, 'utf8')).records[0];
+  assert.ok(out.promo, 'promo 必须保留，否则六等奖会少算 5 元/注');
+  assert.equal(out.promo.sixthBonus.amount, 5);
+  assert.equal(out.enrichSignature, 'srs:not_applicable|promo:xxx');
+  assert.equal(out.specialRuleSource, 'rule_18_pool');
+  assert.equal(out.specialRuleReason, 'RULE_18_POOL_STOP');
+
+  fs.rmSync(dir, { recursive: true, force: true });
+});

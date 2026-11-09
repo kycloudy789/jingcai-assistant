@@ -16,10 +16,31 @@ const { prepareRecord } = require('../shared/cloud/drawStore');
 
 const ROOT = path.resolve(__dirname, '..');
 const OUT_DIR = path.join(ROOT, 'web', 'data', 'draws');
+// 写盘白名单：任何一个字段漏在这里，同步一次就被永久抹掉。
+// promo / enrichSignature / specialRule* 是判奖要用的补全字段，必须保留
+// （2026-11-09 踩过：单行写法导致补丁没打上，promo 被抹，六等奖又少算 5 元）。
 const KEEP_FIELDS = [
-  'game', 'issue', 'drawDate', 'numbers', 'prizeInfo', 'specialRuleStatus',
-  'ruleVersion', 'sourceUrl', 'sourceType', 'parserVersion', 'drawStatus',
-  'verifiedAt', 'verifiedBy', 'salesAmount', 'poolAmount', 'rawHash',
+  'game',
+  'issue',
+  'drawDate',
+  'numbers',
+  'prizeInfo',
+  'specialRuleStatus',
+  'specialRuleSource',
+  'specialRuleReason',
+  'promo',
+  'enrichSignature',
+  'ruleVersion',
+  'sourceUrl',
+  'sourceType',
+  'parserVersion',
+  'drawStatus',
+  'verifiedAt',
+  'verifiedBy',
+  'salesAmount',
+  'poolAmount',
+  'fixedPoolAmount',
+  'rawHash',
 ];
 
 const args = process.argv.slice(2);
