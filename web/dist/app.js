@@ -337,6 +337,9 @@ function drawsView() {
                 : ''
             }
             <p class="muted small">浮动奖金额取自当期公告；当期无人中或未公布时显示为待公告，不做估算。</p>
+            ${d.game === GAME.SSQ && Number(d.issue) >= 2026128 && d.promo === undefined
+              ? '<p class="small bad-text">本期处于派奖期，但派奖奖级还没同步到这份数据 —— 判奖可能少算（六等奖少 5 元/注）。点「重新加载开奖」，或在本机跑 npm run publish:data。</p>'
+              : ''}
           </div>`
               : ''
           }
@@ -3371,8 +3374,29 @@ function ticketAmount(ticket) {
 }
 
 /** 判断这张票是否达到派奖门槛，并算出单注派奖额 */
+/** 2026 年 12 亿元派奖起始期号（见 docs/decisions.md D31） */
+const PROMO_START_ISSUE = '2026128';
+
 function resolvePromo(ticket, draw, level) {
   const promo = draw && draw.promo;
+
+  // promo === undefined 表示"这份数据还没检查过派奖"（云端抓官方公告页会 403）。
+  // 这时不能默默按无派奖算，否则六等奖会少报 5 元/注，用户还以为算对了。
+  if (promo === undefined && (level === '2' || level === '6')) {
+    if (Number(draw && draw.issue) >= Number(PROMO_START_ISSUE)) {
+      return {
+        program: null,
+        label: level === '2' ? '二等奖特别奖' : '六等奖翻番奖',
+        threshold: null,
+        extraPerBet: null,
+        ticketAmount: ticketAmount(ticket),
+        applied: false,
+        reason: 'PROMO_DATA_MISSING',
+        note: '本期处于派奖期，但派奖金额尚未同步到本机数据（可能少算），请先重新加载开奖',
+      };
+    }
+  }
+
   if (!promo) return null;
   const bonus = level === '2' ? promo.secondBonus : level === '6' ? promo.sixthBonus : null;
   if (!bonus || typeof bonus.amount !== 'number' || bonus.amount <= 0) return null;

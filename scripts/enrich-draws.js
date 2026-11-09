@@ -83,15 +83,15 @@ async function enrichSsq({ offline }) {
     if (offline || !record.sourceUrl) {
       continue;
     }
-    const promo = await fetchPromo(record.sourceUrl);
+    const res = await fetchPromo(record.sourceUrl);
     promoFetched += 1;
-    if (promo) {
-      record.promo = promo;
-      promoFound += 1;
-    } else {
-      record.promo = null;
+    if (!res.ok) {
+      // 抓不到（云端对官方站 403）→ 保持 undefined，下次继续试，绝不写成"没有派奖"
       promoFailed += 1;
+      continue;
     }
+    record.promo = res.promo; // 可能是 null：页面确实没有派奖行
+    if (res.promo) promoFound += 1;
   }
 
   // 3) 补全过的记录换哈希（否则历史核对不会重算）
@@ -117,8 +117,11 @@ async function main() {
     return;
   }
   console.log(
-    `✓ ssq 补全：福运奖状态更新 ${result.statusChanged} 期；派奖检查 ${result.promoFetched} 期` +
-      `（命中 ${result.promoFound}，无派奖/失败 ${result.promoFailed}）；哈希更新 ${result.hashChanged} 期`
+    `✓ ssq 补全：福运奖状态更新 ${result.statusChanged} 期；哈希更新 ${result.hashChanged} 期`
+  );
+  console.log(
+    `  派奖：尝试 ${result.promoFetched} 期，命中 ${result.promoFound} 期，抓取失败 ${result.promoFailed} 期` +
+      (result.promoFailed ? '（失败不会写 null，下次重试；云端对官方站 403 属预期）' : '')
   );
 
   const payload = JSON.parse(fs.readFileSync(path.join(DRAW_DIR, 'ssq.json'), 'utf8'));

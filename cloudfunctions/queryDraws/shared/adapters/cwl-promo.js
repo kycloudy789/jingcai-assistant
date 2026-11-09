@@ -115,14 +115,20 @@ function fetchHtml(url, timeoutMs = 12000) {
   });
 }
 
-/** 抓一期公告页并解析派奖；失败返回 null（绝不抛） */
+/**
+ * 抓一期公告页并解析派奖。
+ * 关键区分：
+ *   - {ok:true, promo:null}  → 页面拿到了，确实没有派奖行（可以标"已检查"）
+ *   - {ok:false}             → 抓取失败（云端访问官方站 403），下次还要重试
+ * 混为一谈的后果：云端一次 403 就把 promo 永久写成 null，派奖金额再也补不上。
+ */
 async function fetchPromo(url) {
-  if (!url) return null;
+  if (!url) return { ok: false, promo: null, reason: 'NO_URL' };
   try {
     const html = await fetchHtml(url);
-    return parsePromoFromHtml(html);
+    return { ok: true, promo: parsePromoFromHtml(html) };
   } catch (err) {
-    return null;
+    return { ok: false, promo: null, reason: err.message };
   }
 }
 

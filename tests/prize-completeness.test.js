@@ -24,6 +24,7 @@ const SSQ_DRAW = {
     fuyun: null,
   },
   specialRuleStatus: 'not_applicable',
+  promo: null, // 已确认本期无派奖
   rawHash: 'hash-ssq',
 };
 
@@ -242,10 +243,24 @@ test('派奖：倍数同样作用于派奖金额', () => {
   assert.equal(res.totalPrize, 100);
 });
 
-test('派奖：没有 promo 的期次绝不多算钱', () => {
+test('派奖：没有 promo 字段的期次绝不多算钱', () => {
   const res = judgeTicket({ ...ssqTicket(0, true), actualCost: 100 }, SSQ_DRAW);
   assert.equal(res.unitPrize, 5);
   assert.equal(res.promo, null);
+});
+
+test('派奖：派奖期内但数据缺失时，明确提示"可能少算"而不是装作没有', () => {
+  // 云端抓官方公告页会 403，promo 可能保持 undefined（未检查）
+  const t = { ...ssqTicket(6, false), actualCost: 50 };
+  const res = judgeTicket(t, { ...SSQ_DRAW, promo: undefined });
+  assert.equal(res.checkStatus, 'checked');
+  assert.equal(res.unitPrize, 175266, '不能凭空加派奖');
+  assert.equal(res.promo.reason, 'PROMO_DATA_MISSING');
+  assert.match(res.promo.note, /可能少算/);
+
+  // 已经确认"本期没有派奖"（null）→ 不提示
+  const confirmed = judgeTicket(t, { ...SSQ_DRAW, promo: null });
+  assert.equal(confirmed.promo, null);
 });
 
 test('派奖：公告页解析出二等奖特别奖与六等奖翻番奖', () => {

@@ -304,6 +304,9 @@ function drawsView() {
                 : ''
             }
             <p class="muted small">浮动奖金额取自当期公告；当期无人中或未公布时显示为待公告，不做估算。</p>
+            ${d.game === GAME.SSQ && Number(d.issue) >= 2026128 && d.promo === undefined
+              ? '<p class="small bad-text">本期处于派奖期，但派奖奖级还没同步到这份数据 —— 判奖可能少算（六等奖少 5 元/注）。点「重新加载开奖」，或在本机跑 npm run publish:data。</p>'
+              : ''}
           </div>`
               : ''
           }
