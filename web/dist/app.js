@@ -87,7 +87,8 @@ const state = {
   checks: new Map(),
   stats: null,
   syncInfo: null,
-  drawDates: new Map(),
+  drawInfo: new Map(),
+  latestIssues: {},
   ticketView: 'current',
   historyYm: '',
   historyDate: '',
@@ -364,6 +365,19 @@ function promoLine(p) {
   return `<p class="small muted">${esc(p.label)}未计入：${esc(p.note || '')}</p>`;
 }
 
+/** 当期开奖号码一行（小字），方便直接对照，不用再翻开奖页 */
+function drawRefLine(c) {
+  const info = state.drawInfo.get(`${c.game}:${c.issue}`);
+  if (!info || !info.numbers) return '';
+  const n = info.numbers;
+  const text =
+    c.game === GAME.SSQ
+      ? `${(n.red || []).map(pad2).join(' ')} + ${pad2(n.blue)}`
+      : (n.kl8 || []).map(pad2).join(' ');
+  if (!text.trim()) return '';
+  return `<p class="draw-ref">当期开奖：${text}</p>`;
+}
+
 function renderCheck(c) {
   if (c.checkStatus === 'pending_manual_review') {
     const extra =
@@ -372,7 +386,7 @@ function renderCheck(c) {
         : '';
     return `<div><strong>待人工核验</strong><p class="small">${
       PENDING_TEXT[c.pendingReason] || '存在需要人工确认的情况。'
-    }</p>${extra}</div>`;
+    }</p>${extra}${drawRefLine(c)}</div>`;
   }
 
   if (c.checkStatus === 'not_winner') {
@@ -387,6 +401,7 @@ function renderCheck(c) {
         n === undefined ? '-' : n
       } 个不在奖级内。</p>
         <p class="small muted">命中号码：${((hit.numbers || []).map(pad2).join(' ') || '—')}</p>
+        ${drawRefLine(c)}
       </div>`;
     }
     const red = hit.red === undefined ? '-' : hit.red;
@@ -394,6 +409,7 @@ function renderCheck(c) {
       <strong>未中奖</strong>
       <p class="small">命中 ${red} 个红球${hit.blue ? ' + 蓝球' : ''}</p>
       <p class="small muted">双色球最低奖级是六等奖（中蓝球 5 元）；红球需中 3 个且蓝球不中时，才可能触发福运奖。</p>
+      ${drawRefLine(c)}
     </div>`;
   }
 
@@ -411,6 +427,7 @@ function renderCheck(c) {
     }：${((c.hit && c.hit.numbers) || []).map(pad2).join(' ') || '—'}${
       c.game === GAME.SSQ && c.hit && c.hit.blueNumber ? ` · 蓝球 ${pad2(c.hit.blueNumber)}` : ''
     } · 规则 ${esc(c.ruleVersion || '—')}</p>
+    ${drawRefLine(c)}
   </div>`;
 }
 
@@ -593,8 +610,26 @@ function settledEntries(list) {
   const out = [];
   for (const t of list) {
     const check = state.checks.get(t.id);
-    const date = state.drawDates.get(`${t.game}:${t.issue}`) || null;
-    if (t.purchaseStatus === PURCHASE_STATUS.CONFIRMED && check && date) out.push({ ticket: t, check, date });
+    const info = state.drawInfo.get(`${t.game}:${t.issue}`);
+    if (t.purchaseStatus !== PURCHASE_STATUS.CONFIRMED || !check || !info || !info.drawDate) continue;
+    // 刚开奖的这一期先留在「当前」：等下一期开奖、它不再是"最新一期"时才归档，
+    // 否则开奖当晚号码就沉进历史，反而更难找。
+    const latest = Number(state.latestIssues[t.game] || 0);
+    if (Number(t.issue) >= latest) continue;
+    out.push({ ticket: t, check, date: info.drawDate });
+  }
+  return out;
+}
+
+/** 刚开奖、已核对，但还没到归档时机的那几注（用于在「当前」里给一句说明） */
+function awaitingArchive(list) {
+  const out = [];
+  for (const t of list) {
+    const check = state.checks.get(t.id);
+    const info = state.drawInfo.get(`${t.game}:${t.issue}`);
+    if (t.purchaseStatus !== PURCHASE_STATUS.CONFIRMED || !check || !info) continue;
+    const latest = Number(state.latestIssues[t.game] || 0);
+    if (Number(t.issue) === latest) out.push({ ticket: t, check, date: info.drawDate });
   }
   return out;
 }
@@ -693,7 +728,7 @@ function ticketsView() {
     return `<div class="game-group">
       <div class="group-head">
         <strong>${GAME_META[game].shortName}</strong>
-        <span class="muted">${items.length} 注 · 未核对 / 未开奖 / 草稿</span>
+        <span class="muted">${items.length} 注</span>
       </div>
       <div class="list">${items.map(ticketCard).join('')}</div>
     </div>`;
@@ -707,9 +742,15 @@ function ticketsView() {
         )
       : '';
 
+  const awaiting = awaitingArchive(visible);
   const currentBody = `
     ${rest.length ? '' : emptyBlock('当前没有待处理的号码', '已开奖并核对过的都在「历史号码」里。')}
-    <div class="section-label">待处理（未核对 / 未开奖 / 草稿 / 已作废）</div>
+    ${
+      awaiting.length
+        ? `<p class="muted small archive-hint">最近一期（${esc(awaiting[0].ticket.issue)}）刚开奖，先放在这里；下一期开奖后自动归入「历史号码」。</p>`
+        : ''
+    }
+    <div class="section-label">当前（未核对 / 未开奖 / 草稿 / 已作废 / 刚开奖）</div>
     ${gameSection(GAME.SSQ)}
     ${gameSection(GAME.KL8)}`;
 
@@ -1353,7 +1394,13 @@ async function refreshAll() {
   state.checks = await repo.latestChecks();
   state.stats = await repo.stats();
   state.syncInfo = await store.getMeta(`sync:${state.game}`);
-  state.drawDates = await repo.drawDateMap();
+  state.drawInfo = await repo.drawInfoMap();
+  // 每个彩种"最新一期"的期号：这一期刚开奖，先留在「当前」，下一期开奖后才归档
+  state.latestIssues = {};
+  for (const key of state.drawInfo.keys()) {
+    const [g, issue] = key.split(':');
+    if (!state.latestIssues[g] || Number(issue) > Number(state.latestIssues[g])) state.latestIssues[g] = issue;
+  }
   state.candidates.gate = await repo.gateState();
   state.candidates.batches = await repo.listCandidateReviews(state.game);
   state.analytics = await repo.analytics(state.game, state.window);
@@ -2476,11 +2523,17 @@ function decorateNumbers(draw) {
   return formatDisplay(draw.game, draw.numbers);
 }
 
-/** 期号 → 开奖日期（用于按开奖日期归纳号码，避免把 2000+ 期都塞进页面） */
-async function drawDateMap() {
+/**
+ * 期号 → 开奖日期 / 开奖号码。
+ * 用于「历史号码按日期归纳」和「核对结果里对照当期开奖号码」，
+ * 只读本机已同步的数据，不额外发请求。
+ */
+async function drawInfoMap() {
   const all = await store.getAll('draws');
   const map = new Map();
-  for (const d of all) map.set(`${d.game}:${d.issue}`, d.drawDate || null);
+  for (const d of all) {
+    map.set(`${d.game}:${d.issue}`, { drawDate: d.drawDate || null, numbers: d.numbers || null });
+  }
   return map;
 }
 
@@ -2591,7 +2644,7 @@ module.exports = {
   runChecks,
   latestChecks,
   analytics,
-  drawDateMap,
+  drawInfoMap,
   previewImport,
   clearCollection,
   getGateFlags,

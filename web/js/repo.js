@@ -480,11 +480,17 @@ function decorateNumbers(draw) {
   return formatDisplay(draw.game, draw.numbers);
 }
 
-/** 期号 → 开奖日期（用于按开奖日期归纳号码，避免把 2000+ 期都塞进页面） */
-async function drawDateMap() {
+/**
+ * 期号 → 开奖日期 / 开奖号码。
+ * 用于「历史号码按日期归纳」和「核对结果里对照当期开奖号码」，
+ * 只读本机已同步的数据，不额外发请求。
+ */
+async function drawInfoMap() {
   const all = await store.getAll('draws');
   const map = new Map();
-  for (const d of all) map.set(`${d.game}:${d.issue}`, d.drawDate || null);
+  for (const d of all) {
+    map.set(`${d.game}:${d.issue}`, { drawDate: d.drawDate || null, numbers: d.numbers || null });
+  }
   return map;
 }
 
@@ -595,7 +601,7 @@ module.exports = {
   runChecks,
   latestChecks,
   analytics,
-  drawDateMap,
+  drawInfoMap,
   previewImport,
   clearCollection,
   getGateFlags,
