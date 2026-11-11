@@ -2,9 +2,9 @@ name: sync-draws
 
 on:
   schedule:
-    # 每小时 :50 尝试一次（UTC）。13:50 UTC = 北京 21:50，是目标时间；
-    # 其余 23 次是兜底：GitHub 的免费定时器实测会把任务延迟 4.5–18 小时，
-    # 只排一次的话经常整天不跑。脚本幂等，没新数据不会产生提交。
+    # 每小时 :50 尝试一次（UTC）。13:50 UTC = 北京 21:50 是目标时间；
+    # 其余 23 次是兜底：GitHub 免费定时器实测会把任务延迟 4.5–18 小时。
+    # 脚本幂等，没新数据不会产生提交。
     - cron: '50 * * * *'
   workflow_dispatch:
 
@@ -27,22 +27,28 @@ jobs:
         with:
           node-version: '20'
 
+      # 关键路径：只要号码。500.com 的静态 XML 在 Runner 上可直连，
+      # 一次请求拿到全量期号 + 号码 + 开奖日期，不依赖官方公告页。
+      - name: Fetch draw numbers (fast path)
+        run: |
+          node scripts/sync-numbers.js --days 45
+
       - name: Fetch official draws (best effort)
         continue-on-error: true
         run: |
           echo "官方接口对 GitHub Runner 返回 403（网宿 WAF 按 IP 拦），这一步通常失败，失败不影响后续。"
           node scripts/sync-to-json.js --count 60 --backfill 0 --keep 3000
 
-      - name: Fetch third-party fallback (500.com)
-        # 第三方源偶发超时/封IP，失败不能阻断后面的补全与提交（已有数据仍可用）
+      - name: Fetch 500.com HTML fallback
         continue-on-error: true
         run: |
-          # 官方拿不到时用 500.com 兜底；已存在的官方记录不会被覆盖
+          # 号码已由 XML 补上；这一步只为补齐官方页面里的奖级明细
           node scripts/sync-thirdparty.js --keep 3000
 
       - name: Enrich (福运奖状态 / 派奖金额)
+        continue-on-error: true
         run: |
-          # 福运奖启停按规则第十八条用奖池推导；派奖金额只存在于公告页 HTML
+          # 福运奖启停按规则第十八条用奖池推导；派奖金额只存在于公告页 HTML（Runner 403 时跳过）
           node scripts/enrich-draws.js
 
       - name: Report latest issue
@@ -50,7 +56,8 @@ jobs:
           node -e "
           for (const g of ['ssq','kl8']) {
             const p = require('./web/data/draws/'+g+'.json');
-            console.log(g, p.records.length + ' 期，最新 ' + (p.records[0] ? p.records[0].issue : '—'));
+            const r = p.records[0];
+            console.log(g, p.records.length + ' 期，最新 ' + r.issue + '（' + r.drawDate + '）');
           }"
 
       - name: Commit if changed

@@ -1,10 +1,10 @@
 {
  "schema": "jingcai-draws@1",
  "game": "ssq",
- "generatedAt": "2026-11-11T00:55:20.686Z",
- "source": "https://www.500.com（第三方兜底；官方数据优先）",
- "sourceType": "third_party:500.com",
- "parserVersion": "thirdparty500@1.0.0",
+ "generatedAt": "2026-11-11T01:40:10.016Z",
+ "source": "https://www.cwl.gov.cn",
+ "sourceApi": "https://www.cwl.gov.cn/cwl_admin/front/cwlkj/search/kjxx/findDrawNotice",
+ "parserVersion": "cwl_api@1.0.0",
  "count": 2087,
  "latestIssue": "2026129",
  "records": [
@@ -33,23 +33,50 @@
      "count": 304,
      "amount": 65451
     },
+    "third": {
+     "count": 2949,
+     "amount": 3000
+    },
+    "fourth": {
+     "count": 119892,
+     "amount": 200
+    },
+    "fifth": {
+     "count": 1880589,
+     "amount": 10
+    },
+    "sixth": {
+     "count": 13926103,
+     "amount": 5
+    },
     "fuyun": null
    },
    "specialRuleStatus": "not_applicable",
-   "promo": null,
-   "enrichSignature": "srs:not_applicable|promo:none",
+   "specialRuleSource": "rule_18_pool",
    "ruleVersion": "ssq_2026_02_01",
-   "sourceUrl": "https://datachart.500.com/ssq/history/newinc/history.php?start=26119&end=26130",
-   "sourceType": "third_party:500.com",
-   "parserVersion": "thirdparty500@1.0.0",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/11/10/672828.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-11T00:55:17.633Z",
-   "verifiedBy": "third_party:500.com",
+   "verifiedAt": "2026-11-11T01:40:08.885Z",
    "salesAmount": 409899552,
    "poolAmount": 1134076885,
-   "rawHash": null,
-   "specialRuleSource": "rule_18_pool",
-   "specialRuleReason": "RULE_18_POOL_STOP"
+   "fixedPoolAmount": null,
+   "rawHash": "ea3cfbd1a4d8e84b6dae0d30d69a2d7091a58336636f2ed681b547042c56e4f6",
+   "specialRuleReason": "RULE_18_POOL_STOP",
+   "promo": {
+    "program": "ssq_2026_promo_12yi",
+    "perTicketAmount": 20,
+    "secondBonus": {
+     "count": 172,
+     "amount": 116279
+    },
+    "sixthBonus": {
+     "count": 8932937,
+     "amount": 5
+    }
+   },
+   "enrichSignature": "srs:not_applicable|promo:{\"program\":\"ssq_2026_promo_12yi\",\"perTicketAmount\":20,\"secondBonus\":{\"count\":172,\"amount\":116279},\"sixthBonus\":{\"count\":8932937,\"amount\":5}}"
   },
   {
    "game": "ssq",
@@ -115,7 +142,7 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-10T00:33:28.709Z",
+   "verifiedAt": "2026-11-11T01:40:08.886Z",
    "salesAmount": 442016354,
    "poolAmount": 1174385127,
    "fixedPoolAmount": null,
@@ -174,7 +201,7 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-10T00:33:28.709Z",
+   "verifiedAt": "2026-11-11T01:40:08.886Z",
    "salesAmount": 346422846,
    "poolAmount": 1129731594,
    "fixedPoolAmount": null,
@@ -233,7 +260,7 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-10T00:33:28.710Z",
+   "verifiedAt": "2026-11-11T01:40:08.886Z",
    "salesAmount": 342910496,
    "poolAmount": 1074322050,
    "fixedPoolAmount": null,
@@ -292,7 +319,7 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-10T00:33:28.710Z",
+   "verifiedAt": "2026-11-11T01:40:08.886Z",
    "salesAmount": 374042920,
    "poolAmount": 1044117721,
    "fixedPoolAmount": null,
@@ -351,7 +378,7 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-10T00:33:28.710Z",
+   "verifiedAt": "2026-11-11T01:40:08.886Z",
    "salesAmount": 346568144,
    "poolAmount": 1075698427,
    "fixedPoolAmount": null,
@@ -410,7 +437,7 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-10T00:33:28.710Z",
+   "verifiedAt": "2026-11-11T01:40:08.886Z",
    "salesAmount": 334118378,
    "poolAmount": 1079246630,
    "fixedPoolAmount": null,
@@ -469,7 +496,7 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-10T00:33:28.710Z",
+   "verifiedAt": "2026-11-11T01:40:08.886Z",
    "salesAmount": 364308228,
    "poolAmount": 1056837777,
    "fixedPoolAmount": null,
@@ -528,7 +555,7 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-10T00:33:28.710Z",
+   "verifiedAt": "2026-11-11T01:40:08.887Z",
    "salesAmount": 336574558,
    "poolAmount": 1056741122,
    "fixedPoolAmount": null,
@@ -587,7 +614,7 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-10T00:33:28.711Z",
+   "verifiedAt": "2026-11-11T01:40:08.887Z",
    "salesAmount": 332731798,
    "poolAmount": 1035363275,
    "fixedPoolAmount": null,
@@ -646,7 +673,7 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-10T00:33:28.711Z",
+   "verifiedAt": "2026-11-11T01:40:08.887Z",
    "salesAmount": 364378528,
    "poolAmount": 1025112736,
    "fixedPoolAmount": null,
@@ -705,11 +732,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.005Z",
+   "verifiedAt": "2026-11-11T01:40:08.887Z",
    "salesAmount": 340890776,
    "poolAmount": 958655708,
    "fixedPoolAmount": null,
-   "rawHash": "35252a886db8d9ca7d9319fb1aeebe9126c778dd9fbe85bac7198af158011b4c"
+   "rawHash": "5aebfcf1548ae1c182a23bbbdb359f4503b2749f1cd0e4e68328497a0c01cd67"
   },
   {
    "game": "ssq",
@@ -764,11 +791,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.005Z",
+   "verifiedAt": "2026-11-11T01:40:08.887Z",
    "salesAmount": 332237260,
    "poolAmount": 931629281,
    "fixedPoolAmount": null,
-   "rawHash": "63d423c7c7f5e9b8039819e1b3d86cd98a24a6353119aaf4d114d1efcc1edd3f"
+   "rawHash": "3b518c48654a31b26e8007ba7d5c33ec3cc6dd50154ea2df778bd46a9f0c7a8b"
   },
   {
    "game": "ssq",
@@ -823,11 +850,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.005Z",
+   "verifiedAt": "2026-11-11T01:40:08.887Z",
    "salesAmount": 363128812,
    "poolAmount": 936031217,
    "fixedPoolAmount": null,
-   "rawHash": "9e99382d94dd0820bdbeb30261a04da220bc895fcb64103beff30662c190b4b6"
+   "rawHash": "02b178ec75029e91f355e7cbc2341e8a8a4dd8ee4f6219a191e342e1c7ce7777"
   },
   {
    "game": "ssq",
@@ -882,11 +909,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.006Z",
+   "verifiedAt": "2026-11-11T01:40:08.887Z",
    "salesAmount": 337573290,
    "poolAmount": 909402631,
    "fixedPoolAmount": null,
-   "rawHash": "9288f75e4898e8fca7a60a56ec7e9f0daf0ec0bd7ea6583c7e8b93809782a9b3"
+   "rawHash": "5b633358578cd0e70ee23235e0ffe82ba07969d637cb93c7f4b84686ff54cfd7"
   },
   {
    "game": "ssq",
@@ -941,11 +968,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.006Z",
+   "verifiedAt": "2026-11-11T01:40:08.887Z",
    "salesAmount": 339993172,
    "poolAmount": 941868611,
    "fixedPoolAmount": null,
-   "rawHash": "b1c4121d8e9163ecb3345c626af5c5395f18f0c0e9340eb2dca9599b47f51208"
+   "rawHash": "b0cacf1cc206628865a7fcc77a2303e1b1d42360565c917e2c5fed1601a92c2f"
   },
   {
    "game": "ssq",
@@ -1000,11 +1027,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.006Z",
+   "verifiedAt": "2026-11-11T01:40:08.887Z",
    "salesAmount": 338536676,
    "poolAmount": 973407364,
    "fixedPoolAmount": null,
-   "rawHash": "beee69e189cfcf36b816f19bd368da41fb2a84f22b9dedacf61b3908e2261e8d"
+   "rawHash": "1452ad69fe64bd03def966813baa488ce37bb4b82947fdfa52703917983faa1a"
   },
   {
    "game": "ssq",
@@ -1059,11 +1086,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.006Z",
+   "verifiedAt": "2026-11-11T01:40:08.887Z",
    "salesAmount": 351384920,
    "poolAmount": 972650894,
    "fixedPoolAmount": null,
-   "rawHash": "e615d21751a4a21135c578c8f15c53a7f24400a92ae272630eb250e0add6280b"
+   "rawHash": "db48dbdc68381cd72125dd94e12e62f46144ddfa7625078168bd1d265aae4d42"
   },
   {
    "game": "ssq",
@@ -1118,11 +1145,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.006Z",
+   "verifiedAt": "2026-11-11T01:40:08.887Z",
    "salesAmount": 325191464,
    "poolAmount": 966038984,
    "fixedPoolAmount": null,
-   "rawHash": "3eaeda2f49af07526bbe883a7a626fd12f442bf8bd903ae4331edd0082d766c9"
+   "rawHash": "e1fa31c7d4f351d622305f47385d67551df6c237b5b6ca9d34b3bdbe04fcb415"
   },
   {
    "game": "ssq",
@@ -1177,11 +1204,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.006Z",
+   "verifiedAt": "2026-11-11T01:40:08.888Z",
    "salesAmount": 327624764,
    "poolAmount": 930967826,
    "fixedPoolAmount": null,
-   "rawHash": "8c7b900cc89952c1398c6f961aee6e5d027ade5c5fdfad8014ca151e34bd5f5d"
+   "rawHash": "775625ad9f6679be5c6624710d79f5a905261771cfffbde293e828313b595795"
   },
   {
    "game": "ssq",
@@ -1236,11 +1263,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.006Z",
+   "verifiedAt": "2026-11-11T01:40:08.888Z",
    "salesAmount": 359008756,
    "poolAmount": 936353465,
    "fixedPoolAmount": null,
-   "rawHash": "063f89da08e834d86067b54aa1f2c1f225f03919a39372e52a6f6a244c8fd040"
+   "rawHash": "965a6a090045dbf382358b08b27276cffc856331e8c2c536fac901a4dccf18be"
   },
   {
    "game": "ssq",
@@ -1295,11 +1322,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.006Z",
+   "verifiedAt": "2026-11-11T01:40:08.888Z",
    "salesAmount": 335294274,
    "poolAmount": 917243647,
    "fixedPoolAmount": null,
-   "rawHash": "2f73ae3b701b04d10fe78b4820b5e84ef49b68ab2b6d4499f96883a03eb9b337"
+   "rawHash": "6d71179ec14a90e01bfdc66d6060ef46b6e43ab4be9c48badaffd4ab1e3d8329"
   },
   {
    "game": "ssq",
@@ -1354,11 +1381,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.006Z",
+   "verifiedAt": "2026-11-11T01:40:08.888Z",
    "salesAmount": 328194638,
    "poolAmount": 858528126,
    "fixedPoolAmount": null,
-   "rawHash": "97e40b7057e03d6591e542be88bf77e0fc56a0bf63013f1d5bde4e0c92e0a0af"
+   "rawHash": "5278394f9e35c920438f33afe661728840b72ad81daa932536f55d0edab5cf68"
   },
   {
    "game": "ssq",
@@ -1413,11 +1440,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.006Z",
+   "verifiedAt": "2026-11-11T01:40:08.888Z",
    "salesAmount": 361568656,
    "poolAmount": 856497196,
    "fixedPoolAmount": null,
-   "rawHash": "f05e5902934ee8e69a987bb024c9252b79318ce583b6b23971df1b279c7ccefc"
+   "rawHash": "b61c665a7784600c025601f8c0c35f1d26054097c509af2d3d467368157c4de9"
   },
   {
    "game": "ssq",
@@ -1472,11 +1499,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.006Z",
+   "verifiedAt": "2026-11-11T01:40:08.888Z",
    "salesAmount": 333874688,
    "poolAmount": 833007469,
    "fixedPoolAmount": null,
-   "rawHash": "0fb2fa337fe92833b5fddc5a1f957cd2011390487be6b7f1afbcb537117a4e51"
+   "rawHash": "affa3e37379e97fa486bff3ef290c03c54eb065364bae5089ccbdffdb404533f"
   },
   {
    "game": "ssq",
@@ -1531,11 +1558,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.006Z",
+   "verifiedAt": "2026-11-11T01:40:08.889Z",
    "salesAmount": 333116798,
    "poolAmount": 798557035,
    "fixedPoolAmount": null,
-   "rawHash": "6805acb0176ca6f24572b24f768493a70a777dc058685a300fb7d7b2e96f8c4e"
+   "rawHash": "620ca2df4863eff1ad12360cc6ace7e51a35a6e3e57a730d06dc1c768482a506"
   },
   {
    "game": "ssq",
@@ -1590,11 +1617,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.007Z",
+   "verifiedAt": "2026-11-11T01:40:08.889Z",
    "salesAmount": 362416068,
    "poolAmount": 805259723,
    "fixedPoolAmount": null,
-   "rawHash": "953359031474f96cf24346247f735b20119d58633ef5d21785d4af9b9185e6eb"
+   "rawHash": "3aa6ad8a7ffc114ac5174a298357f8eea35ba0d5cd9ac51bf98389d76487a0b7"
   },
   {
    "game": "ssq",
@@ -1649,11 +1676,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.008Z",
+   "verifiedAt": "2026-11-11T01:40:08.889Z",
    "salesAmount": 335960988,
    "poolAmount": 782244968,
    "fixedPoolAmount": null,
-   "rawHash": "73e17c1e001d31af26a569bb28fe07310504d66bb687fc7b44d15d2ec2799202"
+   "rawHash": "dd257664dead79895a90b24bce76e055e283513bbc358eac77302206ab37a4b7"
   },
   {
    "game": "ssq",
@@ -1708,11 +1735,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.008Z",
+   "verifiedAt": "2026-11-11T01:40:08.889Z",
    "salesAmount": 329493946,
    "poolAmount": 766096090,
    "fixedPoolAmount": null,
-   "rawHash": "8539449a616e186ea96b669ea143b86e1d35c30dc078ff73bdfa748a83738bf0"
+   "rawHash": "81d792e9f04b90c71d7b01a95123bbad0986e69838b03fd301355b715c94e40b"
   },
   {
    "game": "ssq",
@@ -1767,11 +1794,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.008Z",
+   "verifiedAt": "2026-11-11T01:40:08.889Z",
    "salesAmount": 357107230,
    "poolAmount": 743395010,
    "fixedPoolAmount": null,
-   "rawHash": "b3e78c9c3386d3bfc30206bb218d5f0634131c4be618388765c7b9972c9ea25b"
+   "rawHash": "d4bdbad648cfceafdfaa32fa88bb86e3251fc95fe4ff4eda0863ae34d39e9d4a"
   },
   {
    "game": "ssq",
@@ -1826,11 +1853,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.008Z",
+   "verifiedAt": "2026-11-11T01:40:08.889Z",
    "salesAmount": 344486222,
    "poolAmount": 776452438,
    "fixedPoolAmount": null,
-   "rawHash": "fbd78249f6dbe6a96d78fd961640fc7561300e9cf21b522850373ecf040a4d57"
+   "rawHash": "37d242fd5439be5a7370b7303d1fcd3d4b04a36782eb4fb6e51603513bba88d8"
   },
   {
    "game": "ssq",
@@ -1885,11 +1912,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.008Z",
+   "verifiedAt": "2026-11-11T01:40:08.889Z",
    "salesAmount": 337464770,
    "poolAmount": 711169786,
    "fixedPoolAmount": null,
-   "rawHash": "edb974d619185ab663c3f7f8ee70b892eff77821d742f063d26a7b21177a6ef2"
+   "rawHash": "a5c8e417df08849ffeba00915ee61a7116e8a7bc7f5f4e8269005c7779ff368b"
   },
   {
    "game": "ssq",
@@ -1944,11 +1971,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.008Z",
+   "verifiedAt": "2026-11-11T01:40:08.889Z",
    "salesAmount": 369897178,
    "poolAmount": 710238057,
    "fixedPoolAmount": null,
-   "rawHash": "a5b14cac387215c790c620c78623a0d04a8630a3725e102b7f36bbea5f1c7efd"
+   "rawHash": "b9c38a47d17af8c8cfd60c9bb8dd0efab787606e30bd8457dc34732df27a2b98"
   },
   {
    "game": "ssq",
@@ -2003,11 +2030,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.008Z",
+   "verifiedAt": "2026-11-11T01:40:08.889Z",
    "salesAmount": 344932190,
    "poolAmount": 654135395,
    "fixedPoolAmount": null,
-   "rawHash": "8051ad7fb19bfc4a3d6a995a9dcaf7e4bb44c82deb59c217cb8902edbe503452"
+   "rawHash": "a0c3a9996a38c6c873fd5e68f0a4e9931d7ed1f0a069ae4f95c491b57fe8d986"
   },
   {
    "game": "ssq",
@@ -2062,11 +2089,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.008Z",
+   "verifiedAt": "2026-11-11T01:40:08.889Z",
    "salesAmount": 347737104,
    "poolAmount": 628888733,
    "fixedPoolAmount": null,
-   "rawHash": "55e636c358951dbcf6f8bd5cc35409ce48a6746f343755a02ad73acb10c1e109"
+   "rawHash": "551f040eade09bde142761a26fd3b96b0760df6b6c6c55693c71950d013c09d6"
   },
   {
    "game": "ssq",
@@ -2121,11 +2148,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.008Z",
+   "verifiedAt": "2026-11-11T01:40:08.889Z",
    "salesAmount": 373881722,
    "poolAmount": 616242219,
    "fixedPoolAmount": null,
-   "rawHash": "f74e000c502aadb7e5431720bcfc733721f9d70f4e44623cc9af81953b1d10ca"
+   "rawHash": "321bd1f6a173a700436eb59efa755bfa54227d5466021403765721de74112438"
   },
   {
    "game": "ssq",
@@ -2180,11 +2207,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.008Z",
+   "verifiedAt": "2026-11-11T01:40:08.889Z",
    "salesAmount": 348046564,
    "poolAmount": 566415284,
    "fixedPoolAmount": null,
-   "rawHash": "86d8a84975e9899c064a8800d49579b6a443e1fd4e12d14a7f8e846666e7cb66"
+   "rawHash": "696b97b4f2024b8ba61c4158d774c42f8f6f1f38faa7e8c2f43144edfe46c991"
   },
   {
    "game": "ssq",
@@ -2239,11 +2266,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.008Z",
+   "verifiedAt": "2026-11-11T01:40:08.890Z",
    "salesAmount": 339633672,
    "poolAmount": 571623532,
    "fixedPoolAmount": null,
-   "rawHash": "7b022deace3470b230f1a34056f301f76c0368c71590879ee5279504aaef81e4"
+   "rawHash": "63070a9764ce2ec133a598257df3c43f1b1103efc3e624dc9699a5252ac5a5a2"
   },
   {
    "game": "ssq",
@@ -2298,11 +2325,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.008Z",
+   "verifiedAt": "2026-11-11T01:40:08.890Z",
    "salesAmount": 367362274,
    "poolAmount": 583235682,
    "fixedPoolAmount": null,
-   "rawHash": "c3f25219d0b75bcffaceda54a420c60c9bbf21c79f9db9b3090ec401984dd64c"
+   "rawHash": "9d12bc75fbd5525606ce3577ba4d2b3dbdf1198d2aef56c6f9f0b1740f3172af"
   },
   {
    "game": "ssq",
@@ -2357,11 +2384,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.008Z",
+   "verifiedAt": "2026-11-11T01:40:08.890Z",
    "salesAmount": 348980318,
    "poolAmount": 545331466,
    "fixedPoolAmount": null,
-   "rawHash": "1c834dac8eea814c6bc562e43d08c9e99e00a8814eac7f823cb71ab667e091d1"
+   "rawHash": "9ca5d31e5e35b19a932a4dee8b20a5491b49b7d17598fc53ef522bffd805e91c"
   },
   {
    "game": "ssq",
@@ -2416,11 +2443,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.008Z",
+   "verifiedAt": "2026-11-11T01:40:08.890Z",
    "salesAmount": 345041020,
    "poolAmount": 489539135,
    "fixedPoolAmount": null,
-   "rawHash": "bd91dc792fccaee0b3362381b45c5679caf4d82dff999bd2b2b59623c58e102a"
+   "rawHash": "50f9be40e9d3e46c25be628dd4584aa2726c0dad93b04e4d353bd1bf058f2259"
   },
   {
    "game": "ssq",
@@ -2475,11 +2502,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.008Z",
+   "verifiedAt": "2026-11-11T01:40:08.890Z",
    "salesAmount": 373747432,
    "poolAmount": 442158322,
    "fixedPoolAmount": null,
-   "rawHash": "bc4ab4b652f04bd559c36f6d72efe743b3b9d3fa57cd0fbe3f0070e6b85f6398"
+   "rawHash": "3f1e7783621623203261f33a4e0bc78e192b17f54e91b5e3b6ae31f046139f57"
   },
   {
    "game": "ssq",
@@ -2534,11 +2561,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.008Z",
+   "verifiedAt": "2026-11-11T01:40:08.890Z",
    "salesAmount": 349545040,
    "poolAmount": 473791046,
    "fixedPoolAmount": null,
-   "rawHash": "524d3efb0d6b8b6ece02ca8d072e8e50b09a85b17c2bc267e991a451bfca595e"
+   "rawHash": "87b9180830503d11ac5ef6f9b2284d958691c00b077d0a3dc230f47bc63f246a"
   },
   {
    "game": "ssq",
@@ -2593,11 +2620,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.009Z",
+   "verifiedAt": "2026-11-11T01:40:08.890Z",
    "salesAmount": 345608568,
    "poolAmount": 463257269,
    "fixedPoolAmount": null,
-   "rawHash": "690410bb586f7a08b30b72f62e8fdd1b93c654e1cad145046fd926c88a266c57"
+   "rawHash": "27d4f93ee00c882f1691ef94abdc0cdef9cc9d8d516296ca6f83ad6d169fb8bd"
   },
   {
    "game": "ssq",
@@ -2652,11 +2679,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.009Z",
+   "verifiedAt": "2026-11-11T01:40:08.890Z",
    "salesAmount": 368292652,
    "poolAmount": 450096595,
    "fixedPoolAmount": null,
-   "rawHash": "519bfab71973b288307ef93ec4011054f1f739eab01d8b68d7107c53e204d713"
+   "rawHash": "c555ec54308531d63ade0a190e155e35620f1b1db970fd1513b0d44760e1c60a"
   },
   {
    "game": "ssq",
@@ -2711,11 +2738,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.009Z",
+   "verifiedAt": "2026-11-11T01:40:08.890Z",
    "salesAmount": 348718788,
    "poolAmount": 480566551,
    "fixedPoolAmount": null,
-   "rawHash": "be0341761223a711496737305298853b57ae6c98951d0c337ea2b06b1beda908"
+   "rawHash": "a13f44b84e5c6dc8333adf87d9461b7380c51283f7f2a96bf5e91769c3f4724f"
   },
   {
    "game": "ssq",
@@ -2770,11 +2797,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.009Z",
+   "verifiedAt": "2026-11-11T01:40:08.890Z",
    "salesAmount": 348240258,
    "poolAmount": 480802779,
    "fixedPoolAmount": null,
-   "rawHash": "550bb2c77448ad5a8cdafbf86ae321d768a8969c34d8b7e23be5a78c7296af03"
+   "rawHash": "f275a071136a9430b61150add2ec7c97aef3ed5dc27831028b0abfa08a069f5b"
   },
   {
    "game": "ssq",
@@ -2829,11 +2856,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.009Z",
+   "verifiedAt": "2026-11-11T01:40:08.890Z",
    "salesAmount": 375000824,
    "poolAmount": 409487566,
    "fixedPoolAmount": null,
-   "rawHash": "9f63616150655c58979c449a7978e4598ae7ae060fd8985a0d313ee1c11feb8c"
+   "rawHash": "975261e0e79d9129d4e95ae36a9cef463a4474efb4b1564a2263ae13b70d8354"
   },
   {
    "game": "ssq",
@@ -2888,11 +2915,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.009Z",
+   "verifiedAt": "2026-11-11T01:40:08.890Z",
    "salesAmount": 350765488,
    "poolAmount": 401606257,
    "fixedPoolAmount": null,
-   "rawHash": "90314a7ecb1532b406538c2e34bf18102a50fa8bb1e8fb616d3411156be56389"
+   "rawHash": "f6edf57122681908cd999a7abd46249d3b716122f3c8461181a0cfeb21081bfb"
   },
   {
    "game": "ssq",
@@ -2947,11 +2974,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.009Z",
+   "verifiedAt": "2026-11-11T01:40:08.890Z",
    "salesAmount": 344697650,
    "poolAmount": 384218118,
    "fixedPoolAmount": null,
-   "rawHash": "4104f0b899ce33b9c35fd98f7678b968e4613a2ebd46988bd7fbf866d02b358c"
+   "rawHash": "f3134da75c859b6ab991c1afb71b5360831c26fa8f3c11e7a2e08bdb399fc403"
   },
   {
    "game": "ssq",
@@ -3006,11 +3033,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.009Z",
+   "verifiedAt": "2026-11-11T01:40:08.890Z",
    "salesAmount": 373452200,
    "poolAmount": 367458887,
    "fixedPoolAmount": null,
-   "rawHash": "9459fb09bcf20e1dd4bae7720ba92a1286879d29bb7172d2d1e0e304778437f2"
+   "rawHash": "03583babe60baa085e95e4cdd1c58bd6b0d662ba432ec3206af32b8dbf8ffb9c"
   },
   {
    "game": "ssq",
@@ -3065,11 +3092,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.009Z",
+   "verifiedAt": "2026-11-11T01:40:08.890Z",
    "salesAmount": 355852948,
    "poolAmount": 285632700,
    "fixedPoolAmount": null,
-   "rawHash": "8367aeb80b073d3295bbb6fec34eeeb2c429bec0e84cb59b1016b603792ad6e7"
+   "rawHash": "e06087dac452c6bea18dd9644b6e477f938496dcca15b214057bfdfa10feb226"
   },
   {
    "game": "ssq",
@@ -3124,11 +3151,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.009Z",
+   "verifiedAt": "2026-11-11T01:40:08.890Z",
    "salesAmount": 353662546,
    "poolAmount": 320076738,
    "fixedPoolAmount": null,
-   "rawHash": "163fac195ccfd6b321f130a3a846789cb3888f8b4ffe10b67ce332bf832dc82c"
+   "rawHash": "69dc4a194cd09a9bd899d7f1b13414557750588d7c4a51c0ef2273f44cd7a6fd"
   },
   {
    "game": "ssq",
@@ -3183,11 +3210,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.009Z",
+   "verifiedAt": "2026-11-11T01:40:08.891Z",
    "salesAmount": 382507054,
    "poolAmount": 292048181,
    "fixedPoolAmount": null,
-   "rawHash": "df3e593cf98df3cd526e91f72a826251340268cea41022af0be23b6e7bb5c8a9"
+   "rawHash": "ec03baa87e4ff620c339247dfa47698b59d47dd5ab7dc847e6553ce9ecb81945"
   },
   {
    "game": "ssq",
@@ -3245,11 +3272,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.009Z",
+   "verifiedAt": "2026-11-11T01:40:08.891Z",
    "salesAmount": 370657052,
    "poolAmount": 283183968,
    "fixedPoolAmount": null,
-   "rawHash": "6698d3e864800c4b097f735b336c5314812d734e606d56d159af91b3f06c6c74"
+   "rawHash": "a6c95849cbcb4fd3fc1acc3b38ee6b7d85c2203959c422517b3f7a7c36794321"
   },
   {
    "game": "ssq",
@@ -3307,11 +3334,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.009Z",
+   "verifiedAt": "2026-11-11T01:40:08.891Z",
    "salesAmount": 370952514,
    "poolAmount": 308183968,
    "fixedPoolAmount": null,
-   "rawHash": "63e6652345b71d3e86e063e92f84cf00e5339a4001e9e18291c08048bd703d97"
+   "rawHash": "6646d2f9d1d11852ce806d6aa60ee77392be2cea725cd156da2e76ece249a565"
   },
   {
    "game": "ssq",
@@ -3369,11 +3396,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.009Z",
+   "verifiedAt": "2026-11-11T01:40:08.891Z",
    "salesAmount": 398594042,
    "poolAmount": 328183968,
    "fixedPoolAmount": null,
-   "rawHash": "3495f4df8416704e63e7581ffd67be908a148d796177798302c092a71b98bf75"
+   "rawHash": "7e258d695f81f414a7988924fe5415b19f63d0c1f7667f9615ea89139733314a"
   },
   {
    "game": "ssq",
@@ -3431,11 +3458,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.009Z",
+   "verifiedAt": "2026-11-11T01:40:08.891Z",
    "salesAmount": 377591844,
    "poolAmount": 378183968,
    "fixedPoolAmount": null,
-   "rawHash": "1c824b8dfb5f745e4d2b6468d3b8952fde6b6de8c57a5236e6442a1316201b51"
+   "rawHash": "bf98ce8141b3837f8b6204dfc18187467676576259cdab8e7a0883efb1709f78"
   },
   {
    "game": "ssq",
@@ -3493,11 +3520,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.009Z",
+   "verifiedAt": "2026-11-11T01:40:08.891Z",
    "salesAmount": 373089958,
    "poolAmount": 398183968,
    "fixedPoolAmount": null,
-   "rawHash": "2c98363a5860eac90c4e4a32a3eb75559c1073222c9229422660d8316aa9d971"
+   "rawHash": "233c878cd0f43beea2a41873782564b2c792373c50fa47434e56a8c83c40d906"
   },
   {
    "game": "ssq",
@@ -3555,11 +3582,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.009Z",
+   "verifiedAt": "2026-11-11T01:40:08.891Z",
    "salesAmount": 398555946,
    "poolAmount": 438183968,
    "fixedPoolAmount": null,
-   "rawHash": "fccfaa91c09a24a55af6fcab2f4da2e504cd0b4a9b248e91074e31bb0877b451"
+   "rawHash": "6a70a84a35882a2eda4961a54541f7b113329d59bcbea978c6251da398461f2d"
   },
   {
    "game": "ssq",
@@ -3617,11 +3644,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.009Z",
+   "verifiedAt": "2026-11-11T01:40:08.891Z",
    "salesAmount": 373992648,
    "poolAmount": 493183968,
    "fixedPoolAmount": null,
-   "rawHash": "9a56b94322b66ec28d7328a6d480dfeda7173d74c92bb9660978f6034d6e2a73"
+   "rawHash": "86f0d7e45cbe07232f6e82bb9af60bb512f2d9cdca33a683670c8caec6617702"
   },
   {
    "game": "ssq",
@@ -3679,11 +3706,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.009Z",
+   "verifiedAt": "2026-11-11T01:40:08.891Z",
    "salesAmount": 379517740,
    "poolAmount": 588469423,
    "fixedPoolAmount": null,
-   "rawHash": "e0d512b3c1628db5a0aff3b3561dc25e32f434d22272f81b90d81e5549034108"
+   "rawHash": "b21e6244e926a8be06a26b744d401201838ff535f9a38fcff5ac28d8bd759926"
   },
   {
    "game": "ssq",
@@ -3741,11 +3768,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.009Z",
+   "verifiedAt": "2026-11-11T01:40:08.891Z",
    "salesAmount": 414869642,
    "poolAmount": 658469423,
    "fixedPoolAmount": null,
-   "rawHash": "290012d678da5631833e49f0fce191ac194dcc067d11603cdd4a8ea0dbfe1ad1"
+   "rawHash": "a785fb514fc4ebf833ea1f36016c431429474caeae300d39cd2b0533827e8251"
   },
   {
    "game": "ssq",
@@ -3803,11 +3830,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.010Z",
+   "verifiedAt": "2026-11-11T01:40:08.891Z",
    "salesAmount": 392786646,
    "poolAmount": 671837950,
    "fixedPoolAmount": null,
-   "rawHash": "14f2146bbefa390cdd7f8b0d62d9a53ebd9ca2c3c79ecfbaa45852de5ed25fda"
+   "rawHash": "1048a0e2630204dbae27154453540acec02f242a6471494334e484f96aad910a"
   },
   {
    "game": "ssq",
@@ -3865,11 +3892,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.010Z",
+   "verifiedAt": "2026-11-11T01:40:08.891Z",
    "salesAmount": 386314046,
    "poolAmount": 706837950,
    "fixedPoolAmount": null,
-   "rawHash": "203248b93963e17e7b0288e4724668121fe606f3f8ec9307fc70326a048313dd"
+   "rawHash": "f1de3b664b4790c365372bbf42e4b0ca153640f90fb9f240778290391d6978bf"
   },
   {
    "game": "ssq",
@@ -3927,11 +3954,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.010Z",
+   "verifiedAt": "2026-11-11T01:40:08.891Z",
    "salesAmount": 427210484,
    "poolAmount": 741837950,
    "fixedPoolAmount": null,
-   "rawHash": "cf92ea5a59ad20dfd2709e7a77cf598cecf6d1ed78fed38ea8e4fae7beb45cd0"
+   "rawHash": "35c1a9c720329c42e36d5482f217b4c7a7fe5eae2653cb43bb2fb12c1aafc315"
   },
   {
    "game": "ssq",
@@ -3989,11 +4016,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.010Z",
+   "verifiedAt": "2026-11-11T01:40:08.891Z",
    "salesAmount": 393294950,
    "poolAmount": 816837950,
    "fixedPoolAmount": null,
-   "rawHash": "ae346a8dada2344e5ef05c17dee7dc1f372ca84723354c4687f27bbf3db3f73c"
+   "rawHash": "f74743372d2de79e94a022294e3b7c3f1429031511e8859cccca805dcd806023"
   },
   {
    "game": "ssq",
@@ -4051,11 +4078,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.010Z",
+   "verifiedAt": "2026-11-11T01:40:08.891Z",
    "salesAmount": 402189304,
    "poolAmount": 909990283,
    "fixedPoolAmount": null,
-   "rawHash": "d4630971ab2e9c3bbd9e04b3da40d65ec4ea4f58790f12acd5b5cf1f2d7dd19e"
+   "rawHash": "4e70a55ac840b26a7d3400d97b73834017d1c682d871b1b3279e1943fab3fa5d"
   },
   {
    "game": "ssq",
@@ -4113,11 +4140,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.010Z",
+   "verifiedAt": "2026-11-11T01:40:08.891Z",
    "salesAmount": 429422172,
    "poolAmount": 1009990273,
    "fixedPoolAmount": null,
-   "rawHash": "58e6c88e45da436d7b69c80760e84b25722fe1ee6faf1e1eae77105ca08106c7"
+   "rawHash": "8cc697c36e69d1f322c15433ddc7d1526182da43acec484b5e305dd84412da5f"
   },
   {
    "game": "ssq",
@@ -4175,11 +4202,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.010Z",
+   "verifiedAt": "2026-11-11T01:40:08.891Z",
    "salesAmount": 398771788,
    "poolAmount": 1049990273,
    "fixedPoolAmount": null,
-   "rawHash": "8929367c2e4447303b1e115bec7be572830a6e88a374794b56dedb35f7e59da3"
+   "rawHash": "c7f95eced985cb3c8ad574ed77119f22c77d49d507785cfb7b6486a37528aaa6"
   },
   {
    "game": "ssq",
@@ -4237,11 +4264,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.010Z",
+   "verifiedAt": "2026-11-11T01:40:08.891Z",
    "salesAmount": 392773558,
    "poolAmount": 1139990273,
    "fixedPoolAmount": null,
-   "rawHash": "2db54647c2edf09c2b341feac92456d36f6b9942ca1b3975c7fcaf5ec17e2f09"
+   "rawHash": "bfcec09b1863fd44349f6feab4a8b054f3f6b6564a6861b404264512b2ad1ab7"
   },
   {
    "game": "ssq",
@@ -4299,11 +4326,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.010Z",
+   "verifiedAt": "2026-11-11T01:40:08.891Z",
    "salesAmount": 425121686,
    "poolAmount": 1154771516,
    "fixedPoolAmount": null,
-   "rawHash": "24ac5db5d5442fc8ffbf77a52563984bf7882dd0fa74ba9ea8965ce485d7077e"
+   "rawHash": "1d46881a931e1ac1365a85e63979c284c3e14cf1e39281142c6d60535a76c687"
   },
   {
    "game": "ssq",
@@ -4361,11 +4388,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.010Z",
+   "verifiedAt": "2026-11-11T01:40:08.891Z",
    "salesAmount": 397400020,
    "poolAmount": 1199771516,
    "fixedPoolAmount": null,
-   "rawHash": "8aced457a3347fd196f481fc8b26cf793cb601ce3e5113e5ea4acad33c9d9694"
+   "rawHash": "1fe3bc7921ff024905d606a6b6b9144644ccdd0df6f3be55ce3de31b94759bf5"
   },
   {
    "game": "ssq",
@@ -4423,11 +4450,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.010Z",
+   "verifiedAt": "2026-11-11T01:40:08.891Z",
    "salesAmount": 391304582,
    "poolAmount": 1229771516,
    "fixedPoolAmount": null,
-   "rawHash": "fd1a489151042be01c5e4aed9aa9e0f407f6d0122281c03fa9389c1e2e329b82"
+   "rawHash": "dd958e1cd7cbb0fdc48902b19b26d60095117300a39436d2c8df11c55d0b2554"
   },
   {
    "game": "ssq",
@@ -4485,11 +4512,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.010Z",
+   "verifiedAt": "2026-11-11T01:40:08.892Z",
    "salesAmount": 422769486,
    "poolAmount": 1237107160,
    "fixedPoolAmount": null,
-   "rawHash": "f8e61d527b219e519425ea9dc9c1542e0200102c5a8f88e300fbc83146eba0d3"
+   "rawHash": "213912c8c74e56108ed5841cd9ac02550402c9337a6df9e4041923eef07a8740"
   },
   {
    "game": "ssq",
@@ -4547,11 +4574,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.010Z",
+   "verifiedAt": "2026-11-11T01:40:08.892Z",
    "salesAmount": 391858874,
    "poolAmount": 1251883761,
    "fixedPoolAmount": null,
-   "rawHash": "083fcaf64cc4b21e2bea9d597a7f25501b8d46be4153c42442f32ca3096c7981"
+   "rawHash": "0ba125434881b532e494eaf558052e353e443c000a23256d16fe717d7998f419"
   },
   {
    "game": "ssq",
@@ -4609,11 +4636,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.010Z",
+   "verifiedAt": "2026-11-11T01:40:08.892Z",
    "salesAmount": 395029142,
    "poolAmount": 1276883761,
    "fixedPoolAmount": null,
-   "rawHash": "0afee067155fb3f79896180dad4856ffa961343640fff02e5eecb6ddacc24dda"
+   "rawHash": "082707a571bd9eaecccc05b0605e4a76e98aa3e8795098d540b01cbce2e90fbc"
   },
   {
    "game": "ssq",
@@ -4671,11 +4698,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.010Z",
+   "verifiedAt": "2026-11-11T01:40:08.892Z",
    "salesAmount": 417267288,
    "poolAmount": 1306883761,
    "fixedPoolAmount": null,
-   "rawHash": "e11697002f2c243755feecd6d2f69aa7a7fb4123e370c266ab86326dcb08c8de"
+   "rawHash": "b3d890fc1e3053fd4e44d14b051beb530a0718c10707c8a81c1c56425dd16b6e"
   },
   {
    "game": "ssq",
@@ -4733,11 +4760,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.010Z",
+   "verifiedAt": "2026-11-11T01:40:08.892Z",
    "salesAmount": 386809756,
    "poolAmount": 1400262206,
    "fixedPoolAmount": null,
-   "rawHash": "a0e57dc4af3d5357a59a9c0ece9e2efd7afbeafc6ffcd81b74d7276ecaa97e07"
+   "rawHash": "23d0b29942e3463eee69209fda6a907b469495ff1f2d7105ce0e231828c206e5"
   },
   {
    "game": "ssq",
@@ -4795,11 +4822,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.010Z",
+   "verifiedAt": "2026-11-11T01:40:08.892Z",
    "salesAmount": 368215788,
    "poolAmount": 1470262206,
    "fixedPoolAmount": null,
-   "rawHash": "0fabe53c0a9dfaf40508b3830d0c286395359bfad6e2e6e270d1af85e4bc5ffb"
+   "rawHash": "7060151220459d2a5ca99432309fca65cf11c45b50c5f4fd4e44730884018560"
   },
   {
    "game": "ssq",
@@ -4857,11 +4884,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.010Z",
+   "verifiedAt": "2026-11-11T01:40:08.892Z",
    "salesAmount": 378548054,
    "poolAmount": 1490262206,
    "fixedPoolAmount": null,
-   "rawHash": "9fcd1b01de9159b5d186589134705b49c0ba90827c437daad8262ec29df5d4b5"
+   "rawHash": "db3f74354f4a7ce7d8aa531a207cd00ee6e5166a0668b2869e5e53afad057183"
   },
   {
    "game": "ssq",
@@ -4919,11 +4946,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.010Z",
+   "verifiedAt": "2026-11-11T01:40:08.892Z",
    "salesAmount": 381163108,
    "poolAmount": 1520262206,
    "fixedPoolAmount": null,
-   "rawHash": "c89e7b6fc5e7db4c6648fc0555ba59a5e3feda8294ed740697bed098d0ccc103"
+   "rawHash": "4b8f354977197e6895794d0fdf3d90804f0f2b531a01c8a0582aa924a2fd6312"
   },
   {
    "game": "ssq",
@@ -4981,11 +5008,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.010Z",
+   "verifiedAt": "2026-11-11T01:40:08.892Z",
    "salesAmount": 383992530,
    "poolAmount": 1505111504,
    "fixedPoolAmount": null,
-   "rawHash": "445541fd61527537ebf221f9771a65a3cdf3c380052017426fbb855e94ece3b8"
+   "rawHash": "354e4c39ed92a24518a60f3bd7b7159c21d3891e15791286990cf1d365780d04"
   },
   {
    "game": "ssq",
@@ -5043,11 +5070,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.011Z",
+   "verifiedAt": "2026-11-11T01:40:08.892Z",
    "salesAmount": 425615512,
    "poolAmount": 1535111504,
    "fixedPoolAmount": null,
-   "rawHash": "89c64d4b1d1fb2d53ccbcb6db250b32a62aeed54847e9babdfb8c851fdb0ac30"
+   "rawHash": "81db1fcb3f8760516c3b66f138c4b7f4a629a8d9376c58ef9c32af9bf462652b"
   },
   {
    "game": "ssq",
@@ -5105,11 +5132,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.011Z",
+   "verifiedAt": "2026-11-11T01:40:08.892Z",
    "salesAmount": 395637026,
    "poolAmount": 1559981238,
    "fixedPoolAmount": null,
-   "rawHash": "73b7d9153f6e918c604f8710df8b1b867b48b99e703809ebfe4fbbc910406206"
+   "rawHash": "f25d05403a4a17dc742e19827372fa1c645b91a25d268d598d7509f0f42dced3"
   },
   {
    "game": "ssq",
@@ -5167,11 +5194,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.011Z",
+   "verifiedAt": "2026-11-11T01:40:08.892Z",
    "salesAmount": 395282770,
    "poolAmount": 1619981238,
    "fixedPoolAmount": null,
-   "rawHash": "55ad498f4befd359b59fa98dbad45b5fc823ecc85e345fa94948190ea6dac981"
+   "rawHash": "86b10bf77a30ac1af7193bc19a314f7cb40032a044d0a634895be6b6af161d89"
   },
   {
    "game": "ssq",
@@ -5229,11 +5256,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.011Z",
+   "verifiedAt": "2026-11-11T01:40:08.892Z",
    "salesAmount": 423102342,
    "poolAmount": 1649981238,
    "fixedPoolAmount": null,
-   "rawHash": "649811cd42f681e4deeedcc75b954e61cb809db41e583e4fbd672985c9f7fc85"
+   "rawHash": "7f3764a5164f773e49fef157ea277bc950fe9dca4ee854f4a7e36f9608454af2"
   },
   {
    "game": "ssq",
@@ -5291,11 +5318,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.011Z",
+   "verifiedAt": "2026-11-11T01:40:08.892Z",
    "salesAmount": 400801534,
    "poolAmount": 1729981238,
    "fixedPoolAmount": null,
-   "rawHash": "946b30377d69f7921d8ffbea9a060e47fc3da4122f667663da52915263c5fb85"
+   "rawHash": "d169404e5a1f952fadb078a1d792d797f2ee96c7472bb61399c12904941709e4"
   },
   {
    "game": "ssq",
@@ -5353,11 +5380,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.011Z",
+   "verifiedAt": "2026-11-11T01:40:08.892Z",
    "salesAmount": 396284492,
    "poolAmount": 1799981238,
    "fixedPoolAmount": null,
-   "rawHash": "2e4a075bf6603aca965cd79cd939c620846d9da5cacf69a9f9dcd1f1c3bdab69"
+   "rawHash": "0b42ebf6f4812e87c26e251791de36da295fd6ee4995eee9ef0e26ae099787f5"
   },
   {
    "game": "ssq",
@@ -5415,11 +5442,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.011Z",
+   "verifiedAt": "2026-11-11T01:40:08.892Z",
    "salesAmount": 421923472,
    "poolAmount": 1869981238,
    "fixedPoolAmount": null,
-   "rawHash": "1ee9d1d2af522afb9b648780674dff0e012c76803f01399718086413a8d83b7c"
+   "rawHash": "e9227b91dff9849987485b0c9989cd681703803405c4e5caa5029596723abd90"
   },
   {
    "game": "ssq",
@@ -5477,11 +5504,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.011Z",
+   "verifiedAt": "2026-11-11T01:40:08.892Z",
    "salesAmount": 393444014,
    "poolAmount": 1934981238,
    "fixedPoolAmount": null,
-   "rawHash": "6df3c0770e58242800ed4b7312d8a6406d42b80629d2ff2b40a2afec5cb1059e"
+   "rawHash": "ff2e81d6f0085ed50c55de3615378d90666a56d1d6521d38394750e7ab737fbe"
   },
   {
    "game": "ssq",
@@ -5539,11 +5566,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.011Z",
+   "verifiedAt": "2026-11-11T01:40:08.892Z",
    "salesAmount": 382309000,
    "poolAmount": 1933841973,
    "fixedPoolAmount": null,
-   "rawHash": "2d425c2da661cfd7740dc04048112d81444674b5965ebf953a251932bbfa28c4"
+   "rawHash": "db93240618f822b2695d3197072595bf99373973196d759e4e7f26a724ba4807"
   },
   {
    "game": "ssq",
@@ -5601,11 +5628,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.011Z",
+   "verifiedAt": "2026-11-11T01:40:08.892Z",
    "salesAmount": 398672542,
    "poolAmount": 1973841973,
    "fixedPoolAmount": null,
-   "rawHash": "7df6e3f931c0bb9425d305804aff34e8735f5d41cc01c313a7f8e9d91ba9c105"
+   "rawHash": "170d9f0f935762f1b603ceeccc8895b042e87942f8e248cf8a7bd60e03bf0e54"
   },
   {
    "game": "ssq",
@@ -5663,11 +5690,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.011Z",
+   "verifiedAt": "2026-11-11T01:40:08.893Z",
    "salesAmount": 398552206,
    "poolAmount": 2063784926,
    "fixedPoolAmount": null,
-   "rawHash": "b0a5e460eb1e811eaaf11492f8870f861b4518dffe0af9bfdec52b8710b767fb"
+   "rawHash": "0aae3a1c070b789f3f75bcd08cce0f7048aae78206c191d037badb8bbb6033b0"
   },
   {
    "game": "ssq",
@@ -5725,11 +5752,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.011Z",
+   "verifiedAt": "2026-11-11T01:40:08.893Z",
    "salesAmount": 389527084,
    "poolAmount": 2108784926,
    "fixedPoolAmount": null,
-   "rawHash": "4275a1f18f4ea775d542bef4ae817fb7c4ed16f9b4cf0fc4ea63b82feef6fd7f"
+   "rawHash": "0d78e46a6f75a4c4e430a51d9ce76d21f7a2a1ae56aba1a2571bde38a0418fa8"
   },
   {
    "game": "ssq",
@@ -5787,11 +5814,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.011Z",
+   "verifiedAt": "2026-11-11T01:40:08.893Z",
    "salesAmount": 425726210,
    "poolAmount": 2138784926,
    "fixedPoolAmount": null,
-   "rawHash": "b9909e642647e050c146ddce910e4f8839e45ae0de4ce0c0056576b94b52a4aa"
+   "rawHash": "5a253757570b12792fc50de2d89f3315202e8df3935dc88ad1e35e2a5d35e3cc"
   },
   {
    "game": "ssq",
@@ -5849,11 +5876,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.011Z",
+   "verifiedAt": "2026-11-11T01:40:08.893Z",
    "salesAmount": 397739574,
    "poolAmount": 2203784926,
    "fixedPoolAmount": null,
-   "rawHash": "37b8ffa6f47b5b50fb6e61dd1dc882ff5f525d2a00b66e2a68df468408b5685a"
+   "rawHash": "36a8f20edb857f454f3bc5d230d7490caa44258a2fd8b7e5f8e85893b3a042e6"
   },
   {
    "game": "ssq",
@@ -5911,11 +5938,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.011Z",
+   "verifiedAt": "2026-11-11T01:40:08.893Z",
    "salesAmount": 392702390,
    "poolAmount": 2278784926,
    "fixedPoolAmount": null,
-   "rawHash": "f65893f513f48900bef4dea5e5af6652551220367a8d167e1f255639e9f9e0d6"
+   "rawHash": "5cc9a1b37ce7811cecd7561e2148e50028e4eeabd53da286c46b0352ad83ffe0"
   },
   {
    "game": "ssq",
@@ -5973,11 +6000,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.011Z",
+   "verifiedAt": "2026-11-11T01:40:08.893Z",
    "salesAmount": 430685136,
    "poolAmount": 2308784926,
    "fixedPoolAmount": null,
-   "rawHash": "749078f8ef3d64f90fa2d4fd07404ccb43410cbffa6f91486365135020c318e7"
+   "rawHash": "f9e94a615a544bbdeb8a5066d0c96ce69dae459cf6a7f53db1db1109b76e8e26"
   },
   {
    "game": "ssq",
@@ -6035,11 +6062,11 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-08T07:52:35.011Z",
+   "verifiedAt": "2026-11-11T01:40:08.893Z",
    "salesAmount": 401991268,
    "poolAmount": 2358784926,
    "fixedPoolAmount": null,
-   "rawHash": "a8e47aa37ee8f5b6aecc1e17df32711f74faf2a12135b390dc4dc39165f57b46"
+   "rawHash": "fca43913124156bab56dbdaeb718ad1859cea8c4f6dc3a2ca741476be9acf872"
   },
   {
    "game": "ssq",

@@ -480,6 +480,14 @@ function decorateNumbers(draw) {
   return formatDisplay(draw.game, draw.numbers);
 }
 
+/** 期号 → 开奖日期（用于按开奖日期归纳号码，避免把 2000+ 期都塞进页面） */
+async function drawDateMap() {
+  const all = await store.getAll('draws');
+  const map = new Map();
+  for (const d of all) map.set(`${d.game}:${d.issue}`, d.drawDate || null);
+  return map;
+}
+
 /** 统计：开奖结构 + 个人命中分布（只读，纯函数在 shared/domain/analytics.js） */
 async function analytics(game, window) {
   const [draws, checks] = await Promise.all([
@@ -587,6 +595,7 @@ module.exports = {
   runChecks,
   latestChecks,
   analytics,
+  drawDateMap,
   previewImport,
   clearCollection,
   getGateFlags,

@@ -1,6 +1,6 @@
 {
   "name": "jingcai-assistant",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "private": true,
   "description": "竞彩助手 V1.0 — 双色球/快乐8选十 本地号码档案（静态站）",
   "scripts": {
@@ -22,7 +22,8 @@
     "task:install": "node scripts/install-task.js",
     "task:remove": "node scripts/install-task.js --remove",
     "sync:thirdparty": "node scripts/sync-thirdparty.js --keep 3000",
-    "enrich:draws": "node scripts/enrich-draws.js"
+    "enrich:draws": "node scripts/enrich-draws.js",
+    "sync:numbers": "node scripts/sync-numbers.js"
   },
   "engines": {
     "node": ">=18"

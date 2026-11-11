@@ -80,7 +80,10 @@ async function enrichSsq({ offline }) {
       continue;
     }
     if (record.promo !== undefined) continue; // 已检查过（可能为 null）
-    if (offline || !record.sourceUrl) {
+    // 只有 sourceUrl 是官方公告页时才抓；号码快通道写的是 XML 列表地址，
+    // 拿它当公告页解析只会得到"没有派奖"，把真实派奖抹掉。
+    const isAnnouncement = /cwl\.gov\.cn/.test(String(record.sourceUrl || ''));
+    if (offline || !isAnnouncement) {
       continue;
     }
     const res = await fetchPromo(record.sourceUrl);

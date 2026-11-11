@@ -54,6 +54,7 @@ const state = {
   checks: new Map(),
   stats: null,
   syncInfo: null,
+  drawDates: new Map(),
   busy: false,
   message: null,
   lastError: null,
@@ -547,25 +548,64 @@ function ticketForm() {
     </section>`;
 }
 
+/**
+ * 已购买且已核对的号码 → 按开奖日期归纳。
+ * 其余（草稿 / 已作废 / 未开奖 / 未核对）保持原来的按彩种平铺，
+ * 否则历史一多，一屏全是号码，找不到刚买的那张。
+ */
 function ticketsView() {
   const counts = state.stats ? state.stats.counts : { draft: 0, confirmed: 0, void: 0 };
   const filter = state.ticketGame || 'all';
   const visible = state.tickets.filter((t) => filter === 'all' || t.game === filter);
 
-  const groupOf = (game) => visible.filter((t) => t.game === game);
-  const ssq = groupOf(GAME.SSQ);
-  const kl8 = groupOf(GAME.KL8);
+  const settled = [];
+  const rest = [];
+  for (const t of visible) {
+    const check = state.checks.get(t.id);
+    const date = state.drawDates.get(`${t.game}:${t.issue}`) || null;
+    if (t.purchaseStatus === PURCHASE_STATUS.CONFIRMED && check && date) {
+      settled.push({ ticket: t, check, date });
+    } else {
+      rest.push(t);
+    }
+  }
 
-  const section = (game, items) =>
-    items.length
-      ? `<div class="game-group">
-          <div class="group-head">
-            <strong>${GAME_META[game].shortName}</strong>
-            <span class="muted">${items.length} 注</span>
-          </div>
-          <div class="list">${items.map(ticketCard).join('')}</div>
-        </div>`
-      : '';
+  const byDate = new Map();
+  for (const row of settled) {
+    if (!byDate.has(row.date)) byDate.set(row.date, []);
+    byDate.get(row.date).push(row);
+  }
+  const dates = Array.from(byDate.keys()).sort((a, b) => String(b).localeCompare(String(a)));
+
+  const dateSection = (date) => {
+    const rows = byDate.get(date).sort((a, b) => {
+      if (a.ticket.game !== b.ticket.game) return a.ticket.game === GAME.SSQ ? -1 : 1;
+      return String(b.ticket.issue).localeCompare(String(a.ticket.issue));
+    });
+    const wins = rows.filter((r) => r.check.isWinner);
+    const amount = wins.reduce((acc, r) => acc + (Number(r.check.totalPrize) || 0), 0);
+    return `<div class="date-group">
+      <div class="group-head">
+        <strong>${esc(date)}</strong>
+        <span class="muted">开奖日 · ${rows.length} 注${
+          wins.length ? ` · 中奖 ${wins.length} 注 ${amount ? yuan(amount) : ''}` : ' · 未中奖'
+        }</span>
+      </div>
+      <div class="list">${rows.map((r) => ticketCard(r.ticket)).join('')}</div>
+    </div>`;
+  };
+
+  const restSection = (game) => {
+    const items = rest.filter((t) => t.game === game);
+    if (!items.length) return '';
+    return `<div class="game-group">
+      <div class="group-head">
+        <strong>${GAME_META[game].shortName}</strong>
+        <span class="muted">${items.length} 注 · 未核对 / 未开奖 / 草稿</span>
+      </div>
+      <div class="list">${items.map(ticketCard).join('')}</div>
+    </div>`;
+  };
 
   const empty =
     visible.length === 0 && !state.form
@@ -574,6 +614,9 @@ function ticketsView() {
           '点「新增号码」手动录入或随机生成。候选/随机号码也只生成草稿，必须你确认购买后才计入统计与判奖。'
         )
       : '';
+
+  const hasSettled = dates.length > 0;
+  const hasRest = rest.length > 0;
 
   return `
     <div class="toolbar">
@@ -597,8 +640,15 @@ function ticketsView() {
     </div>
     ${state.form ? ticketForm() : ''}
     ${empty}
-    ${section(GAME.SSQ, ssq)}
-    ${section(GAME.KL8, kl8)}`;
+    ${
+      hasSettled
+        ? `<div class="section-label">已开奖 · 按开奖日期归纳（${settled.length} 注）</div>
+           ${dates.map(dateSection).join('')}`
+        : ''
+    }
+    ${hasRest ? `<div class="section-label">其他（未核对 / 未开奖 / 草稿）</div>` : ''}
+    ${restSection(GAME.SSQ)}
+    ${restSection(GAME.KL8)}`;
 }
 
 /* ---------------- 选号：候选组合（阶段 6） ---------------- */
@@ -1201,6 +1251,7 @@ async function refreshAll() {
   state.checks = await repo.latestChecks();
   state.stats = await repo.stats();
   state.syncInfo = await store.getMeta(`sync:${state.game}`);
+  state.drawDates = await repo.drawDateMap();
   state.candidates.gate = await repo.gateState();
   state.candidates.batches = await repo.listCandidateReviews(state.game);
   state.analytics = await repo.analytics(state.game, state.window);
@@ -1210,15 +1261,35 @@ async function syncDraws(options = {}) {
   const silent = options.silent === true;
   state.busy = true;
   if (!silent) render();
+
+  const latestOf = async (g) => {
+    const rows = await repo.listDraws(g, 1);
+    return rows.length ? rows[0].issue : null;
+  };
+
   try {
-    const results = [];
-    for (const g of [GAME.SSQ, GAME.KL8]) {
-      const r = await repo.syncFromSite(g);
-      results.push(`${GAME_META[g].shortName} ${r.saved} 期`);
-    }
+    const before = {};
+    for (const g of [GAME.SSQ, GAME.KL8]) before[g] = await latestOf(g);
+
+    for (const g of [GAME.SSQ, GAME.KL8]) await repo.syncFromSite(g);
     await refreshAll();
-    if (!silent) notify(`已加载：${results.join('，')}`, 'ok');
-    return true;
+
+    const after = {};
+    for (const g of [GAME.SSQ, GAME.KL8]) after[g] = await latestOf(g);
+    const changed = [GAME.SSQ, GAME.KL8].filter((g) => before[g] !== after[g]);
+    const summary = [GAME.SSQ, GAME.KL8]
+      .map((g) => `${GAME_META[g].shortName} ${after[g] || '无'}`)
+      .join('，');
+
+    if (!silent) {
+      if (changed.length) {
+        notify(`已更新：${summary}`, 'ok');
+      } else {
+        // 关键：把"点了没反应"说清楚 —— 不是按钮坏了，是仓库里的数据还没更新
+        notify(`仓库数据没有更新（${summary}）。云端定时可能还没跑到，稍后再点一次。`, 'bad');
+      }
+    }
+    return changed.length > 0 || after[GAME.SSQ] !== null;
   } catch (err) {
     state.lastError = err.message;
     if (!silent) notify(`加载失败：${err.message}`, 'bad');
@@ -1229,11 +1300,11 @@ async function syncDraws(options = {}) {
   }
 }
 
-/** 自动同步节流：6 小时内不重复拉取整包数据 */
+/** 自动同步节流：2 小时内不重复拉取整包数据 */
 async function autoSyncIfStale() {
   const last = await store.getMeta('autoSync');
   const at = last && last.at ? new Date(last.at).getTime() : 0;
-  const fresh = Number.isFinite(at) && Date.now() - at < 6 * 3600 * 1000;
+  const fresh = Number.isFinite(at) && Date.now() - at < 2 * 3600 * 1000;
   if (state.draws.length && fresh) return;
   const ok = await syncDraws({ silent: true });
   if (ok) await store.setMeta('autoSync', { at: new Date().toISOString() });

@@ -103,7 +103,10 @@ function resolvePromo(ticket, draw, level) {
   // promo === undefined 表示"这份数据还没检查过派奖"（云端抓官方公告页会 403）。
   // 这时不能默默按无派奖算，否则六等奖会少报 5 元/注，用户还以为算对了。
   if (promo === undefined && (level === '2' || level === '6')) {
-    if (Number(draw && draw.issue) >= Number(PROMO_START_ISSUE)) {
+    const amount = ticketAmount(ticket);
+    // 只有票面可能够 20 元门槛时才值得提示，否则满屏"可能少算"反而没人看
+    const maybeQualified = amount !== null && amount >= 20;
+    if (maybeQualified && Number(draw && draw.issue) >= Number(PROMO_START_ISSUE)) {
       return {
         program: null,
         label: level === '2' ? '二等奖特别奖' : '六等奖翻番奖',
@@ -112,7 +115,7 @@ function resolvePromo(ticket, draw, level) {
         ticketAmount: ticketAmount(ticket),
         applied: false,
         reason: 'PROMO_DATA_MISSING',
-        note: '本期处于派奖期，但派奖金额尚未同步到本机数据（可能少算），请先重新加载开奖',
+        note: '本期处于派奖期，但派奖金额尚未同步（这张票已满 20 元门槛，可能少算），请稍后重新加载开奖',
       };
     }
   }

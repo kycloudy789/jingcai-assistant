@@ -867,3 +867,18 @@ input[type="date"] {
 .promo {
   color: #0f6e56;
 }
+
+/* 我的号码：按开奖日期归纳 */
+.section-label {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin: 18px 2px 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.date-group {
+  margin-bottom: 16px;
+}
+.date-group .group-head strong {
+  font-variant-numeric: tabular-nums;
+}
