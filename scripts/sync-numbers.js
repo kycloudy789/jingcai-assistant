@@ -1,13 +1,19 @@
 /**
- * 只同步"开奖号码"（最快通道）。
+ * 只同步"开奖号码"（最快通道，多源兜底）。
  *
  * 设计取舍：奖级明细可以延后，号码不能落后。
- * 官方接口在 GitHub 上 403，500.com 的 HTML 页偶发超时，但它的静态 XML 列表
- * 一次请求就能拿到全部期号 + 号码 + 开奖日期，稳定且小。
+ * 官方接口在 GitHub 上 403，所以号码走第三方；单源一跳闸就停更，
+ * 因此这里按顺序试多个独立源，任何一个成功就够：
+ *
+ *   1. 500.com 静态 XML（全量，约 0.4MB，最快）
+ *   2. 17500.cn 明文 txt（全量，独立站点，约 0.5–1MB）
+ *
+ * 多源之间如果同一期号码不一致，**以先试到的源为准并告警**，
+ * 不静默采信任何一个（号码错一个，判奖就全错）。
  *
  * 行为：
- *   - 只**新增**缺失的期次，已有记录（含官方奖级明细）一个字段都不覆盖；
- *   - 新增记录没有 prizeInfo：浮动奖会显示"待公告"，固定奖照常判；
+ *   - 只新增缺失期次，已有记录（含官方奖级明细）一个字段都不覆盖；
+ *   - 新增记录没有 prizeInfo：浮动奖显示"待公告"，固定奖照常判；
  *   - 幂等：同一期重复跑不会产生变更。
  *
  * 用法：
@@ -22,7 +28,8 @@ const https = require('https');
 const crypto = require('crypto');
 
 const { GAME } = require('../shared/constants/games');
-const { parseList, listUrl, SOURCE, PARSER_VERSION } = require('../shared/adapters/kaijiang-xml');
+const kaijiang = require('../shared/adapters/kaijiang-xml');
+const txt17500 = require('../shared/adapters/txt17500');
 
 const ROOT = path.join(__dirname, '..');
 const OUT_DIR = path.join(ROOT, 'web', 'data', 'draws');
@@ -65,11 +72,11 @@ function sha256(text) {
   return crypto.createHash('sha256').update(text).digest('hex');
 }
 
-function fetchText(url, { attempts = 3, timeout = 20000 } = {}) {
+function fetchText(url, { timeout = 25000 } = {}) {
   return new Promise((resolve, reject) => {
     const req = https.get(
       url,
-      { headers: { 'User-Agent': UA, Referer: 'https://kaijiang.500.com/', Accept: 'text/xml,*/*' } },
+      { headers: { 'User-Agent': UA, Accept: 'text/xml,text/plain,*/*' } },
       (res) => {
         if (res.statusCode !== 200) {
           res.resume();
@@ -89,17 +96,43 @@ function fetchText(url, { attempts = 3, timeout = 20000 } = {}) {
   });
 }
 
-async function fetchWithRetry(url, attempts = 3) {
+async function fetchWithRetry(url, attempts = 2) {
   let lastErr = null;
   for (let i = 0; i < attempts; i += 1) {
     try {
-      return await fetchText(url, { attempts: 1 });
+      return await fetchText(url);
     } catch (err) {
       lastErr = err;
-      if (i < attempts - 1) await new Promise((r) => setTimeout(r, 1200 * (i + 1)));
+      if (i < attempts - 1) await new Promise((r) => setTimeout(r, 1000 * (i + 1)));
     }
   }
   throw lastErr || new Error('请求失败');
+}
+
+/** 每个彩种的源列表（顺序 = 优先级） */
+function sourcesFor(game) {
+  const list = [];
+  const xmlUrl = kaijiang.listUrl(game);
+  if (xmlUrl) {
+    list.push({
+      id: '500-xml',
+      url: xmlUrl,
+      parse: (text) => kaijiang.parseList(game, text),
+      sourceType: kaijiang.SOURCE,
+      parserVersion: kaijiang.PARSER_VERSION,
+    });
+  }
+  const txtUrl = txt17500.listUrl(game);
+  if (txtUrl) {
+    list.push({
+      id: '17500-txt',
+      url: txtUrl,
+      parse: (text) => txt17500.parseText(game, text),
+      sourceType: txt17500.SOURCE,
+      parserVersion: txt17500.PARSER_VERSION,
+    });
+  }
+  return list;
 }
 
 function readExisting(file) {
@@ -118,7 +151,7 @@ function emptyPrizeInfo(game) {
   return { choose10: {} };
 }
 
-function buildRecord(game, row, url) {
+function buildRecord(game, row, source) {
   const record = {
     game,
     issue: row.issue,
@@ -128,44 +161,79 @@ function buildRecord(game, row, url) {
     specialRuleStatus: game === GAME.SSQ ? 'unknown' : 'not_applicable',
     specialRuleSource: 'pending_enrich',
     ruleVersion: null,
-    sourceUrl: url,
-    sourceType: SOURCE,
-    parserVersion: PARSER_VERSION,
+    sourceUrl: source.url,
+    sourceType: source.sourceType,
+    parserVersion: source.parserVersion,
     drawStatus: 'verified',
     verifiedAt: new Date().toISOString(),
-    verifiedBy: SOURCE,
+    verifiedBy: source.sourceType,
     salesAmount: null,
     poolAmount: null,
     fixedPoolAmount: null,
   };
   record.rawHash = sha256(
-    [game, row.issue, row.drawDate, JSON.stringify(row.numbers), PARSER_VERSION].join('|')
+    [game, row.issue, row.drawDate, JSON.stringify(row.numbers), source.parserVersion].join('|')
   );
   return record;
 }
 
-async function syncGame(game) {
-  const url = listUrl(game);
-  const xml = await fetchWithRetry(url);
-  const rows = parseList(game, xml);
-  if (!rows.length) throw new Error('XML 里没有解析出任何期次');
+function sameNumbers(a, b) {
+  return JSON.stringify(a.red) === JSON.stringify(b.red) && a.blue === b.blue &&
+    JSON.stringify(a.kl8) === JSON.stringify(b.kl8);
+}
 
+async function collect(game) {
+  const sources = sourcesFor(game);
+  const usable = [];
+  const conflicts = [];
+
+  for (const source of sources) {
+    try {
+      const text = await fetchWithRetry(source.url);
+      const rows = source.parse(text);
+      if (!rows.length) throw new Error('解析出 0 期');
+      console.log(`    · ${source.id}: ${rows.length} 期`);
+      usable.push({ source, rows });
+    } catch (err) {
+      console.warn(`    · ${source.id} 失败: ${err.message}`);
+    }
+  }
+
+  // 多源合并：先到的源优先，后面只补它没有的期；同一期号码不一致要报警
+  const byIssue = new Map(); // issue -> { row, source }
+  for (const { source, rows } of usable) {
+    for (const row of rows) {
+      const prev = byIssue.get(row.issue);
+      if (!prev) {
+        byIssue.set(row.issue, { row, source });
+      } else if (!sameNumbers(prev.row.numbers, row.numbers)) {
+        conflicts.push({ issue: row.issue, keep: prev.source.id, other: source.id });
+      }
+    }
+  }
+
+  return { byIssue, sources: usable.map((u) => u.source.id), conflicts };
+}
+
+async function syncGame(game) {
   const file = path.join(OUT_DIR, `${game}.json`);
   const { payload, records } = readExisting(file);
   const map = new Map(records.map((r) => [String(r.issue), r]));
   const latestExisting = records.length ? String(records[0].issue) : '0000000';
 
+  const { byIssue, sources, conflicts } = await collect(game);
+  if (!byIssue.size) throw new Error('所有号码源都失败');
+
   const cutoff = new Date(Date.now() - DAYS * 86400000).toISOString().slice(0, 10);
   const added = [];
 
-  for (const row of rows) {
-    if (map.has(row.issue)) continue;
-    // 只补"比库内最新更晚"或"最近 N 天"的期，避免把老历史一次性灌进来
-    const isNewer = Number(row.issue) > Number(latestExisting);
+  for (const [issue, { row, source }] of byIssue) {
+    if (map.has(issue)) continue;
+    const isNewer = Number(issue) > Number(latestExisting);
     const isRecent = row.drawDate >= cutoff;
     if (!isNewer && !isRecent) continue;
-    const record = buildRecord(game, row, url);
-    map.set(row.issue, record);
+    const record = buildRecord(game, row, source);
+    map.set(issue, record);
     added.push(record);
   }
 
@@ -180,12 +248,14 @@ async function syncGame(game) {
 
   const result = {
     game,
-    parsed: rows.length,
+    sources,
+    parsed: byIssue.size,
     added: added.length,
     latest: merged.length ? merged[0].issue : null,
     latestDate: merged.length ? merged[0].drawDate : null,
     addedIssues: added.map((r) => r.issue).sort((a, b) => Number(b) - Number(a)),
     kept: merged.length,
+    conflicts,
   };
 
   if (!dryRun) {
@@ -195,8 +265,8 @@ async function syncGame(game) {
     next.game = game;
     next.generatedAt = new Date().toISOString();
     next.source = next.source || 'https://www.cwl.gov.cn';
-    next.numbersSource = 'https://kaijiang.500.com（号码快通道）';
-    next.parserVersion = PARSER_VERSION;
+    next.numbersSource = 'https://kaijiang.500.com + https://data.17500.cn（号码快通道）';
+    next.parserVersion = kaijiang.PARSER_VERSION;
     next.count = merged.length;
     next.latestIssue = result.latest;
     next.records = merged;
@@ -209,11 +279,14 @@ async function syncGame(game) {
 (async () => {
   const games = [GAME.SSQ, GAME.KL8];
   let failed = 0;
+  const conflicts = [];
+
   for (const game of games) {
     try {
       const r = await syncGame(game);
+      conflicts.push(...r.conflicts);
       console.log(
-        `✓ ${game}: 解析 ${r.parsed} 期，新增 ${r.added} 期${
+        `✓ ${game}: 源 ${r.sources.join(' + ')}，共 ${r.parsed} 期，新增 ${r.added} 期${
           r.added ? `（${r.addedIssues.join('、')}）` : ''
         }，库内 ${r.kept} 期，最新 ${r.latest}（${r.latestDate}）`
       );
@@ -222,6 +295,12 @@ async function syncGame(game) {
       console.warn(`! ${game} 号码同步失败: ${err.message}`);
     }
   }
+
+  if (conflicts.length) {
+    console.warn(`⚠ 多源号码不一致 ${conflicts.length} 期（已按先到的源保留，请人工核对）：`);
+    for (const c of conflicts.slice(0, 5)) console.warn(`   ${c.issue}: 采用 ${c.keep}，${c.other} 不同`);
+  }
+
   if (dryRun) console.log('[dry-run] 未写盘');
   if (failed === games.length) {
     console.error('✗ 两个彩种都失败');

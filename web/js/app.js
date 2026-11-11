@@ -55,6 +55,9 @@ const state = {
   stats: null,
   syncInfo: null,
   drawDates: new Map(),
+  ticketView: 'current',
+  historyYm: '',
+  historyDate: '',
   busy: false,
   message: null,
   lastError: null,
@@ -549,26 +552,88 @@ function ticketForm() {
 }
 
 /**
- * 已购买且已核对的号码 → 按开奖日期归纳。
- * 其余（草稿 / 已作废 / 未开奖 / 未核对）保持原来的按彩种平铺，
- * 否则历史一多，一屏全是号码，找不到刚买的那张。
+ * 我的号码：两个视图
+ *   - 当前：草稿 / 已购买但未开奖或未核对 / 已作废，按彩种平铺
+ *   - 历史：已开奖且已核对的，按开奖日期归纳，可用月历直接点到某一天
  */
+function settledEntries(list) {
+  const out = [];
+  for (const t of list) {
+    const check = state.checks.get(t.id);
+    const date = state.drawDates.get(`${t.game}:${t.issue}`) || null;
+    if (t.purchaseStatus === PURCHASE_STATUS.CONFIRMED && check && date) out.push({ ticket: t, check, date });
+  }
+  return out;
+}
+
+function ymOf(dateText) {
+  return String(dateText || '').slice(0, 7);
+}
+
+function currentYm() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function dateGroupHtml(date, rows) {
+  const wins = rows.filter((r) => r.check.isWinner);
+  const amount = wins.reduce((acc, r) => acc + (Number(r.check.totalPrize) || 0), 0);
+  return `<div class="date-group">
+    <div class="group-head">
+      <strong>${esc(date)}</strong>
+      <span class="muted">开奖日 · ${rows.length} 注${
+        wins.length ? ` · 中奖 ${wins.length} 注 ${amount ? yuan(amount) : ''}` : ' · 未中奖'
+      }</span>
+    </div>
+    <div class="list">${rows.map((r) => ticketCard(r.ticket)).join('')}</div>
+  </div>`;
+}
+
+/** 月历：有号码的日期可点，点完只看那天的 */
+function calendarHtml(ym, counts) {
+  const [y, m] = String(ym).split('-').map(Number);
+  const startDow = new Date(Date.UTC(y, m - 1, 1)).getUTCDay();
+  const days = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const cells = [];
+  for (let i = 0; i < startDow; i += 1) cells.push('<span class="cal-cell empty"></span>');
+  for (let d = 1; d <= days; d += 1) {
+    const date = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const n = counts.get(date) || 0;
+    const sel = state.historyDate === date ? ' sel' : '';
+    cells.push(
+      n
+        ? `<button class="cal-cell has${sel}" data-act="hist-day" data-date="${date}">${d}<i>${n}</i></button>`
+        : `<span class="cal-cell">${d}</span>`
+    );
+  }
+  return `<div class="cal">
+    <div class="cal-head">
+      <button class="link" data-act="hist-month" data-delta="-1">◀ 上月</button>
+      <strong>${y} 年 ${m} 月</strong>
+      <button class="link" data-act="hist-month" data-delta="1">下月 ▶</button>
+    </div>
+    <div class="cal-grid cal-dow">${['日', '一', '二', '三', '四', '五', '六']
+      .map((d) => `<span>${d}</span>`)
+      .join('')}</div>
+    <div class="cal-grid">${cells.join('')}</div>
+    ${
+      state.historyDate
+        ? `<div class="cal-foot"><button class="link" data-act="hist-day" data-date="">看整月</button>
+            <span class="muted small">当前只看 ${esc(state.historyDate)}</span></div>`
+        : '<div class="cal-foot muted small">点有数字的日期，只看那天的号码</div>'
+    }
+  </div>`;
+}
+
 function ticketsView() {
   const counts = state.stats ? state.stats.counts : { draft: 0, confirmed: 0, void: 0 };
   const filter = state.ticketGame || 'all';
+  const view = state.ticketView === 'history' ? 'history' : 'current';
   const visible = state.tickets.filter((t) => filter === 'all' || t.game === filter);
 
-  const settled = [];
-  const rest = [];
-  for (const t of visible) {
-    const check = state.checks.get(t.id);
-    const date = state.drawDates.get(`${t.game}:${t.issue}`) || null;
-    if (t.purchaseStatus === PURCHASE_STATUS.CONFIRMED && check && date) {
-      settled.push({ ticket: t, check, date });
-    } else {
-      rest.push(t);
-    }
-  }
+  const settled = settledEntries(visible);
+  const settledIds = new Set(settled.map((r) => r.ticket.id));
+  const rest = visible.filter((t) => !settledIds.has(t.id));
 
   const byDate = new Map();
   for (const row of settled) {
@@ -576,26 +641,20 @@ function ticketsView() {
     byDate.get(row.date).push(row);
   }
   const dates = Array.from(byDate.keys()).sort((a, b) => String(b).localeCompare(String(a)));
+  const latestDate = dates[0] || null;
 
-  const dateSection = (date) => {
-    const rows = byDate.get(date).sort((a, b) => {
-      if (a.ticket.game !== b.ticket.game) return a.ticket.game === GAME.SSQ ? -1 : 1;
-      return String(b.ticket.issue).localeCompare(String(a.ticket.issue));
-    });
-    const wins = rows.filter((r) => r.check.isWinner);
-    const amount = wins.reduce((acc, r) => acc + (Number(r.check.totalPrize) || 0), 0);
-    return `<div class="date-group">
-      <div class="group-head">
-        <strong>${esc(date)}</strong>
-        <span class="muted">开奖日 · ${rows.length} 注${
-          wins.length ? ` · 中奖 ${wins.length} 注 ${amount ? yuan(amount) : ''}` : ' · 未中奖'
-        }</span>
-      </div>
-      <div class="list">${rows.map((r) => ticketCard(r.ticket)).join('')}</div>
-    </div>`;
-  };
+  // 默认月份：有历史就落在最近一次开奖，没有就落在当前月
+  if (!state.historyYm) state.historyYm = ymOf(latestDate) || currentYm();
+  const ym = state.historyYm;
+  const monthCounts = new Map();
+  for (const [date, rows] of byDate) {
+    if (ymOf(date) !== ym) continue;
+    monthCounts.set(date, rows.length);
+  }
+  const monthDates = dates.filter((d) => ymOf(d) === ym);
+  const shownDates = state.historyDate ? monthDates.filter((d) => d === state.historyDate) : monthDates;
 
-  const restSection = (game) => {
+  const gameSection = (game) => {
     const items = rest.filter((t) => t.game === game);
     if (!items.length) return '';
     return `<div class="game-group">
@@ -615,12 +674,26 @@ function ticketsView() {
         )
       : '';
 
-  const hasSettled = dates.length > 0;
-  const hasRest = rest.length > 0;
+  const currentBody = `
+    ${rest.length ? '' : emptyBlock('当前没有待处理的号码', '已开奖并核对过的都在「历史号码」里。')}
+    <div class="section-label">待处理（未核对 / 未开奖 / 草稿 / 已作废）</div>
+    ${gameSection(GAME.SSQ)}
+    ${gameSection(GAME.KL8)}`;
+
+  const historyBody = `
+    ${calendarHtml(ym, monthCounts)}
+    ${
+      shownDates.length
+        ? shownDates.map((d) => dateGroupHtml(d, byDate.get(d))).join('')
+        : emptyBlock(
+            '这个月没有已核对的历史号码',
+            settled.length ? '用上面的箭头换个月，或点有数字的日期。' : '开奖并核对后，历史号码会按开奖日期出现在这里。'
+          )
+    }`;
 
   return `
     <div class="toolbar">
-      <span class="muted">草稿 ${counts.draft || 0} · 已购买 ${counts.confirmed || 0} · 已作废 ${counts.void || 0}</span>
+      <span class="muted">草稿 ${counts.draft || 0} · 已购买 ${counts.confirmed || 0} · 已作废 ${counts.void || 0} · 历史 ${settled.length} 注</span>
       <div class="toolbar-actions">
         <button class="btn" data-act="check-all" ${state.busy ? 'disabled' : ''}>一键核对</button>
         <button class="btn primary" data-act="new-ticket">新增号码</button>
@@ -638,17 +711,13 @@ function ticketsView() {
         )
         .join('')}
     </div>
+    <div class="segmented view-switch">
+      <button class="seg ${view === 'current' ? 'on' : ''}" data-act="ticket-view" data-view="current">当前（${rest.length}）</button>
+      <button class="seg ${view === 'history' ? 'on' : ''}" data-act="ticket-view" data-view="history">历史号码（${settled.length}）</button>
+    </div>
     ${state.form ? ticketForm() : ''}
     ${empty}
-    ${
-      hasSettled
-        ? `<div class="section-label">已开奖 · 按开奖日期归纳（${settled.length} 注）</div>
-           ${dates.map(dateSection).join('')}`
-        : ''
-    }
-    ${hasRest ? `<div class="section-label">其他（未核对 / 未开奖 / 草稿）</div>` : ''}
-    ${restSection(GAME.SSQ)}
-    ${restSection(GAME.KL8)}`;
+    ${view === 'history' ? historyBody : currentBody}`;
 }
 
 /* ---------------- 选号：候选组合（阶段 6） ---------------- */
@@ -1428,6 +1497,29 @@ async function onAction(act, el) {
   }
   if (act === 'ticket-game') {
     state.ticketGame = el.dataset.game;
+    state.detail = null;
+    render();
+    return;
+  }
+  if (act === 'ticket-view') {
+    state.ticketView = el.dataset.view === 'history' ? 'history' : 'current';
+    state.detail = null;
+    render();
+    return;
+  }
+  if (act === 'hist-month') {
+    const delta = Number(el.dataset.delta) || 0;
+    const [y, m] = (state.historyYm || currentYm()).split('-').map(Number);
+    const d = new Date(Date.UTC(y, m - 1 + delta, 1));
+    state.historyYm = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+    state.historyDate = '';
+    state.detail = null;
+    render();
+    return;
+  }
+  if (act === 'hist-day') {
+    const date = el.dataset.date || '';
+    state.historyDate = state.historyDate === date ? '' : date;
     state.detail = null;
     render();
     return;
