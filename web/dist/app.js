@@ -87,6 +87,7 @@ const state = {
   checks: new Map(),
   stats: null,
   syncInfo: null,
+  syncAll: null,
   drawInfo: new Map(),
   latestIssues: {},
   ticketView: 'current',
@@ -1314,8 +1315,54 @@ function restorePanel() {
     </div>`;
 }
 
+/**
+ * 数据更新状态：把"最新到哪一期、文件什么时候生成的、已经多久没动"摆出来。
+ * GitHub 免费调度器会把定时任务推迟（实测 5–8 小时），所以这里不假装准点，
+ * 只如实说明现状与原因，省得反复怀疑按钮坏了。
+ */
+function dataStatusHtml() {
+  const rows = [GAME.SSQ, GAME.KL8].map((g) => {
+    const issue = state.latestIssues[g];
+    const info = issue ? state.drawInfo.get(`${g}:${issue}`) : null;
+    const meta = (state.syncAll && state.syncAll[g]) || null;
+    return { g, issue, date: info ? info.drawDate : null, meta };
+  });
+
+  const stamps = rows.map((r) => (r.meta ? r.meta.generatedAt || r.meta.fetchedAt : null)).filter(Boolean);
+  const oldest = stamps.length ? stamps.sort()[0] : null;
+  const hours = oldest ? (Date.now() - new Date(oldest).getTime()) / 3600000 : null;
+  const stale = Number.isFinite(hours) && hours > 12;
+
+  return `<section class="card">
+    <h2>数据更新</h2>
+    <table class="prize">
+      <thead><tr><th>彩种</th><th class="num">最新期号</th><th class="num">开奖日</th></tr></thead>
+      <tbody>
+        ${rows
+          .map(
+            (r) =>
+              `<tr><td>${GAME_META[r.g].shortName}</td><td class="num">${r.issue || '—'}</td><td class="num">${
+                r.date || '—'
+              }</td></tr>`
+          )
+          .join('')}
+      </tbody>
+    </table>
+    <p class="muted small">数据文件生成：${oldest ? bjTime(oldest) + '（北京时间）' : '未知'}${
+    Number.isFinite(hours) ? ` · 距今约 ${hours < 1 ? '不到 1' : Math.round(hours)} 小时` : ''
+  }</p>
+    ${
+      stale
+        ? `<p class="small bad-text">这份数据已经超过 12 小时没更新。云端定时任务会被 GitHub 免费调度器推迟（实测 5–8 小时），
+           所以开奖后可能要等到次日早上；电脑开着时，本机 21:50 的任务会立刻补上。</p>`
+        : '<p class="muted small">号码（期号/开奖日）与奖级明细分开更新：号码优先，奖级明细可能晚一步。</p>'
+    }
+  </section>`;
+}
+
 function dataView() {
   return `
+    ${dataStatusHtml()}
     <section class="card">
       <h2>开奖数据</h2>
       <p class="muted small">开奖 JSON 由仓库定时抓取生成，与本站同源，无需跨域。也可以手动导入。</p>
@@ -1394,6 +1441,10 @@ async function refreshAll() {
   state.checks = await repo.latestChecks();
   state.stats = await repo.stats();
   state.syncInfo = await store.getMeta(`sync:${state.game}`);
+  state.syncAll = {
+    [GAME.SSQ]: await store.getMeta(`sync:${GAME.SSQ}`),
+    [GAME.KL8]: await store.getMeta(`sync:${GAME.KL8}`),
+  };
   state.drawInfo = await repo.drawInfoMap();
   // 每个彩种"最新一期"的期号：这一期刚开奖，先留在「当前」，下一期开奖后才归档
   state.latestIssues = {};

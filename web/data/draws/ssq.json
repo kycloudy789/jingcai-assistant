@@ -1,10 +1,10 @@
 {
  "schema": "jingcai-draws@1",
  "game": "ssq",
- "generatedAt": "2026-11-12T04:18:27.535Z",
- "source": "https://www.500.com（第三方兜底；官方数据优先）",
- "sourceType": "third_party:500.com",
- "parserVersion": "thirdparty500@1.0.0",
+ "generatedAt": "2026-11-12T00:33:03.993Z",
+ "source": "https://www.cwl.gov.cn",
+ "sourceApi": "https://www.cwl.gov.cn/cwl_admin/front/cwlkj/search/kjxx/findDrawNotice",
+ "parserVersion": "cwl_api@1.0.0",
  "count": 2087,
  "latestIssue": "2026129",
  "records": [

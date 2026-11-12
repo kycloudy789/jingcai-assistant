@@ -117,7 +117,7 @@ miniprogram/ cloudfunctions/   早期小程序版（保留备查）
 | 拥挤度 | 基于公开研究推导的**推定值**：福彩不公布每注号码的投注分布。它只影响浮动奖均分，不改变中奖概率（见 `docs/analysis-model.md`） |
 | 数据来源 | 官方接口在云端被 WAF 拦，云端兜底用 500.com；这类记录在列表里标「第三方同步」，号码结构校验过但**不是官方原文** |
 | 统计样本 | 仓库为**全量历史**（双色球 2085 期、快乐8 2118 期）；结构统计与冷号判定都会显示"实际用了几期"，不足时明确标"样本偏小" |
-| 自动更新 | 云端 Actions **每小时尝试一次**；号码走 500.com XML + 17500.cn txt 双源（D36），奖级明细延后补齐；本机 `publish:data` 会用官方数据覆盖升级来源 |
+| 自动更新 | 云端 Actions 在北京 21:10–23:50 每 10 分钟尝试（GitHub 免费调度会推迟 5–8 小时，见 `docs/cloud-cron.md` 的准点方案）；号码走 500.com XML + 17500.cn txt 双源，奖级明细延后补齐 |
 | 图表 | 纯 CSS 条形，没有交互缩放与导出图片（零依赖约束） |
 | 恢复语义 | 合并覆盖，不删除现有记录；想完全回到备份状态需先清空 |
 
@@ -128,6 +128,7 @@ miniprogram/ cloudfunctions/   早期小程序版（保留备查）
 | `docs/web-deploy.md` | **部署到 GitHub Pages 全流程 + 排错** |
 | `docs/analysis-model.md` | **分析选号模型**：研究依据、权重表、校准踩坑、明确不做 |
 | `docs/backup-restore.md` | **备份与恢复**：文件里有什么、预览怎么读、三个必知行为 |
+| `docs/cloud-cron.md` | **准点更新（可选）**：Cloudflare Worker Cron 模板，5 分钟部署 |
 | `docs/phase-7-report.md` | 统计与备份的验收报告 + 已知问题 |
 | `docs/data-source-plan.md` | 官方接口实测记录、字段映射、两个坑、状态机 |
 | `docs/decisions.md` | D1–D28 决策记录 |
