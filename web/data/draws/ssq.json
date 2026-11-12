@@ -1,7 +1,7 @@
 {
  "schema": "jingcai-draws@1",
  "game": "ssq",
- "generatedAt": "2026-11-12T20:22:43.032Z",
+ "generatedAt": "2026-11-12T20:44:17.682Z",
  "source": "https://www.500.com（第三方兜底；官方数据优先）",
  "sourceType": "third_party:500.com",
  "parserVersion": "thirdparty500@1.0.0",
@@ -36,19 +36,19 @@
     "fuyun": null
    },
    "specialRuleStatus": "not_applicable",
+   "enrichSignature": "srs:not_applicable|promo:none",
    "ruleVersion": "ssq_2026_02_01",
    "sourceUrl": "https://datachart.500.com/ssq/history/newinc/history.php?start=26120&end=26131",
    "sourceType": "third_party:500.com",
    "parserVersion": "thirdparty500@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-12T20:22:41.270Z",
+   "verifiedAt": "2026-11-12T20:44:16.402Z",
    "verifiedBy": "third_party:500.com",
    "salesAmount": 415319170,
    "poolAmount": 1157243790,
    "rawHash": null,
    "specialRuleSource": "rule_18_pool",
-   "specialRuleReason": "RULE_18_POOL_STOP",
-   "enrichSignature": "srs:not_applicable|promo:none"
+   "specialRuleReason": "RULE_18_POOL_STOP"
   },
   {
    "game": "ssq",
