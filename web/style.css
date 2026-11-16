@@ -975,3 +975,45 @@ input[type="date"] {
   padding: 8px 10px;
   margin: 8px 0 2px;
 }
+
+/* 核对结果：命中用深色圈 + 原色，未命中整颗压成灰 */
+.ball.miss {
+  background: #f2f3f5;
+  color: #a9aeb6;
+}
+.ball.hit {
+  outline: 1.5px solid #33383f;
+  outline-offset: 1.5px;
+}
+.ball-legend {
+  display: flex;
+  gap: 14px;
+  font-size: 11.5px;
+  color: var(--muted);
+  margin: 7px 0 0;
+}
+.ball-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.ball-legend .sw {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+}
+.ball-legend .sw.hit {
+  border: 1.5px solid #33383f;
+}
+.ball-legend .sw.miss {
+  background: #e6e7ea;
+}
+.check-hint {
+  background: #fff8e8;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: 8px 0 10px;
+  color: #8a5a00;
+}

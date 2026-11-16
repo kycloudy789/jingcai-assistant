@@ -2,20 +2,26 @@ name: sync-draws
 
 on:
   schedule:
-    # GitHub 的免费调度器会把高频 cron 合并/延迟（实测 hourly 只跑成 5 次/天，
-    # 延迟 5–8 小时），所以把「火力」集中在开奖后的两小时窗口里：
-    # 13:10–15:50 UTC = 北京 21:10–23:50，双色球 21:15、快乐8 21:30 都已过。
-    - cron: '*/10 13-15 * * *'
-    # 白天兜底：万一晚上全被跳过，白天还能补上（每 4 小时一次）
-    - cron: '40 0-12/4 * * *'
+    # 北京 20:00–23:50 每 10 分钟触发一次。
+    # GitHub 免费调度器会把定时任务推迟 5–8 小时，所以：
+    #   1) 脚本自己会"等到 20:40 再轮询"，跑到的这一次就能覆盖整晚；
+    #   2) 本工作流**自己部署 Pages**（关键修复：
+    #      用 GITHUB_TOKEN 提交的 push 不会触发别的 workflow，
+    #      之前的架构里数据进了仓库、站点却一直不更新）。
+    - cron: '*/10 12-15 * * *'
+    # 白天兜底：万一夜里全被跳过，白天还能补上
+    - cron: '40 0-11/4 * * *'
   workflow_dispatch:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: sync-draws
-  cancel-in-progress: false
+  # 新一轮触发会取消还在轮询的旧一轮：旧的那次即使跑完也是过期信息
+  cancel-in-progress: true
 
 jobs:
   sync:
@@ -29,11 +35,16 @@ jobs:
         with:
           node-version: '20'
 
-      # 关键路径：只要号码。500.com 的静态 XML 在 Runner 上可直连，
-      # 一次请求拿到全量期号 + 号码 + 开奖日期，不依赖官方公告页。
+      # 关键路径：只要号码。500.com 静态 XML / 17500 明文，两个独立源互为兜底。
+      # --wait-draw 只在定时触发时生效：提前跑到就等到 20:40，然后在开奖窗口内每 4 分钟重试，
+      # 直到"今晚该出的期次"都到齐（否则等到 23:56 结束）。
       - name: Fetch draw numbers (fast path)
         run: |
-          node scripts/sync-numbers.js --days 45
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            node scripts/sync-numbers.js --days 45 --wait-draw
+          else
+            node scripts/sync-numbers.js --days 45
+          fi
 
       - name: Fetch official draws (best effort)
         continue-on-error: true
@@ -44,13 +55,13 @@ jobs:
       - name: Fetch 500.com HTML fallback
         continue-on-error: true
         run: |
-          # 号码已由 XML 补上；这一步只为补齐官方页面里的奖级明细
+          # 号码已由快通道补上；这一步只为补齐奖级明细
           node scripts/sync-thirdparty.js --keep 3000
 
       - name: Enrich (福运奖状态 / 派奖金额)
         continue-on-error: true
         run: |
-          # 福运奖启停按规则第十八条用奖池推导；派奖金额只存在于公告页 HTML（Runner 403 时跳过）
+          # 福运奖启停按规则第十八条用奖池推导；派奖金额只在公告页 HTML（Runner 403 时跳过）
           node scripts/enrich-draws.js
 
       - name: Report latest issue
@@ -73,3 +84,31 @@ jobs:
             git commit -m "chore(data): 同步开奖数据 $(date -u +%Y-%m-%d)"
             git push
           fi
+
+      # 下面三步是这次修复的核心：GITHUB_TOKEN 推的提交不会触发 deploy-pages，
+      # 所以必须在本工作流里直接构建并发布，否则"仓库更新、站点不动"。
+      - name: Build static bundle
+        run: node scripts/build-web.js
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+
+  deploy:
+    needs: sync
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    # 与 deploy-pages.yml 共用同一个 concurrency 组，避免两边同时发布
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

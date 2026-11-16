@@ -62,3 +62,24 @@ test('列表地址按彩种生成', () => {
   assert.match(listUrl(GAME.SSQ), /\/ssq\/list\.xml$/);
   assert.match(listUrl(GAME.KL8), /\/kl8\/list\.xml$/);
 });
+
+/* ---------------- 等开奖：只在开奖日等 ---------------- */
+
+const syncNumbers = require('../scripts/sync-numbers');
+
+test('开奖日历：双色球只在周二/四/日，快乐8 每天', () => {
+  assert.deepEqual(syncNumbers.gamesExpectedOn(0), ['ssq', 'kl8'], '周日');
+  assert.deepEqual(syncNumbers.gamesExpectedOn(2), ['ssq', 'kl8'], '周二');
+  assert.deepEqual(syncNumbers.gamesExpectedOn(4), ['ssq', 'kl8'], '周四');
+  for (const wd of [1, 3, 5, 6]) {
+    assert.deepEqual(syncNumbers.gamesExpectedOn(wd), ['kl8'], `周${wd} 双色球不开奖`);
+  }
+});
+
+test('等开奖窗口：20:40 开始，23:56 结束，提前等待不超过单次任务预算', () => {
+  assert.equal(syncNumbers.WAIT.start, 20 * 60 + 40);
+  assert.equal(syncNumbers.WAIT.end, 23 * 60 + 56);
+  // 提前等待 + 窗口内轮询必须落在 GitHub 单次任务 6 小时上限之内
+  const worst = syncNumbers.WAIT.maxPreWait + (syncNumbers.WAIT.end - syncNumbers.WAIT.start);
+  assert.ok(worst <= 360, `最长 ${worst} 分钟，需 ≤ 360`);
+});

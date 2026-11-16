@@ -190,14 +190,22 @@ npm run task:remove                  # 卸载计划任务
 → 免费账号的 Pages 不支持私有仓库。若必须私有，两个选择：升级 GitHub Pro，或改用 Cloudflare Pages（免费支持私有仓库，构建命令同样是 `node scripts/build-web.js`，输出目录 `web`）。
 
 **数据更新频率**
-→ 仓库里的 `sync-draws` 每天跑 2 次，但受上面 403 限制，实际主要靠 `npm run publish:data`。
-建议每天手动或定时跑一次即可，官方站点不需要高频访问。
+→ `sync-draws` 在北京 20:00–23:50 每 10 分钟触发一次；被 GitHub 推迟的那次会
+「先等到 20:40，再每 4 分钟重试」，直到今晚该开的彩种都拿到当天期次。
+抓完**自己构建并部署 Pages**，所以不需要你开机、也不需要另外的 push 来触发发布。
+奖级明细（浮动奖、派奖）仍可能晚一步，那部分由官方源或本机 `npm run publish:data` 补齐。
+
+**现象：仓库里的数据明明是新的，页面还是旧的**
+→ 99% 是发布链路没接上。检查 `sync-draws` 的运行里有没有 `deploy` 这个 job：
+  用 `GITHUB_TOKEN` 提交的 push **不会触发** `deploy-pages.yml`，所以数据同步工作流必须自己发布
+  （v1.5.0 起已经在同一个工作流里做了 `upload-pages-artifact` + `deploy-pages`）。
+  临时验证：`gh run list --workflow=deploy-pages.yml` 与数据提交的时间对不上，就是这个毛病。
 
 ## 6. 上线前自检（可选但建议）
 
 ```bash
 npm run build:web        # 打包，产物 web/dist/app.js
-node --test tests/*.test.js   # 210 个用例应全绿
+node --test tests/*.test.js   # 348 个用例应全绿
 npm run sync:json        # 抓一次数据
 npm run serve:web        # 本地打开确认能加载
 ```

@@ -294,3 +294,47 @@ test('清空单类数据：不允许清空开奖与配置', async () => {
     assert.equal(r.code, 'NOT_ALLOWED');
   }
 });
+
+/* ---------------- 核对：只在被调用时才算，且汇总带奖金 ---------------- */
+
+test('核对汇总：中奖注数与合计奖金（供"核对完成"提示使用）', async () => {
+  const mem = createMemStore();
+  const repo = loadRepoWithStore(mem);
+
+  // 一期真实结构：双色球红 6 蓝 1，六等奖固定 5 元
+  const draw = {
+    id: 'ssq:2026128',
+    game: 'ssq',
+    issue: '2026128',
+    drawDate: '2026-11-08',
+    drawStatus: 'verified',
+    numbers: { red: [3, 9, 16, 20, 25, 30], blue: 5, kl8: [] },
+    prizeInfo: { first: { count: 1, amount: 10000000 }, second: { count: 1, amount: 100000 } },
+    specialRuleStatus: 'not_applicable',
+    promo: null,
+    ruleVersion: 'ssq_2026_02_01',
+    rawHash: 'hash-a',
+  };
+  await mem.putAll('draws', [draw]);
+
+  const made = await repo.createTickets([
+    // 中蓝球 → 六等奖
+    { game: 'ssq', issue: '2026128', numbers: { red: [1, 2, 4, 6, 8, 10], blue: 5 }, multiple: 2 },
+    // 完全不中
+    { game: 'ssq', issue: '2026128', numbers: { red: [1, 2, 4, 6, 8, 10], blue: 7 }, multiple: 1 },
+  ]);
+  assert.equal(made.ok, true);
+  for (const t of made.tickets) {
+    await repo.confirmTicket(t.id, { actualCost: 2, multiple: t.multiple });
+  }
+
+  const summary = await repo.runChecks();
+  assert.equal(summary.total, 2);
+  assert.equal(summary.winners, 1, '只有蓝球命中的那注算中奖');
+  assert.equal(summary.prizeTotal, 10, '六等奖 5 元 × 2 倍');
+
+  // 幂等：再算一次不该重复写入，也不该改变奖金合计
+  const again = await repo.runChecks();
+  assert.equal(again.inserted, 0);
+  assert.equal(again.unchanged, 2);
+});

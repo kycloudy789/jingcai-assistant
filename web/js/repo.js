@@ -204,7 +204,7 @@ async function deleteTicket(id) {
   const checks = await store.getAll('checks');
   const existing = new Set(checks.map((c) => c.idempotencyKey));
 
-  const summary = { total: 0, inserted: 0, unchanged: 0, skipped: 0, winners: 0, pending: 0 };
+  const summary = { total: 0, inserted: 0, unchanged: 0, skipped: 0, winners: 0, pending: 0, prizeTotal: 0 };
   const toSave = [];
 
   for (const ticket of tickets) {
@@ -231,7 +231,10 @@ async function deleteTicket(id) {
       continue;
     }
 
-    if (result.isWinner) summary.winners += 1;
+    if (result.isWinner) {
+      summary.winners += 1;
+      summary.prizeTotal += Number(result.totalPrize) || 0;
+    }
     if (result.checkStatus === 'pending_manual_review') summary.pending += 1;
 
     toSave.push({

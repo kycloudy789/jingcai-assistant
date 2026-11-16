@@ -115,15 +115,54 @@ function yuan(n) {
   return `${n} 元`;
 }
 
-function balls(numbers, game) {
+/**
+ * 号码球。
+ * @param {object} [check] 核对结果：传了就把命中/未命中用颜色区分开（未核对时统一原色）
+ */
+function balls(numbers, game, check) {
   const isKl8 = game === GAME.KL8;
   const main = isKl8 ? numbers.kl8 || [] : numbers.red || [];
-  const html = main.map((n) => `<span class="ball ${isKl8 ? 'kl8' : 'red'}">${pad2(n)}</span>`).join('');
-  const blue =
-    !isKl8 && numbers.blue !== null && numbers.blue !== undefined
-      ? `<span class="ball blue">${pad2(numbers.blue)}</span>`
-      : '';
+  const graded =
+    !!check && (check.checkStatus === 'checked' || check.checkStatus === 'not_winner');
+  const hitNumbers = graded && check.hit && Array.isArray(check.hit.numbers) ? check.hit.numbers : [];
+  const hitSet = new Set(hitNumbers);
+  const mark = (n) => (graded ? (hitSet.has(n) ? ' hit' : ' miss') : '');
+
+  const html = main
+    .map((n) => `<span class="ball ${isKl8 ? 'kl8' : 'red'}${mark(n)}">${pad2(n)}</span>`)
+    .join('');
+  const hasBlue = !isKl8 && numbers.blue !== null && numbers.blue !== undefined;
+  const blueMark = hasBlue && graded ? (check.hit && check.hit.blue ? ' hit' : ' miss') : '';
+  const blue = hasBlue ? `<span class="ball blue${blueMark}">${pad2(numbers.blue)}</span>` : '';
   return `<div class="balls">${html}${blue}</div>`;
+}
+
+/** 颜色图例：只有核对过才显示，免得没核对时也被"全灰"误导 */
+function ballLegend(check) {
+  if (!check) return '';
+  if (check.checkStatus !== 'checked' && check.checkStatus !== 'not_winner') return '';
+  const hits = (check.hit && check.hit.numbers) || [];
+  // 双色球的蓝球单独算：只中蓝球也算中奖（六等奖），光写"命中 0 个"会自相矛盾
+  const label =
+    check.game === GAME.SSQ
+      ? `命中 ${hits.length} 个红球${check.hit && check.hit.blue ? ' + 蓝球' : ''}`
+      : `命中 ${hits.length} 个`;
+  return `<div class="ball-legend">
+    <span><i class="sw hit"></i>${label}</span>
+    <span><i class="sw miss"></i>未命中（灰色）</span>
+  </div>`;
+}
+
+/** 已开奖但还没核对的数量（用于提醒"该点核对了"） */
+function pendingCheckCount(list) {
+  let n = 0;
+  for (const t of list) {
+    if (t.purchaseStatus !== PURCHASE_STATUS.CONFIRMED) continue;
+    if (state.checks.get(t.id)) continue;
+    if (!state.drawInfo.get(`${t.game}:${t.issue}`)) continue;
+    n += 1;
+  }
+  return n;
 }
 
 function notify(text, kind = 'info') {
@@ -465,7 +504,8 @@ function ticketCard(t) {
         </div>
         <span class="badge ${t.purchaseStatus}">${STATUS_TEXT[t.purchaseStatus]}</span>
       </div>
-      ${balls(t.numbers, t.game)}
+      ${balls(t.numbers, t.game, t.purchaseStatus === PURCHASE_STATUS.CONFIRMED ? c : null)}
+      ${t.purchaseStatus === PURCHASE_STATUS.CONFIRMED ? ballLegend(c) : ''}
       <div class="row-foot">
         <span class="muted">${t.multiple} 倍 · ${
           t.actualCost === null || t.actualCost === undefined ? '金额待补录' : `${t.actualCost} 元`
@@ -666,6 +706,7 @@ function ticketsView() {
   const filter = state.ticketGame || 'all';
   const view = state.ticketView === 'history' ? 'history' : 'current';
   const visible = state.tickets.filter((t) => filter === 'all' || t.game === filter);
+  const pendingCheck = pendingCheckCount(visible);
 
   const settled = settledEntries(visible);
   const settledIds = new Set(settled.map((r) => r.ticket.id));
@@ -737,7 +778,9 @@ function ticketsView() {
     <div class="toolbar">
       <span class="muted">草稿 ${counts.draft || 0} · 已购买 ${counts.confirmed || 0} · 已作废 ${counts.void || 0} · 历史 ${settled.length} 注</span>
       <div class="toolbar-actions">
-        <button class="btn" data-act="check-all" ${state.busy ? 'disabled' : ''}>一键核对</button>
+        <button class="btn ${pendingCheck ? 'primary' : ''}" data-act="check-all" ${
+          state.busy ? 'disabled' : ''
+        }>${pendingCheck ? `核对开奖（${pendingCheck} 注待核对）` : '一键核对'}</button>
         <button class="btn primary" data-act="new-ticket">新增号码</button>
       </div>
     </div>
@@ -757,6 +800,11 @@ function ticketsView() {
       <button class="seg ${view === 'current' ? 'on' : ''}" data-act="ticket-view" data-view="current">当前（${rest.length}）</button>
       <button class="seg ${view === 'history' ? 'on' : ''}" data-act="ticket-view" data-view="history">历史号码（${settled.length}）</button>
     </div>
+    ${
+      pendingCheck && !state.form
+        ? `<p class="muted small check-hint">有 ${pendingCheck} 注已开奖但还没核对 —— 结果不会自动出现，点右上「核对开奖」才揭晓。</p>`
+        : ''
+    }
     ${state.form ? ticketForm() : ''}
     ${empty}
     ${view === 'history' ? historyBody : currentBody}`;
@@ -1397,14 +1445,9 @@ async function refreshAll() {
   state.draws = await repo.listDraws(state.game, 100);
   state.tickets = await repo.listTickets();
 
-  // 每次刷新都静默重算一遍核对：开奖数据补全/更正后（哈希变化）会自动产生新结果，
-  // 不依赖用户想起来点「核对」，避免"明明中了却一直显示旧结论"。
-  try {
-    await repo.runChecks();
-  } catch (err) {
-    // 判奖失败不能影响页面加载，但要留痕
-    state.lastError = `自动核对失败：${err.message}`;
-  }
+  // 核对**只在用户点「核对开奖」时发生**（D35）。
+  // 自动重算会把"开奖→点核对→揭晓"的过程抹掉，也会让你在毫无准备时看到结果。
+  // 代价是：开奖补全数据后旧结论不会自己更新，所以下面会显式提示"还没核对"。
   state.checks = await repo.latestChecks();
   state.stats = await repo.stats();
   state.syncInfo = await store.getMeta(`sync:${state.game}`);
@@ -1754,7 +1797,15 @@ async function onAction(act, el) {
     if (summary.skipped === summary.total) {
       return notify('这些期号的已核验开奖还没同步，先加载开奖数据', 'bad');
     }
-    notify(`核对完成：新核对 ${summary.inserted} 条，中奖 ${summary.winners} 条`, 'ok');
+    if (summary.winners > 0) {
+      const money = summary.prizeTotal ? `，合计 ${yuan(summary.prizeTotal)}` : '';
+      notify(`核对完成：${summary.winners} 注中奖${money}`, 'ok');
+    } else {
+      notify(
+        `核对完成：${summary.inserted} 注已核对，都没有中奖（${summary.unchanged} 注先前已核对）`,
+        'ok'
+      );
+    }
     return;
   }
 
