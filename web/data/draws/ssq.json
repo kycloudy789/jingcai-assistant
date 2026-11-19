@@ -1,13 +1,55 @@
 {
  "schema": "jingcai-draws@1",
  "game": "ssq",
- "generatedAt": "2026-11-19T07:56:48.209Z",
+ "generatedAt": "2026-11-19T17:37:57.391Z",
  "source": "https://www.500.com（第三方兜底；官方数据优先）",
  "sourceType": "third_party:500.com",
  "parserVersion": "thirdparty500@1.0.0",
- "count": 2090,
- "latestIssue": "2026132",
+ "count": 2091,
+ "latestIssue": "2026133",
  "records": [
+  {
+   "game": "ssq",
+   "issue": "2026133",
+   "drawDate": "2026-11-19",
+   "numbers": {
+    "red": [
+     7,
+     10,
+     11,
+     14,
+     21,
+     26
+    ],
+    "blue": 13,
+    "kl8": []
+   },
+   "prizeInfo": {
+    "first": {
+     "count": 17,
+     "amount": 5882352
+    },
+    "second": {
+     "count": 140,
+     "amount": 152892
+    },
+    "fuyun": null
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "ssq_2026_02_01",
+   "sourceUrl": "https://datachart.500.com/ssq/history/newinc/history.php?start=26123&end=26134",
+   "sourceType": "third_party:500.com",
+   "parserVersion": "thirdparty500@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-19T17:37:55.271Z",
+   "verifiedBy": "third_party:500.com",
+   "salesAmount": 404226736,
+   "poolAmount": 1180114197,
+   "rawHash": null,
+   "specialRuleSource": "rule_18_pool",
+   "specialRuleReason": "RULE_18_POOL_STOP",
+   "enrichSignature": "srs:not_applicable|promo:none"
+  },
   {
    "game": "ssq",
    "issue": "2026132",
@@ -38,11 +80,11 @@
    "specialRuleStatus": "not_applicable",
    "enrichSignature": "srs:not_applicable|promo:none",
    "ruleVersion": "ssq_2026_02_01",
-   "sourceUrl": "https://datachart.500.com/ssq/history/newinc/history.php?start=26122&end=26133",
+   "sourceUrl": "https://datachart.500.com/ssq/history/newinc/history.php?start=26123&end=26134",
    "sourceType": "third_party:500.com",
    "parserVersion": "thirdparty500@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-19T07:56:46.444Z",
+   "verifiedAt": "2026-11-19T17:37:55.271Z",
    "verifiedBy": "third_party:500.com",
    "salesAmount": 402998740,
    "poolAmount": 1215899380,
