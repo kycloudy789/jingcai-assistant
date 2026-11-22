@@ -1,7 +1,7 @@
 {
  "schema": "jingcai-draws@1",
  "game": "kl8",
- "generatedAt": "2026-11-22T16:37:58.585Z",
+ "generatedAt": "2026-11-22T18:49:11.782Z",
  "source": "https://www.500.com（第三方兜底；官方数据优先）",
  "sourceType": "third_party:500.com",
  "parserVersion": "thirdparty500@1.0.0",
@@ -45,7 +45,7 @@
    "sourceType": "third_party:500.com",
    "parserVersion": "thirdparty500@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-22T16:37:58.581Z",
+   "verifiedAt": "2026-11-22T18:49:11.778Z",
    "verifiedBy": "third_party:500.com",
    "salesAmount": null,
    "poolAmount": null,
