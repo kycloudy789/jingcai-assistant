@@ -1,7 +1,7 @@
 {
  "schema": "jingcai-draws@1",
  "game": "ssq",
- "generatedAt": "2026-11-23T20:33:22.466Z",
+ "generatedAt": "2026-11-23T23:02:32.687Z",
  "source": "https://www.500.com（第三方兜底；官方数据优先）",
  "sourceType": "third_party:500.com",
  "parserVersion": "thirdparty500@1.0.0",
@@ -42,7 +42,7 @@
    "sourceType": "third_party:500.com",
    "parserVersion": "thirdparty500@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-23T20:33:20.627Z",
+   "verifiedAt": "2026-11-23T23:02:31.026Z",
    "verifiedBy": "third_party:500.com",
    "salesAmount": 435713586,
    "poolAmount": 1154982023,
