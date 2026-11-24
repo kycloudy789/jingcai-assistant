@@ -1,13 +1,55 @@
 {
  "schema": "jingcai-draws@1",
  "game": "ssq",
- "generatedAt": "2026-11-23T23:02:32.687Z",
+ "generatedAt": "2026-11-24T13:43:24.200Z",
  "source": "https://www.500.com（第三方兜底；官方数据优先）",
  "sourceType": "third_party:500.com",
  "parserVersion": "thirdparty500@1.0.0",
- "count": 2092,
- "latestIssue": "2026134",
+ "count": 2093,
+ "latestIssue": "2026135",
  "records": [
+  {
+   "game": "ssq",
+   "issue": "2026135",
+   "drawDate": "2026-11-24",
+   "numbers": {
+    "red": [
+     2,
+     10,
+     16,
+     22,
+     26,
+     30
+    ],
+    "blue": 8,
+    "kl8": []
+   },
+   "prizeInfo": {
+    "first": {
+     "count": 0,
+     "amount": 0
+    },
+    "second": {
+     "count": 0,
+     "amount": 0
+    },
+    "fuyun": null
+   },
+   "specialRuleStatus": "not_applicable",
+   "ruleVersion": "ssq_2026_02_01",
+   "sourceUrl": "https://datachart.500.com/ssq/history/newinc/history.php?start=26125&end=26136",
+   "sourceType": "third_party:500.com",
+   "parserVersion": "thirdparty500@1.0.0",
+   "drawStatus": "verified",
+   "verifiedAt": "2026-11-24T13:43:19.428Z",
+   "verifiedBy": "third_party:500.com",
+   "salesAmount": null,
+   "poolAmount": null,
+   "rawHash": null,
+   "specialRuleSource": "rule_18_pool",
+   "specialRuleReason": "RULE_18_POOL_STOP",
+   "enrichSignature": "srs:not_applicable|promo:none"
+  },
   {
    "game": "ssq",
    "issue": "2026134",
@@ -38,11 +80,11 @@
    "specialRuleStatus": "not_applicable",
    "enrichSignature": "srs:not_applicable|promo:none",
    "ruleVersion": "ssq_2026_02_01",
-   "sourceUrl": "https://datachart.500.com/ssq/history/newinc/history.php?start=26124&end=26135",
+   "sourceUrl": "https://datachart.500.com/ssq/history/newinc/history.php?start=26125&end=26136",
    "sourceType": "third_party:500.com",
    "parserVersion": "thirdparty500@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-23T23:02:31.026Z",
+   "verifiedAt": "2026-11-24T13:43:19.428Z",
    "verifiedBy": "third_party:500.com",
    "salesAmount": 435713586,
    "poolAmount": 1154982023,
