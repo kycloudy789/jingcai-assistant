@@ -1,7 +1,7 @@
 {
  "schema": "jingcai-draws@1",
  "game": "kl8",
- "generatedAt": "2026-11-24T13:43:24.125Z",
+ "generatedAt": "2026-11-24T21:43:06.544Z",
  "source": "https://www.500.com（第三方兜底；官方数据优先）",
  "sourceType": "third_party:500.com",
  "parserVersion": "thirdparty500@1.0.0",
@@ -38,22 +38,18 @@
      79
     ]
    },
-   "prizeInfo": {
-    "choose10": {}
-   },
+   "prizeInfo": {},
    "specialRuleStatus": "not_applicable",
-   "specialRuleSource": "pending_enrich",
-   "ruleVersion": null,
-   "sourceUrl": "https://data.17500.cn/kl8_asc.txt",
-   "sourceType": "third_party:17500.cn",
-   "parserVersion": "txt17500@1.0.0",
+   "ruleVersion": "kl8_2025_12_30",
+   "sourceUrl": "https://kaijiang.500.com/kl8.shtml",
+   "sourceType": "third_party:500.com",
+   "parserVersion": "thirdparty500@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-24T13:43:17.200Z",
-   "verifiedBy": "third_party:17500.cn",
+   "verifiedAt": "2026-11-24T21:43:06.540Z",
+   "verifiedBy": "third_party:500.com",
    "salesAmount": null,
    "poolAmount": null,
-   "fixedPoolAmount": null,
-   "rawHash": "888dd8652862d7843dd07c3b66bc2be53488db4e2e61344510c9a48de90011fa"
+   "rawHash": null
   },
   {
    "game": "kl8",
