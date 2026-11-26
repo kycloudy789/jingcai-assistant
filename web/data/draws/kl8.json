@@ -1,10 +1,10 @@
 {
  "schema": "jingcai-draws@1",
  "game": "kl8",
- "generatedAt": "2026-11-26T08:53:58.177Z",
- "source": "https://www.500.com（第三方兜底；官方数据优先）",
- "sourceType": "third_party:500.com",
- "parserVersion": "thirdparty500@1.0.0",
+ "generatedAt": "2026-11-26T13:50:10.453Z",
+ "source": "https://www.cwl.gov.cn",
+ "sourceApi": "https://www.cwl.gov.cn/cwl_admin/front/cwlkj/search/kjxx/findDrawNotice",
+ "parserVersion": "cwl_api@1.0.0",
  "count": 2136,
  "latestIssue": "2026315",
  "records": [
@@ -38,18 +38,49 @@
      78
     ]
    },
-   "prizeInfo": {},
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 54,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1231,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 14568,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 95587,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 408134,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 273961,
+      "amount": 2
+     }
+    }
+   },
    "specialRuleStatus": "not_applicable",
    "ruleVersion": "kl8_2025_12_30",
-   "sourceUrl": "https://kaijiang.500.com/kl8.shtml",
-   "sourceType": "third_party:500.com",
-   "parserVersion": "thirdparty500@1.0.0",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/11/25/674531.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-26T08:53:58.174Z",
-   "verifiedBy": "third_party:500.com",
-   "salesAmount": null,
-   "poolAmount": null,
-   "rawHash": null
+   "verifiedAt": "2026-11-26T13:50:10.380Z",
+   "salesAmount": 103730688,
+   "poolAmount": 98085946.58,
+   "fixedPoolAmount": 230325547.28,
+   "rawHash": "b8e4367c3af3976ce20285e038792f31c1685f68c0709619b0aa2473bb63d1b6"
   },
   {
    "game": "kl8",
@@ -81,18 +112,49 @@
      79
     ]
    },
-   "prizeInfo": {},
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 35,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 684,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 8725,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 70507,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 344576,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 291582,
+      "amount": 2
+     }
+    }
+   },
    "specialRuleStatus": "not_applicable",
    "ruleVersion": "kl8_2025_12_30",
-   "sourceUrl": "https://kaijiang.500.com/kl8.shtml",
-   "sourceType": "third_party:500.com",
-   "parserVersion": "thirdparty500@1.0.0",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/11/24/674424.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-25T09:08:52.286Z",
-   "verifiedBy": "third_party:500.com",
-   "salesAmount": null,
-   "poolAmount": null,
-   "rawHash": null
+   "verifiedAt": "2026-11-26T13:50:10.380Z",
+   "salesAmount": 104216276,
+   "poolAmount": 97707308.72,
+   "fixedPoolAmount": 241330044.48,
+   "rawHash": "2612cc8f875207c1b8cbb500174e609011b355add721559641622f51ffbbb7da"
   },
   {
    "game": "kl8",
@@ -124,18 +186,49 @@
      77
     ]
    },
-   "prizeInfo": {},
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 30,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 684,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 8771,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 66579,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 314120,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 349664,
+      "amount": 2
+     }
+    }
+   },
    "specialRuleStatus": "not_applicable",
    "ruleVersion": "kl8_2025_12_30",
-   "sourceUrl": "https://kaijiang.500.com/kl8.shtml",
-   "sourceType": "third_party:500.com",
-   "parserVersion": "thirdparty500@1.0.0",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/11/23/674417.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-24T13:43:24.122Z",
-   "verifiedBy": "third_party:500.com",
-   "salesAmount": null,
-   "poolAmount": null,
-   "rawHash": null
+   "verifiedAt": "2026-11-26T13:50:10.380Z",
+   "salesAmount": 107006714,
+   "poolAmount": 92705110.92,
+   "fixedPoolAmount": 249153064.96,
+   "rawHash": "ab3880e7e5417384aa026b672e129dc88edfc6eb2df17983379df58af72be27d"
   },
   {
    "game": "kl8",
@@ -167,18 +260,49 @@
      79
     ]
    },
-   "prizeInfo": {},
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 48,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1317,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 14603,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 106796,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 463515,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 245085,
+      "amount": 2
+     }
+    }
+   },
    "specialRuleStatus": "not_applicable",
    "ruleVersion": "kl8_2025_12_30",
-   "sourceUrl": "https://kaijiang.500.com/kl8.shtml",
-   "sourceType": "third_party:500.com",
-   "parserVersion": "thirdparty500@1.0.0",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/11/22/674211.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-23T08:13:30.990Z",
-   "verifiedBy": "third_party:500.com",
-   "salesAmount": null,
-   "poolAmount": null,
-   "rawHash": null
+   "verifiedAt": "2026-11-26T13:50:10.380Z",
+   "salesAmount": 102327224,
+   "poolAmount": 87410741.24,
+   "fixedPoolAmount": 236444693.16,
+   "rawHash": "299cb1040215fb28a91959f53a6907d808f67018a0d2c736e755415e9b275025"
   },
   {
    "game": "kl8",
@@ -210,18 +334,49 @@
      67
     ]
    },
-   "prizeInfo": {},
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 0,
+      "amount": null
+     },
+     "hit9": {
+      "count": 15,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 617,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 9558,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 71776,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 338229,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 330958,
+      "amount": 2
+     }
+    }
+   },
    "specialRuleStatus": "not_applicable",
    "ruleVersion": "kl8_2025_12_30",
-   "sourceUrl": "https://kaijiang.500.com/kl8.shtml",
-   "sourceType": "third_party:500.com",
-   "parserVersion": "thirdparty500@1.0.0",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/11/21/674205.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-22T07:27:23.576Z",
-   "verifiedBy": "third_party:500.com",
-   "salesAmount": null,
-   "poolAmount": null,
-   "rawHash": null
+   "verifiedAt": "2026-11-26T13:50:10.380Z",
+   "salesAmount": 105142572,
+   "poolAmount": 85455254.04,
+   "fixedPoolAmount": 248498576.68,
+   "rawHash": "834ea24d50c678f1f7e54faeacd50d13d05d152fa65ade8a4ce3c67e2f06da19"
   },
   {
    "game": "kl8",
@@ -253,18 +408,49 @@
      77
     ]
    },
-   "prizeInfo": {},
+   "prizeInfo": {
+    "choose10": {
+     "hit10": {
+      "count": 1,
+      "amount": 5000000
+     },
+     "hit9": {
+      "count": 39,
+      "amount": 8000
+     },
+     "hit8": {
+      "count": 1152,
+      "amount": 720
+     },
+     "hit7": {
+      "count": 15320,
+      "amount": 80
+     },
+     "hit6": {
+      "count": 113737,
+      "amount": 5
+     },
+     "hit5": {
+      "count": 516006,
+      "amount": 3
+     },
+     "hit0": {
+      "count": 364043,
+      "amount": 2
+     }
+    }
+   },
    "specialRuleStatus": "not_applicable",
    "ruleVersion": "kl8_2025_12_30",
-   "sourceUrl": "https://kaijiang.500.com/kl8.shtml",
-   "sourceType": "third_party:500.com",
-   "parserVersion": "thirdparty500@1.0.0",
+   "sourceUrl": "https://www.cwl.gov.cn/c/2026/11/20/674200.shtml",
+   "sourceType": "official_web",
+   "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-21T07:42:20.645Z",
-   "verifiedBy": "third_party:500.com",
-   "salesAmount": null,
-   "poolAmount": null,
-   "rawHash": null
+   "verifiedAt": "2026-11-26T13:50:10.380Z",
+   "salesAmount": 116221098,
+   "poolAmount": 79950961.76,
+   "fixedPoolAmount": 236862054.42,
+   "rawHash": "574fcf6ef8b884e071145f9de50a489c221e39d72977f23a84ace325f2cc7352"
   },
   {
    "game": "kl8",
@@ -334,7 +520,7 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-20T00:21:53.450Z",
+   "verifiedAt": "2026-11-26T13:50:10.380Z",
    "salesAmount": 104014196,
    "poolAmount": 78661904.9,
    "fixedPoolAmount": 238442668.42,
@@ -408,7 +594,7 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-20T00:21:53.450Z",
+   "verifiedAt": "2026-11-26T13:50:10.381Z",
    "salesAmount": 106161206,
    "poolAmount": 86689698.04,
    "fixedPoolAmount": 258876041.06,
@@ -482,7 +668,7 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-20T00:21:53.450Z",
+   "verifiedAt": "2026-11-26T13:50:10.381Z",
    "salesAmount": 101910158,
    "poolAmount": 81480531.1,
    "fixedPoolAmount": 254740958.58,
@@ -556,7 +742,7 @@
    "sourceType": "official_web",
    "parserVersion": "cwl_api@1.0.0",
    "drawStatus": "verified",
-   "verifiedAt": "2026-11-20T00:21:53.451Z",
+   "verifiedAt": "2026-11-26T13:50:10.381Z",
    "salesAmount": 103982822,
    "poolAmount": 87537844.88,
    "fixedPoolAmount": 257726815.24,
